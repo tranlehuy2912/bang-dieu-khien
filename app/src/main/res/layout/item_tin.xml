@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mot bong chat. Code doi le phai va mau nen tuy tin cua ai. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/hang"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="10dp">
+
+    <TextView
+        android:id="@+id/bong"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxWidth="280dp"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp"
+        android:textSize="16sp"
+        android:lineSpacingExtra="2dp" />
+
+    <TextView
+        android:id="@+id/gio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
+        android:textColor="@color/ink_mo"
+        android:textSize="11sp" />
+</LinearLayout>

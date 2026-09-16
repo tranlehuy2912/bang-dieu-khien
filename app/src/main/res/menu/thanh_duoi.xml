@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/tab_bang" android:icon="@drawable/ic_bang" android:title="@string/tab_bang" />
+    <item android:id="@+id/tab_bai" android:icon="@drawable/ic_bai" android:title="@string/tab_bai" />
+    <item android:id="@+id/tab_chat" android:icon="@drawable/ic_chat" android:title="@string/tab_chat" />
+    <item android:id="@+id/tab_caidat" android:icon="@drawable/ic_cai_dat" android:title="@string/tab_caidat" />
+</menu>

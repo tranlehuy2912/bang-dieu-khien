@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Dong dau: ten con + tinh trang duong truyen. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingBottom="12dp">
+
+            <TextView
+                android:id="@+id/tenCon"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/child_name"
+                android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+                android:textColor="@color/ink"
+                android:textStyle="bold" />
+
+            <View
+                android:id="@+id/chamSong"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/cham" />
+
+            <TextView
+                android:id="@+id/pinMay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/ink_soft"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- Bang canh bao: chi hien khi tablet mat lien lac hoac quyen bi tat. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/theCanhBao"
+            style="@style/The"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/alert_soft"
+            app:strokeColor="@color/alert">
+
+            <TextView
+                android:id="@+id/chuCanhBao"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:textColor="@color/alert"
+                android:textSize="14sp"
+                android:lineSpacingExtra="3dp" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- The chinh: trang thai cong + dong ho dem nguoc. -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/The"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:id="@+id/nhanTrangThai"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/vien_nhan"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="5dp"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:text="@string/bang_dang_khoa" />
+
+                <TextView
+                    android:id="@+id/dongHo"
+                    style="@style/Chu.So"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="--:--" />
+
+                <TextView
+                    android:id="@+id/duoiDongHo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="@color/ink_soft"
+                    android:textSize="14sp" />
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/thanhPhien"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:trackCornerRadius="4dp"
+                    app:trackThickness="8dp" />
+
+                <!-- Han muc ngay. Hai so nay quyet dinh bam nut nao, nen de ngay
+                     duoi dong ho chu khong day xuong cuoi man hinh. -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/Chu.Tieu"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Đã duyệt hôm nay" />
+
+                        <TextView
+                            android:id="@+id/daDuyet"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/ink"
+                            android:textSize="19sp"
+                            android:textStyle="bold"
+                            android:text="0 phút" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/Chu.Tieu"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Còn lại hôm nay" />
+
+                        <TextView
+                            android:id="@+id/conLaiNgay"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/ink"
+                            android:textSize="19sp"
+                            android:textStyle="bold"
+                            android:text="0 phút" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/thanhNgay"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:indicatorColor="@color/wait"
+                    app:trackCornerRadius="3dp"
+                    app:trackThickness="6dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Bai dang cho: chi hien khi co, va bam vao la sang thang tab Bai tap. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/theBaiCho"
+            style="@style/The"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/wait_soft"
+            app:strokeColor="@color/wait">
+
+            <TextView
+                android:id="@+id/chuBaiCho"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:drawablePadding="12dp"
+                android:padding="16dp"
+                android:textColor="#7A5200"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Nut nhanh. Ba so hay dung nhat mot hang, viec dieu khien phien mot hang. -->
+        <TextView
+            style="@style/Chu.Tieu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp"
+            android:text="Cho chơi ngay" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cho15"
+                style="@style/Nut.Nhanh"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="15'" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cho30"
+                style="@style/Nut.Nhanh"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="30'" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cho45"
+                style="@style/Nut.Nhanh"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="45'" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/choKhac"
+                style="@style/Nut.Nhanh"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Khác" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/nutDung"
+                style="@style/Nut.Nhanh"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="Tạm dừng" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/nutBot"
+                style="@style/Nut.Nhanh"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="Bớt 15'" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/nutKhoa"
+                style="@style/Nut.Nhanh"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Khoá ngay"
+                app:backgroundTint="@color/alert_soft"
+                android:textColor="@color/alert" />
+        </LinearLayout>
+
+        <!-- Nhat ky hom nay. -->
+        <TextView
+            style="@style/Chu.Tieu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/bang_nhat_ky" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/The"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/nhatKy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="6dp"
+                android:padding="16dp"
+                android:textColor="@color/ink_soft"
+                android:textSize="14sp"
+                android:text="@string/bang_chua_co_gi" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Mo toan bo may: viec cua rieng Ba Huy, de cuoi cung de khong bam nham. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/nutMoMay"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:text="Mở toàn bộ máy cho Ba Huy dùng" />
+    </LinearLayout>
+</ScrollView>

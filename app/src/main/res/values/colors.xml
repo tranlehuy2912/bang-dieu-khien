@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cung bang mau voi app ben tablet. Hai app la mot bo, nhin phai ra mot nha;
+         va Ba Huy da quen mau nao la dang choi, mau nao la dang khoa. -->
+    <color name="brand">#2F6FED</color>
+    <color name="brand_dark">#1B4FC0</color>
+    <color name="brand_soft">#E8F0FE</color>
+
+    <color name="ok">#1E8E3E</color>
+    <color name="ok_soft">#E6F4EA</color>
+
+    <color name="wait">#E8A22B</color>
+    <color name="wait_soft">#FEF5E5</color>
+
+    <color name="locked">#8A6A52</color>
+    <color name="locked_soft">#F5EDE7</color>
+
+    <color name="alert">#C0392B</color>
+    <color name="alert_soft">#FCEBE9</color>
+
+    <color name="ink">#1A1C20</color>
+    <color name="ink_soft">#5F6472</color>
+    <color name="ink_mo">#8A90A0</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="canvas">#F4F6FA</color>
+    <color name="line">#E1E5EC</color>
+
+    <color name="parent_tint">#5B4BC4</color>
+    <color name="parent_soft">#EDEAFB</color>
+    <color name="child_tint">#0F8A8A</color>
+    <color name="child_soft">#E3F5F5</color>
+</resources>

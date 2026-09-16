@@ -1,0 +1,67 @@
+rules_version = '2';
+
+// Luat truy cap cho Firestore.
+//
+// Y chinh: mot "nha" la mot don vi kin. Tablet cua Le Hoa lap ra nha va tu ghi
+// minh vao danh sach uids. Dien thoai cua Ba Huy muon vao phai xin qua cua
+// /ghep, va chi tablet moi ket nap duoc - nen ke la co biet ma nha cung khong
+// doc duoc gi.
+//
+// Dang nhap la an danh (Anonymous Auth): khong ai phai nho mat khau, nhung moi
+// may van co mot uid rieng de luat o day bam vao.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function laNguoiNha(nhaId) {
+      return request.auth != null
+        && request.auth.uid in get(/databases/$(database)/documents/nha/$(nhaId)).data.uids;
+    }
+
+    match /nha/{nhaId} {
+
+      // Lap nha. Chi cho tao khi nguoi tao tu ghi dung mot minh vao danh sach:
+      // khong ai lap mot cai nha roi nhet san uid nguoi khac vao do.
+      allow create: if request.auth != null
+        && request.resource.data.uids == [request.auth.uid];
+
+      // Doc duoc khi la nguoi nha, HOAC khi nha chua ton tai.
+      //
+      // Ve mat con ga qua trung: tablet phai doc mot cai xem nha co chua roi moi
+      // biet co phai lap khong, nhung luc do no chua the la nguoi nha cua mot cai
+      // nha chua co. Khong mo he nay thi lan chay dau tien tac cung, va trieu
+      // chung la PERMISSION_DENIED o moi thu.
+      //
+      // Thu tu hai ve PHAI nhu duoi: exists() dung truoc de khi nha chua co thi
+      // laNguoiNha khong duoc goi - goi vao la get() tra null, cham .data la ca
+      // bieu thuc bao loi chu khong ra false.
+      //
+      // Cho khong nghia la lo: ke doc duoc cung chi biet mot ma nha hai muoi ky tu
+      // ngau nhien la co ton tai hay khong, va chi trong dung khoang thoi gian truoc
+      // khi tablet lap nha.
+      allow read: if request.auth != null
+        && (!exists(/databases/$(database)/documents/nha/$(nhaId)) || laNguoiNha(nhaId));
+
+      allow update: if laNguoiNha(nhaId);
+      allow delete: if false;
+
+      // Cua xin vao nha.
+      //
+      // Phai mo rieng cho nay vi luc go ma ghep doi, dien thoai chua phai nguoi
+      // nha - lay laNguoiNha ra chan thi khong ai vao duoc bao gio. Doi lai, moi
+      // may chi dung duoc o mang ten uid cua chinh no, va noi dung trong do chi
+      // la mot ma sau so; tablet doc ma, so voi ma no dang hien tren man hinh,
+      // dung thi moi ket nap.
+      match /ghep/{uid} {
+        allow create: if request.auth != null && request.auth.uid == uid;
+        allow read: if request.auth != null
+          && (request.auth.uid == uid || laNguoiNha(nhaId));
+        allow update, delete: if laNguoiNha(nhaId);
+      }
+
+      // Con lai - trang thai, lenh, bai, nhat ky, tin nhan - chi nguoi nha.
+      match /{duong=**} {
+        allow read, write: if laNguoiNha(nhaId);
+      }
+    }
+  }
+}

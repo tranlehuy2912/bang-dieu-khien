@@ -1,0 +1,5 @@
+<!-- Nen cho nhan nho: "Đang chờ duyệt", "Đã duyệt". Mau do code dat lai. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/wait_soft" />
+    <corners android:radius="8dp" />
+</shape>

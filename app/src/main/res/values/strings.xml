@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bảng điều khiển</string>
+
+    <!-- Ten hai nguoi, de o day cho khoi lan trong ma nguon. -->
+    <string name="parent_name">Ba Huy</string>
+    <string name="child_name">Lê Hòa</string>
+
+    <!-- Thanh duoi -->
+    <string name="tab_bang">Bảng</string>
+    <string name="tab_bai">Bài tập</string>
+    <string name="tab_chat">Nhắn</string>
+    <string name="tab_caidat">Cài đặt</string>
+
+    <!-- Ghep doi -->
+    <string name="ghep_title">Nối với tablet</string>
+    <string name="ghep_huong_dan">Trên tablet của Lê Hòa: mở app Nộp bài → ổ khoá góc trên phải → Nối điện thoại Ba Huy. Màn hình đó hiện hai dòng mã, gõ vào đây.</string>
+    <string name="ghep_ma_nha">Mã nhà</string>
+    <string name="ghep_ma_ghep">Mã ghép (6 số)</string>
+    <string name="ghep_token">Token bot Telegram (để xem ảnh bài tập)</string>
+    <string name="ghep_nut">Xin vào nhà</string>
+    <string name="ghep_dang_cho">Đã gửi. Đang chờ tablet kết nạp…</string>
+    <string name="ghep_xong">Xong. Máy này đã nối với tablet.</string>
+    <string name="ghep_sai_ma">Tablet báo mã ghép không đúng. Xem lại 6 số trên tablet rồi thử lại.</string>
+
+    <!-- Bang -->
+    <string name="bang_dang_khoa">Tablet đang khoá</string>
+    <string name="bang_dang_choi">Đang chơi</string>
+    <string name="bang_tam_dung">Đang tạm dừng</string>
+    <string name="bang_da_duyet">Đã duyệt, chưa bấm chơi</string>
+    <string name="bang_cho_duyet">Đang chờ duyệt bài</string>
+    <string name="bang_che_do_ba">Đang mở toàn bộ máy</string>
+    <string name="bang_han_ngay">Hạn mức hôm nay</string>
+    <string name="bang_nhat_ky">Hôm nay</string>
+    <string name="bang_chua_co_gi">Hôm nay chưa có gì xảy ra.</string>
+    <string name="bang_mat_lien_lac">Tablet chưa báo về lâu rồi. Số liệu dưới đây có thể cũ.</string>
+
+    <!-- Bai tap -->
+    <string name="bai_trong">Chưa có bài nào được nộp.</string>
+    <string name="bai_cho">Đang chờ duyệt</string>
+    <string name="bai_da_duyet">Đã duyệt</string>
+    <string name="bai_tu_choi">Không duyệt</string>
+    <string name="bai_duyet">Duyệt</string>
+    <string name="bai_tu_choi_nut">Không duyệt</string>
+    <string name="bai_ai_chua_cham">AI chưa chấm bài này.</string>
+
+    <!-- Nhan tin -->
+    <string name="chat_go">Nhắn cho Lê Hòa…</string>
+    <string name="chat_gui">Gửi</string>
+    <string name="chat_trong">Chưa có tin nhắn nào.</string>
+
+    <!-- Chung -->
+    <string name="huy">Huỷ</string>
+    <string name="xong">Xong</string>
+    <string name="chua_noi_firebase">Bản app này chưa nối Firebase. Xem CAI_DAT_FIREBASE.md.</string>
+</resources>

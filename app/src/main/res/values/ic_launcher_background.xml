@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Xanh cua bo app, khac han mau xanh la cua app ben may ba noi: hai bieu
+         tuong nay nam canh nhau tren mot man hinh chinh thi phai phan biet duoc
+         tu xa. -->
+    <color name="ic_launcher_background">#2F6FED</color>
+</resources>

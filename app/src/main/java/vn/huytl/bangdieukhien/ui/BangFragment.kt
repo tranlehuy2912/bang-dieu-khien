@@ -14,7 +14,9 @@ import vn.huytl.bangdieukhien.R
 import vn.huytl.bangdieukhien.data.Cong
 import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.Lenh
+import vn.huytl.bangdieukhien.data.Nguoi
 import vn.huytl.bangdieukhien.data.TrangThai
+import vn.huytl.bangdieukhien.data.ViecNhaCho
 import vn.huytl.bangdieukhien.databinding.FragmentBangBinding
 
 /**
@@ -31,7 +33,25 @@ class BangFragment : Fragment() {
 
     private var ngheTrangThai: ListenerRegistration? = null
     private var ngheNhatKy: ListenerRegistration? = null
+    private var ngheViecNha: ListenerRegistration? = null
     private var moiNhat: TrangThai? = null
+
+    /** Dot viec nha ba noi dang giao, null la khong co dot nao tren Firestore. */
+    private var viecCho: ViecNhaCho? = null
+
+    /** Dang gui lenh cong gio cho dot viec ket, de khong bam hai lan. */
+    private var dangGoDotKet = false
+
+    /**
+     * Lenh dang tren duong di, va cau bao hong cua lan gui gan nhat.
+     *
+     * Firestore nhan lenh xong khong co nghia la tablet da lam; nhung it nhat tu luc
+     * bam den luc ghi duoc phai co gi do tren man hinh. Truoc day cho nay trong tron:
+     * bam "30 phut" xong khong thay gi doi, nen ai cung bam them lan nua, va tablet
+     * nhan hai lenh.
+     */
+    private var dangGuiLenh = false
+    private var loiGui = ""
 
     /**
      * Cau tra loi cuoi cung da hien, de khong hien lai mot cau hai lan.
@@ -73,6 +93,7 @@ class BangFragment : Fragment() {
         b.nutKhoa.setOnClickListener { hoiRoiKhoa() }
         b.nutMoMay.setOnClickListener { hoiMoMay() }
         b.theBaiCho.setOnClickListener { (activity as? MainActivity)?.sangTheBai() }
+        b.theViecKet.setOnClickListener { hoiRoiGoDotKet() }
     }
 
     override fun onStart() {
@@ -95,6 +116,11 @@ class BangFragment : Fragment() {
                 if (dong.isEmpty()) getString(R.string.bang_chua_co_gi)
                 else dong.joinToString("\n")
         }
+        ngheViecNha = Kho.ngheViecNha(ct) { dot ->
+            if (_b == null) return@ngheViecNha
+            viecCho = dot
+            veViecKet()
+        }
         tay.post(nhip)
     }
 
@@ -102,6 +128,7 @@ class BangFragment : Fragment() {
         tay.removeCallbacks(nhip)
         ngheTrangThai?.remove()
         ngheNhatKy?.remove()
+        ngheViecNha?.remove()
         super.onStop()
     }
 
@@ -115,22 +142,107 @@ class BangFragment : Fragment() {
      *
      * Chi hien cau con moi: mo lai app sau nua tieng ma thay "Da khoa tablet" nhay
      * len thi khong hieu may vua lam gi.
+     *
+     * Va chi hien cau tra loi cho lenh cua MAY NAY. O traLoi tren Firestore co mot
+     * cho duy nhat, ma tu khi may ba noi cung go lenh thi hai nguoi cung ghi vao do
+     * - khong loc thi Ba Huy thay "Hom nay ba cho mot lan roi" nhay len giua man
+     * hinh minh, khong hieu may vua noi voi ai.
      */
     private fun noiLaiNeuCo(tt: TrangThai?) {
         val tra = tt ?: return
+        if (tra.traLoiCho != Nguoi.BA_HUY) return
         if (tra.traLoi.isBlank() || tra.traLoiLuc <= traLoiDaHien) return
         traLoiDaHien = tra.traLoiLuc
         if (System.currentTimeMillis() - tra.traLoiLuc > 60_000L) return
         Dinh.noi(requireContext(), tra.traLoi)
     }
 
+    // ------------------------------------------------------- viec nha ket
+
+    /**
+     * The "ba bao xong ma tablet bo qua".
+     *
+     * Chi hien dung mot canh, va la canh khong con ai go duoc: ba bam xong het trong
+     * luc tablet dang tat, roi app ben ba cung xoa dot di sau khi tablet nhan - nhung
+     * tablet khong bao gio nhan, vi den luc no song lai thi ban da qua nua tieng. Le
+     * Hoa lam xong viec ma khong duoc phut nao, va khong mot dong nao bao ai ca.
+     *
+     * Khong tu cong. Tablet co the dang tat ca buoi vi mot ly do gi do, va cong gio
+     * thi phai co nguoi lon quyet.
+     */
+    private fun veViecKet() {
+        val dot = viecCho
+        if (dot == null || !dot.tabletDaBoQua) {
+            b.theViecKet.visibility = View.GONE
+            return
+        }
+        val con = getString(R.string.child_name)
+        b.chuViecKet.text = getString(
+            R.string.bang_viec_ket,
+            con, Dinh.lucNgan(dot.luc), dot.ke, dot.tongPhut
+        )
+        b.theViecKet.visibility = View.VISIBLE
+    }
+
+    private fun hoiRoiGoDotKet() {
+        val dot = viecCho ?: return
+        if (dangGoDotKet) return
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.bang_viec_ket_hoi, dot.tongPhut))
+            .setMessage(getString(R.string.bang_viec_ket_hoi_them, dot.ke))
+            .setPositiveButton(getString(R.string.bang_viec_ket_cong, dot.tongPhut)) { _, _ ->
+                goDotKet(dot)
+            }
+            .setNegativeButton(R.string.huy, null)
+            .show()
+    }
+
+    /**
+     * Cong gio roi don dot viec di.
+     *
+     * Thu tu nay quan trong: cong truoc, xoa sau. Xoa truoc ma lenh cong khong di thi
+     * ca hai dau deu sach - ba mat dot viec, tablet khong cong gi, va khong con dau
+     * vet nao de biet chuyen gi da xay ra.
+     *
+     * Gui kem ten cac viec o truong chu: tablet lay danh sach do ghi vao nhat ky, ra
+     * dung cau ma duong binh thuong van ghi - "Xong viec nha (quet nha, rua chen):
+     * +20 phut". Le Hoa doc nhat ky tren man hinh chinh, va do phai la cong chau lam
+     * ra chu khong phai mot lan nguoi lon cho.
+     */
+    private fun goDotKet(dot: ViecNhaCho) {
+        dangGoDotKet = true
+        val ct = requireContext()
+        Kho.guiLenh(ct, Lenh.CONG_VIEC_NHA, phut = dot.tongPhut, chu = dot.ke) { kq ->
+            if (kq is Kho.KetQua.Hong) {
+                dangGoDotKet = false
+                Dinh.noi(ct, kq.viSao)
+                return@guiLenh
+            }
+            Kho.xoaViecNha(ct, dot.maPhien) { kq2 ->
+                dangGoDotKet = false
+                if (kq2 is Kho.KetQua.Hong) Dinh.noi(ct, kq2.viSao)
+            }
+        }
+    }
+
     // ------------------------------------------------------------------- ve
 
     private fun ve() {
-        val tt = moiNhat ?: return
+        val tt = moiNhat
+        if (tt == null) {
+            // Chua co ban trang thai nao tu tablet. Khong ve gi ca ngoai viec khoa
+            // nut lai: bam mot lenh luc nay la bam vao khoang khong.
+            khoaNut()
+            veDuongLenh()
+            return
+        }
         val ct = requireContext()
 
         val (chu, mau, mauNhat) = when {
+            // Viec nha xet truoc ca che do Ba: dang khoa vi viec nha thi moi thu
+            // khac tren man hinh nay deu khong giai thich duoc cai tablet dang the.
+            tt.viecNha.isNotEmpty() ->
+                Bo("Đang làm việc nhà bà giao", R.color.wait, R.color.wait_soft)
             tt.cheDoBaBat -> Bo(getString(R.string.bang_che_do_ba), R.color.parent_tint, R.color.parent_soft)
             tt.cong == Cong.DANG_CHOI -> Bo(getString(R.string.bang_dang_choi), R.color.ok, R.color.ok_soft)
             tt.cong == Cong.TAM_DUNG -> Bo(getString(R.string.bang_tam_dung), R.color.wait, R.color.wait_soft)
@@ -176,6 +288,9 @@ class BangFragment : Fragment() {
 
         veCanhBao(tt)
         veDongHo()
+        // Sau cung: no bat lai hay tat het nut tuy theo co lenh dang gui khong, nen
+        // phai chay sau moi dong isEnabled o tren.
+        veDuongLenh()
     }
 
     /**
@@ -204,6 +319,16 @@ class BangFragment : Fragment() {
     private fun veDongHo() {
         val tt = moiNhat ?: return
         if (_b == null) return
+
+        // Dang co viec nha chua xong: tablet bi che kin man hinh, khong phai dang
+        // dem gio. Ke ten viec ra chu khong de dong ho dem nguoc gi ca - khong co
+        // moc nao de dem, viec het khi ba noi bam xong.
+        if (tt.viecNha.isNotEmpty()) {
+            b.dongHo.text = if (tt.viecNha.size == 1) "1 việc" else "${tt.viecNha.size} việc"
+            b.duoiDongHo.text = tt.viecNha.joinToString(", ") + " — bà nội bấm xong thì máy mở"
+            b.thanhPhien.visibility = View.GONE
+            return
+        }
 
         if (tt.cheDoBaBat) {
             b.dongHo.text = if (tt.cheDoBaHetLuc > 0) {
@@ -240,7 +365,9 @@ class BangFragment : Fragment() {
                 b.thanhPhien.visibility = View.VISIBLE
                 // Thanh chay theo phien hien tai chu khong theo han muc ngay: moc
                 // day la luc bat dau phien, tuc la so phut duoc cap lan nay.
-                val tong = (tt.conLaiMs).coerceAtLeast(conLai)
+                // Tong lay tu tablet. Truoc day lay conLaiMs, ma truong do luc
+                // dang choi chinh la so dang chay, nen thanh luon day gan het.
+                val tong = maxOf(tt.tongPhienMs, tt.conLaiMs, conLai)
                 b.thanhPhien.max = (tong / 1000).toInt().coerceAtLeast(1)
                 b.thanhPhien.progress = (conLai / 1000).toInt()
             }
@@ -251,10 +378,57 @@ class BangFragment : Fragment() {
 
     private fun cho(phut: Int) = gui(Lenh.CHO, phut = phut)
 
+    /**
+     * Gui mot lenh, va cho ca man hinh biet la dang gui.
+     *
+     * Khoa het nut trong luc cho: hai lenh "cho choi" lien nhau la hai phien, ma
+     * nguoi bam thi tuong minh vua bam hut mot cai.
+     */
     private fun gui(kieu: String, phut: Int? = null, chu: String? = null) {
+        if (dangGuiLenh) return
+        dangGuiLenh = true
+        loiGui = ""
+        veDuongLenh()
         Kho.guiLenh(requireContext(), kieu, phut = phut, chu = chu) { kq ->
-            if (kq is Kho.KetQua.Hong) Dinh.noi(requireContext(), kq.viSao)
+            dangGuiLenh = false
+            // Man hinh co the da bi go trong luc cho mang.
+            if (_b == null) return@guiLenh
+            loiGui = if (kq is Kho.KetQua.Hong) kq.viSao else ""
+            ve()
         }
+    }
+
+    /**
+     * Dong bao tinh hinh duoi hai hang nut, va khoa nut khi dang gui.
+     *
+     * Goi ca tu [ve] lan tu chinh [gui]: luc vua bam thi chua co ban trang thai moi
+     * nao tu Firestore ve de [ve] chay theo.
+     */
+    private fun veDuongLenh() {
+        if (_b == null) return
+        val ct = requireContext()
+        when {
+            dangGuiLenh -> {
+                b.chuGui.visibility = View.VISIBLE
+                b.chuGui.text = getString(R.string.bang_dang_gui)
+                b.chuGui.setTextColor(ContextCompat.getColor(ct, R.color.ink_soft))
+            }
+            loiGui.isNotEmpty() -> {
+                b.chuGui.visibility = View.VISIBLE
+                b.chuGui.text = getString(R.string.bang_gui_hong, loiGui)
+                b.chuGui.setTextColor(ContextCompat.getColor(ct, R.color.alert))
+            }
+            else -> b.chuGui.visibility = View.GONE
+        }
+        if (dangGuiLenh) khoaNut()
+    }
+
+    /** Tat het nut bam duoc trong luc mot lenh dang tren duong di. */
+    private fun khoaNut() {
+        listOf(
+            b.cho15, b.cho30, b.cho45, b.choKhac,
+            b.nutDung, b.nutBot, b.nutKhoa, b.nutMoMay
+        ).forEach { it.isEnabled = false }
     }
 
     private fun hoiSoPhut() {

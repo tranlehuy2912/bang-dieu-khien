@@ -39,6 +39,9 @@ class CaiDatFragment : Fragment() {
     private var ngheCaiDat: ListenerRegistration? = null
     private var ngheApp: ListenerRegistration? = null
 
+    /** Dang cho tablet vua cai lai app xin vao nha. Xem [noiLaiTablet]. */
+    private var ngheXin: ListenerRegistration? = null
+
     private var caiDat: CaiDat? = null
     private var dsApp: List<AppTrenMay> = emptyList()
 
@@ -67,6 +70,8 @@ class CaiDatFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        ngheXin?.remove()
+        ngheXin = null
         _b = null
         super.onDestroyView()
     }
@@ -131,7 +136,11 @@ class CaiDatFragment : Fragment() {
             muc("Mã nhà", Nha.maNha(requireContext()).take(8) + "…", null) {},
             muc("Ghép đôi lại", "", "Nối máy này với tablet một lần nữa") {
                 startActivity(Intent(requireContext(), GhepDoiActivity::class.java))
-            }
+            },
+            muc(
+                "Nối lại máy tính bảng", "",
+                "Khi tablet vừa cài lại app và mất hết dữ liệu"
+            ) { noiLaiTablet() }
         ))
 
         b.than.addView(tieu("Nguy hiểm"))
@@ -148,6 +157,51 @@ class CaiDatFragment : Fragment() {
                 ) { Kho.guiLenh(requireContext(), Lenh.CHO_GO_APP) }
             }
         ))
+    }
+
+    /**
+     * Phat ma ghep cho tablet vua cai lai app, roi ngoi cho no xin vao.
+     *
+     * NGUOC CHIEU voi man ghep doi cu. Binh thuong tablet lap nha va ket nap may nay;
+     * nhung khi tablet vua bi cai lai thi no mat sach - mat ma nha, mat ca tu cach
+     * nguoi nha tren Firestore. Luc do may nay la may duy nhat con trong nha, nen no
+     * phai lam nguoi giu cua.
+     *
+     * Hien ca MA NHA day du chu khong cat bot: day la luc Ba Huy phai go lai ma do
+     * sang tablet, ma tam chu "abc123…" thi go kieu gi.
+     */
+    private fun noiLaiTablet() {
+        val maNha = Nha.maNha(requireContext())
+        if (maNha.isEmpty()) {
+            Dinh.noi(requireContext(), "Máy này chưa ghép với tablet.")
+            return
+        }
+        Kho.taoMaGhepChoTablet(requireContext()) { ma, loi ->
+            if (ma.isEmpty()) {
+                Dinh.noi(requireContext(), loi.ifBlank { "Không tạo được mã ghép." })
+                return@taoMaGhepChoTablet
+            }
+            val hop = MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Nối lại máy tính bảng")
+                .setMessage(
+                    "Trên tablet vào Cài đặt → Khôi phục sau khi cài lại app, gõ:\n\n" +
+                        "Mã nhà:  $maNha\n" +
+                        "Mã ghép: $ma\n\n" +
+                        "Mã sống 10 phút. Để màn này mở đến khi tablet nối được."
+                )
+                .setPositiveButton("Đóng", null)
+                .setCancelable(false)
+                .show()
+
+            ngheXin?.remove()
+            ngheXin = Kho.ngheXinVao(requireContext()) { duoc ->
+                if (!duoc) return@ngheXinVao
+                ngheXin?.remove()
+                ngheXin = null
+                hop.setMessage("Đã nối lại máy tính bảng. Sổ cũ sẽ được kéo về ngay trên tablet.")
+                Dinh.noi(requireContext(), "Đã nối lại máy tính bảng")
+            }
+        }
     }
 
     // ------------------------------------------------------------- hoi va gui

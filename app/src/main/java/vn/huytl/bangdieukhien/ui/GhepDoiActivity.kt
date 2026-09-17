@@ -4,6 +4,9 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import com.google.firebase.firestore.ListenerRegistration
 import vn.huytl.bangdieukhien.R
 import vn.huytl.bangdieukhien.data.Kho
@@ -31,6 +34,13 @@ class GhepDoiActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         b = ActivityGhepDoiBinding.inflate(layoutInflater)
         setContentView(b.root)
+        ViewCompat.setOnApplyWindowInsetsListener(b.root) { view, insets ->
+            // Tu Android 15 app ve tran ca man hinh. Khong chua cho thi dong "Noi
+            // voi tablet" nam duoi thanh trang thai.
+            val thanh = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(top = thanh.top, bottom = thanh.bottom)
+            insets
+        }
 
         b.oMaNha.setText(Nha.maNha(this))
         b.oToken.setText(Nha.token(this))

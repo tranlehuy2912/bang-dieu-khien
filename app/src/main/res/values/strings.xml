@@ -25,6 +25,13 @@
 
     <!-- Bang -->
     <string name="bang_dang_khoa">Tablet đang khoá</string>
+    <!-- Truoc khi tablet kip bao ve. Khong de san "Tablet dang khoa" o day nua:
+         mo app ra luc con dang choi ma man hinh khang dinh may dang khoa thi lan
+         sau khong tin duoc dong nao tren trang nay. -->
+    <string name="bang_dang_hoi">Đang hỏi tablet…</string>
+    <string name="bang_gach">—</string>
+    <string name="bang_dang_gui">Đang gửi lệnh cho tablet…</string>
+    <string name="bang_gui_hong">Không gửi được: %1$s</string>
     <string name="bang_dang_choi">Đang chơi</string>
     <string name="bang_tam_dung">Đang tạm dừng</string>
     <string name="bang_da_duyet">Đã duyệt, chưa bấm chơi</string>
@@ -53,4 +60,10 @@
     <string name="huy">Huỷ</string>
     <string name="xong">Xong</string>
     <string name="chua_noi_firebase">Bản app này chưa nối Firebase. Xem CAI_DAT_FIREBASE.md.</string>
+
+    <!-- The "ba bao xong viec ma tablet luc do dang tat" -->
+    <string name="bang_viec_ket">Bà nội báo %1$s làm xong việc nhà lúc %2$s: %3$s (%4$d phút). Lúc đó tablet đang tắt nên chưa cộng, và bà không còn nút nào để gửi lại. Chạm để cộng.</string>
+    <string name="bang_viec_ket_hoi">Cộng %1$d phút cho việc nhà?</string>
+    <string name="bang_viec_ket_hoi_them">Bà nội đã báo xong: %1$s. Số phút này không trừ vào hạn mức ngày.</string>
+    <string name="bang_viec_ket_cong">Cộng %1$d phút</string>
 </resources>

@@ -13,10 +13,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BangDieuKhien">
 
+        <!-- adjustResize de ban phim khong che mat o go chu o the Nhan. -->
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

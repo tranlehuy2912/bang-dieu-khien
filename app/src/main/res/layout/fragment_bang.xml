@@ -87,7 +87,7 @@
                     android:paddingVertical="5dp"
                     android:textSize="12sp"
                     android:textStyle="bold"
-                    android:text="@string/bang_dang_khoa" />
+                    android:text="@string/bang_dang_hoi" />
 
                 <TextView
                     android:id="@+id/dongHo"
@@ -95,7 +95,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:text="--:--" />
+                    android:text="@string/bang_gach" />
 
                 <TextView
                     android:id="@+id/duoiDongHo"
@@ -140,7 +140,7 @@
                             android:textColor="@color/ink"
                             android:textSize="19sp"
                             android:textStyle="bold"
-                            android:text="0 phút" />
+                            android:text="@string/bang_gach" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -162,7 +162,7 @@
                             android:textColor="@color/ink"
                             android:textSize="19sp"
                             android:textStyle="bold"
-                            android:text="0 phút" />
+                            android:text="@string/bang_gach" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -199,6 +199,31 @@
                 android:textColor="#7A5200"
                 android:textSize="15sp"
                 android:textStyle="bold" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Ba bao xong viec ma tablet luc do dang tat, nen no da bo qua. Cho nay la
+             duong cuu duy nhat: ba khong con nut de gui lai, con tablet thi khong tu
+             cong gio cho mot dot qua nua tieng. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/theViecKet"
+            style="@style/The"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/alert_soft"
+            app:strokeColor="@color/alert">
+
+            <TextView
+                android:id="@+id/chuViecKet"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="3dp"
+                android:padding="16dp"
+                android:textColor="@color/alert"
+                android:textSize="14sp" />
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Nut nhanh. Ba so hay dung nhat mot hang, viec dieu khien phien mot hang. -->
@@ -285,6 +310,20 @@
                 app:backgroundTint="@color/alert_soft"
                 android:textColor="@color/alert" />
         </LinearLayout>
+
+        <!-- Lenh dang tren duong di, hay vua hong.
+
+             Truoc day cho nay khong co gi: bam mot nut la khong thay phan hoi nao
+             cho toi luc tablet lam xong va bao ve, con hong thi chi co mot cau Toast
+             troi qua. Ai cung bam hai lan. -->
+        <TextView
+            android:id="@+id/chuGui"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:lineSpacingExtra="2dp"
+            android:textSize="14sp"
+            android:visibility="gone" />
 
         <!-- Nhat ky hom nay. -->
         <TextView

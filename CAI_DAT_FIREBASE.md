@@ -31,7 +31,7 @@ Luật truy cập (rules) tôi viết sẵn trong `firestore.rules`, dán vào s
 Ẩn danh nghĩa là hai máy không phải nhớ mật khẩu nào, nhưng vẫn có danh tính
 riêng để luật truy cập chặn người lạ.
 
-## 4. Khai báo hai app
+## 4. Khai báo ba app
 
 Bánh răng góc trên trái → **Project settings** → kéo xuống **Your apps** →
 biểu tượng Android.
@@ -51,14 +51,98 @@ biểu tượng Android.
 - Tải `google-services.json` rồi chép vào:
   `~/Documents/homework-gate-3/app/google-services.json`
 
-Hai file trùng tên nhưng khác nội dung, đừng chép nhầm chỗ. Cả hai đã nằm trong
+**Lần 3 — điện thoại của bà nội** (bấm **Add app** → Android lần nữa):
+- Android package name: `vn.huytl.chogiochoi`
+- App nickname: `Cho giờ chơi`
+- SHA-1: để trống, bấm **Register app**
+- Tải `google-services.json` rồi chép vào:
+  `~/Documents/homework-gate-2/app/google-services.json`
+
+Ba file trùng tên nhưng khác nội dung, đừng chép nhầm chỗ. Cả ba đã nằm trong
 `.gitignore`.
+
+Phải là cùng một project cho cả ba: chúng nhìn chung một cái nhà trên Firestore,
+khác project là không thấy nhau.
 
 ## 5. Dán luật truy cập
 
 1. **Build → Firestore Database** → thẻ **Rules**
 2. Xoá hết, dán toàn bộ nội dung file `firestore.rules` trong thư mục này
 3. **Publish**
+
+Làm lại bước này mỗi lần `firestore.rules` đổi. Luật không đi theo bản app: nó nằm
+trong console, và dán bản cũ đè lên là mở lại đúng cái vừa chặn. Lần này luật có
+thêm `uidsPhu` — danh sách quyền hẹp cho máy bà nội, chỉ cho giờ và giao việc nhà.
+Không dán thì máy bà bấm gì cũng bị từ chối.
+
+## 6. Một dự án riêng để thử
+
+> **Đã làm xong ngày 16/09/2026.** Dự án thử tên `homework-gate-thu` đã tạo, đã bật
+> Firestore (asia-southeast1) và đăng nhập ẩn danh, đã khai app `vn.huytl.homeworkgate`,
+> đã dán luật, và file cấu hình đã nằm ở `homework-gate/app/src/debug/google-services.json`.
+> Máy ảo đã chạy thử và nối đúng vào dự án đó. Phần dưới giữ lại để sau này cần dựng
+> lại thì có đường đi, **đừng tạo thêm một dự án thử thứ hai**.
+
+Máy ảo cũng ghi vào Firestore thật: mỗi lần chạy bộ test là một "nhà" mới mở ra
+trong dự án. Chung một dự án thì rác của máy ảo nằm cạnh dữ liệu thật của Lê Hòa,
+dùng chung hạn mức miễn phí, và một lần vào console dọn nhầm tay là mất dữ liệu
+thật. Nên tách hẳn hai dự án: một cho máy ảo, một cho tablet.
+
+Không phải sửa dòng code nào — Gradle tự chọn file theo bản build:
+
+```
+app/src/debug/google-services.json   dự án THỬ  (máy ảo dùng)
+app/google-services.json             dự án THẬT (tablet của Lê Hòa dùng)
+```
+
+**Các bước** (giống hệt mục 1–5 ở trên, chỉ khác tên và chỗ đặt file):
+
+1. https://console.firebase.google.com → **Create a project** → tên
+   `homework-gate-thu` → tắt Analytics → **Create project**
+2. **Build → Firestore Database** → **Create database** → **asia-southeast1
+   (Singapore)** → **Start in production mode**
+3. **Build → Authentication** → **Get started** → **Anonymous** → **Enable**
+4. Bánh răng → **Project settings** → **Your apps** → Android:
+   - Android package name: `vn.huytl.homeworkgate`
+   - SHA-1 để trống → **Register app** → **Download google-services.json**
+   - Chép file đó vào — **chú ý đường dẫn khác mục 4 ở trên**:
+     `~/Documents/homework-gate/app/src/debug/google-services.json`
+   - Muốn thử cả app điện thoại trên máy ảo thì khai thêm app
+     `vn.huytl.bangdieukhien`, file tải về đặt ở
+     `~/Documents/homework-gate-3/app/src/debug/google-services.json`
+5. **Firestore Database → Rules** → dán `firestore.rules` → **Publish**
+
+**Kiểm lại:**
+
+```
+tools/emu.sh status
+```
+
+Dòng đầu phải ra như thế này:
+
+```
+--- firebase ---
+ban go loi: homework-gate-thu
+ban that:   nop-bai-4934d
+```
+
+Chưa đặt file thì mỗi lần build sẽ có một dòng cảnh báo `CHU Y: ... BAN GO LOI
+DANG NOI VAO DU AN FIREBASE THAT`, và `emu.sh status` ghi rõ `<-- DU AN THAT!`.
+
+**Vài điều đi kèm:**
+
+- Tablet không phải làm gì cả. Bản release vẫn lấy `app/google-services.json`
+  như cũ, cài đè lên máy Lê Hòa không mất gì.
+- Đổi xong, máy ảo lập một nhà mới bên dự án thử, nên điện thoại nào đã ghép với
+  nhà cũ thì phải ghép lại **nếu muốn thử trên máy ảo**. Ghép với tablet thật thì
+  không đụng gì.
+- Mấy cái nhà rác máy ảo đã tạo trong dự án thật: vào console, **Firestore
+  Database → Data → nha**, xoá các document lạ. Nhà của tablet là nhà có
+  `tenCon` và đang được cập nhật liên tục.
+- Muốn chắc hơn nữa thì chuyển `app/google-services.json` sang
+  `app/src/release/google-services.json`. Khi đó bản gỡ lỗi không còn đường tụt
+  xuống dùng file thật — nhưng đổi lại, thiếu file thử là bản gỡ lỗi không build
+  được luôn. Chỉ nên làm sau khi dự án thử đã chạy ngon.
 
 ## Xong thì báo tôi
 

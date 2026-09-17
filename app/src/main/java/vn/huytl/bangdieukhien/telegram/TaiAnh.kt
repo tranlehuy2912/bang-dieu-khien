@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
+import android.util.LruCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -29,6 +30,24 @@ import java.util.concurrent.TimeUnit
 object TaiAnh {
 
     private const val TAG = "BangDieuKhien"
+
+    /**
+     * Cac tam nho da doc ra bitmap, giu lai trong bo nho.
+     *
+     * Danh sach bai ve lai moi lan Firestore bao co gi doi - pin tablet tut mot
+     * phan tram cung la mot lan. Khong giu thi moi lan do la mot lan doc lai ca
+     * chuc file JPEG tu the nho, va nguoi xem thay anh chop tat mot cai.
+     *
+     * Chi giu tam nho: mot tam anh mo het man hinh nang bang ca tram tam nho, giu
+     * no lai la day het cac tam khac ra ngoai.
+     */
+    private const val RONG_GIU_LAI = 400
+
+    private val nho = object : LruCache<String, Bitmap>(
+        (Runtime.getRuntime().maxMemory() / 8).toInt()
+    ) {
+        override fun sizeOf(key: String, value: Bitmap) = value.byteCount
+    }
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
@@ -68,7 +87,15 @@ object TaiAnh {
         }
 
     /** Doc anh ra bitmap, thu nho cho vua o hien. */
-    suspend fun doc(file: File, rongToiDa: Int): Bitmap? = withContext(Dispatchers.IO) {
+    suspend fun doc(file: File, rongToiDa: Int): Bitmap? {
+        val khoa = file.absolutePath + "@" + rongToiDa
+        if (rongToiDa <= RONG_GIU_LAI) nho.get(khoa)?.let { return it }
+        val bm = docThat(file, rongToiDa)
+        if (bm != null && rongToiDa <= RONG_GIU_LAI) nho.put(khoa, bm)
+        return bm
+    }
+
+    private suspend fun docThat(file: File, rongToiDa: Int): Bitmap? = withContext(Dispatchers.IO) {
         runCatching {
             val do1 = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(file.absolutePath, do1)

@@ -11,6 +11,50 @@ import com.google.firebase.firestore.DocumentSnapshot
  * loi chay tot. Doc tay thi thieu truong la ra gia tri mac dinh, nhin thay ngay.
  */
 
+/**
+ * Mot dot viec nha ba noi giao, doc tu hop/viecnha.
+ *
+ * Document nay chi may ba ghi. May nay doc de lam mot viec duy nhat: chia ra thay
+ * khi tablet chac chan se tu choi - dot da xong het ma go tu lau hon [Duong.QUA_CU_MS],
+ * nghia la luc ba bam xong thi tablet dang tat. Xem the trong BangFragment.
+ */
+data class ViecNhaCho(
+    val maPhien: String,
+    /** Luc ba bam lan gan nhat. Ghi lai moi lan ba cham vao, khong phai luc giao. */
+    val luc: Long,
+    val cac: List<Viec>
+) {
+    data class Viec(val ten: String, val phut: Int, val xong: Boolean)
+
+    val xongHet: Boolean get() = cac.isNotEmpty() && cac.all { it.xong }
+    val tongPhut: Int get() = cac.sumOf { it.phut }
+    val ke: String get() = cac.joinToString(", ") { it.ten }
+
+    /** Tablet chac chan da bo qua dot nay, va ba thi khong con biet de bam lai. */
+    val tabletDaBoQua: Boolean
+        get() = xongHet && luc > 0L && System.currentTimeMillis() - luc > Duong.QUA_CU_MS
+
+    companion object {
+        fun doc(d: DocumentSnapshot?): ViecNhaCho? {
+            if (d == null || !d.exists()) return null
+            val ma = d.getString(Duong.F_MA_PHIEN).orEmpty()
+            if (ma.isBlank()) return null
+            val cac = (d.get(Duong.F_VIEC) as? List<*>).orEmpty()
+                .filterIsInstance<Map<*, *>>()
+                .mapNotNull { o ->
+                    val ten = (o[Duong.F_TEN] as? String)?.trim()?.takeIf { it.isNotEmpty() }
+                        ?: return@mapNotNull null
+                    Viec(
+                        ten = ten,
+                        phut = (o[Duong.F_PHUT] as? Number)?.toInt() ?: 0,
+                        xong = o[Duong.F_XONG] == true
+                    )
+                }
+            return ViecNhaCho(ma, d.getLong(Duong.F_LUC) ?: 0L, cac)
+        }
+    }
+}
+
 /** Trang thai tablet, doc tu hop/trangthai. */
 data class TrangThai(
     val cong: String = Cong.KHOA,
@@ -23,6 +67,10 @@ data class TrangThai(
      */
     val ketThucLuc: Long = 0L,
     val conLaiMs: Long = 0L,
+    /** Ca phien dai bao nhieu ms, de ve thanh chay. Dung yen suot phien. */
+    val tongPhienMs: Long = 0L,
+    /** Viec nha ba noi giao ma Le Hoa chua lam xong. Con viec thi tablet dang khoa. */
+    val viecNha: List<String> = emptyList(),
     val phutDaDuyet: Int = 0,
     val phutConLai: Int = 0,
     val soBaiCho: Int = 0,
@@ -39,7 +87,9 @@ data class TrangThai(
     val capNhatLuc: Long = 0L,
     /** Cau tablet noi lai sau khi lam lenh gan nhat, rong la chua co gi. */
     val traLoi: String = "",
-    val traLoiLuc: Long = 0L
+    val traLoiLuc: Long = 0L,
+    /** Cau tra loi do do lenh cua ai: [Nguoi.BA_HUY] hay [Nguoi.BA_NOI]. */
+    val traLoiCho: String = Nguoi.BA_HUY
 ) {
 
     /**
@@ -60,8 +110,18 @@ data class TrangThai(
     fun coCanhBao(): Boolean = !quyenTroGiup || !quyenQuanTri || !quyenNoi || !coPin
 
     companion object {
-        /** Tablet ghi lai moi luc doi trang thai, va it nhat mot lan moi 15 phut. */
-        const val CU_SAU_MS = 40 * 60_000L
+        /**
+         * Tablet ghi lai moi luc doi trang thai, va it nhat mot lan moi 15 phut -
+         * nhung tu 23:00 den 05:00 thi mot tieng mot lan, de do danh thuc may ban dem.
+         *
+         * Nen nguong nay phai qua duoc mot tieng cong them mot nhip tre, khong thi
+         * ca dem man hinh nay bao "tablet chua bao ve lau roi" trong khi tablet van
+         * chay binh thuong. Doi lai, mot tablet chet that giua dem cung phai qua mot
+         * tieng ruoi moi bi goi ten - chap nhan duoc, vi giua dem thi khong ai nhin.
+         *
+         * Con so nay phai di theo NHIP_TIM_DEM_MS ben tablet (DongBo.kt).
+         */
+        const val CU_SAU_MS = 90 * 60_000L
 
         fun doc(d: DocumentSnapshot?): TrangThai? {
             if (d == null || !d.exists()) return null
@@ -71,6 +131,9 @@ data class TrangThai(
                 cong = d.getString(Duong.F_CONG) ?: Cong.KHOA,
                 ketThucLuc = d.getLong(Duong.F_KET_THUC_LUC) ?: 0L,
                 conLaiMs = d.getLong(Duong.F_CON_LAI_MS) ?: 0L,
+                tongPhienMs = d.getLong(Duong.F_TONG_PHIEN_MS) ?: 0L,
+                viecNha = (d.get(Duong.F_VIEC_NHA) as? List<*>).orEmpty()
+                    .mapNotNull { it as? String },
                 phutDaDuyet = (d.getLong(Duong.F_PHUT_DA_DUYET) ?: 0L).toInt(),
                 phutConLai = (d.getLong(Duong.F_PHUT_CON_LAI) ?: 0L).toInt(),
                 soBaiCho = (d.getLong(Duong.F_SO_BAI_CHO) ?: 0L).toInt(),
@@ -87,7 +150,9 @@ data class TrangThai(
                 capNhatLuc = d.getLong(Duong.F_CAP_NHAT_LUC) ?: 0L,
                 traLoi = (d.get(Duong.F_TRA_LOI) as? Map<*, *>)?.get("chu") as? String ?: "",
                 traLoiLuc = ((d.get(Duong.F_TRA_LOI) as? Map<*, *>)?.get("luc") as? Number)
-                    ?.toLong() ?: 0L
+                    ?.toLong() ?: 0L,
+                traLoiCho = (d.get(Duong.F_TRA_LOI) as? Map<*, *>)
+                    ?.get(Duong.F_AI) as? String ?: Nguoi.BA_HUY
             )
         }
     }

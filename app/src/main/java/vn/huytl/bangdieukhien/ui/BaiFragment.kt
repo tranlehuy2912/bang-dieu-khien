@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.ListenerRegistration
@@ -66,12 +67,28 @@ class BaiFragment : Fragment() {
         super.onDestroyView()
     }
 
+    private fun Int.dp(): Int = (this * resources.displayMetrics.density).toInt()
+
     private inner class Bo : RecyclerView.Adapter<O>() {
         private var cac: List<Bai> = emptyList()
 
+        /**
+         * Chi ve lai nhung dong that su doi.
+         *
+         * Firestore goi lai moi lan bat ky truong nao doi, ke ca mot bai moi them
+         * o dau danh sach. Ve lai tat ca thi moi dong deu vut anh di roi doc lai,
+         * va ca danh sach chop mot cai. [Bai] la data class nen so sanh duoc thang
+         * bang dau bang.
+         */
         fun dat(moi: List<Bai>) {
+            val cu = cac
             cac = moi
-            notifyDataSetChanged()
+            DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+                override fun getOldListSize() = cu.size
+                override fun getNewListSize() = moi.size
+                override fun areItemsTheSame(a: Int, b: Int) = cu[a].id == moi[b].id
+                override fun areContentsTheSame(a: Int, b: Int) = cu[a] == moi[b]
+            }).dispatchUpdatesTo(this)
         }
 
         override fun onCreateViewHolder(cha: ViewGroup, kieu: Int) =
@@ -131,10 +148,15 @@ class BaiFragment : Fragment() {
             }
             v.hangAnh.visibility = View.VISIBLE
 
+            val canh = 76.dp()
+            val cach = 10.dp()
             bai.anh.take(3).forEach { anh ->
                 val o = ImageView(requireContext()).apply {
-                    layoutParams = LinearLayout.LayoutParams(150, 150).also {
-                        it.marginEnd = 16
+                    // Do bang dp chu khong bang pixel: 150 pixel tho tren mot may
+                    // 3x ra vua dung 50dp, tuc la tam anh trang vo co lai bang con
+                    // tem va khong con doc duoc chu gi.
+                    layoutParams = LinearLayout.LayoutParams(canh, canh).also {
+                        it.marginEnd = cach
                     }
                     scaleType = ImageView.ScaleType.CENTER_CROP
                     setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.canvas))

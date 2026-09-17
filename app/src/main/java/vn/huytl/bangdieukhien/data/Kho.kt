@@ -94,7 +94,15 @@ object Kho {
 
             d.collection(Duong.NHA).document(maNha.trim())
                 .collection(Duong.GHEP).document(uid)
-                .set(mapOf("ma" to maGhep.trim(), "luc" to System.currentTimeMillis()))
+                .set(
+                    mapOf(
+                        "ma" to maGhep.trim(),
+                        "luc" to System.currentTimeMillis(),
+                        // May nay xin vao lam nguoi nha day du. May ba noi gui
+                        // Nguoi.BA_NOI, va ben kia xep no vao danh sach phu.
+                        Duong.F_AI to Nguoi.BA_HUY
+                    )
+                )
                 .addOnSuccessListener { xong(KetQua.Xong) }
                 .addOnFailureListener {
                     Log.w(TAG, "xin vao nha hong", it)
@@ -125,6 +133,80 @@ object Kho {
                 khi(snap?.getString("trangThai").orEmpty())
             }
     }
+
+    // ------------------------------------------- ket nap lai may tinh bang
+
+    /**
+     * Tao mot ma ghep de tablet xin vao lai nha nay.
+     *
+     * NGUOC CHIEU voi [xinVaoNha]. Binh thuong tablet lap nha va ket nap dien thoai.
+     * Nhung cai lai app tren tablet la no mat sach: mat ma nha, va mat ca tu cach
+     * nguoi nha tren Firestore. Luc do dien thoai la may duy nhat con trong nha, nen
+     * no phai lam nguoi giu cua.
+     *
+     * Ma song muoi phut, y nhu ma tablet tung phat. Het han thi tao lai.
+     */
+    fun taoMaGhepChoTablet(context: Context, xong: (ma: String, loi: String) -> Unit) {
+        val d = nha(context) ?: return xong("", "Máy này chưa ghép với tablet.")
+        val ma = "%06d".format(java.security.SecureRandom().nextInt(1_000_000))
+        d.update(
+            mapOf(
+                Duong.F_MA_GHEP to ma,
+                Duong.F_MA_GHEP_HET_HAN to System.currentTimeMillis() + MA_GHEP_SONG_MS
+            )
+        )
+            .addOnSuccessListener { xong(ma, "") }
+            .addOnFailureListener {
+                Log.w(TAG, "tao ma ghep hong", it)
+                xong("", loiNguoiDoc(it))
+            }
+    }
+
+    /**
+     * Nghe xem co may nao dang xin vao nha, va ket nap neu ma dung.
+     *
+     * Chep dung luat ma tablet van dung: so ma, con han thi them uid vao danh sach
+     * nguoi nha roi ghi "OK"; sai thi ghi "SAI". Thu hoi ma ngay sau khi dung - mot
+     * ma mot lan, de anh chup man hinh tu tuan truoc khong con gia tri.
+     *
+     * [khi] duoc goi voi true khi vua ket nap mot may.
+     */
+    fun ngheXinVao(context: Context, khi: (ketNapDuoc: Boolean) -> Unit): ListenerRegistration? {
+        val d = nha(context) ?: return null
+        return d.collection(Duong.GHEP).addSnapshotListener { snap, loi ->
+            if (loi != null) return@addSnapshotListener
+            snap?.documents.orEmpty().forEach { xin ->
+                if (xin.getString("trangThai") != null) return@forEach
+                // Bo qua chinh loi xin cua may nay, neu no con sot lai tu lan ghep cu.
+                if (xin.id == uid(context)) return@forEach
+                d.get().addOnSuccessListener { nhaDoc ->
+                    val ma = nhaDoc.getString(Duong.F_MA_GHEP).orEmpty()
+                    val han = nhaDoc.getLong(Duong.F_MA_GHEP_HET_HAN) ?: 0L
+                    val dung = ma.isNotEmpty() &&
+                        xin.getString("ma") == ma &&
+                        System.currentTimeMillis() < han
+                    if (dung) {
+                        // May ba noi vao danh sach phu: luat ben Firestore chi cho
+                        // danh sach do go lenh cho gio. Xem uidsPhu trong
+                        // firestore.rules.
+                        val phu = xin.getString(Duong.F_AI) == Nguoi.BA_NOI
+                        d.update(
+                            if (phu) Duong.F_UIDS_PHU else Duong.F_UIDS,
+                            FieldValue.arrayUnion(xin.id)
+                        )
+                        xin.reference.update("trangThai", "OK")
+                        d.update(Duong.F_MA_GHEP, "", Duong.F_MA_GHEP_HET_HAN, 0L)
+                        khi(true)
+                    } else {
+                        xin.reference.update("trangThai", "SAI")
+                    }
+                }
+            }
+        }
+    }
+
+    /** Ma ghep song bao lau. Du de cam hai may len go, khong du de quen. */
+    private const val MA_GHEP_SONG_MS = 10 * 60_000L
 
     // ------------------------------------------------------------------- nghe
 
@@ -178,6 +260,18 @@ object Kho {
                 khi(snap?.documents.orEmpty().map { TinChat.doc(it) }.reversed())
             }
 
+    /**
+     * Nghe dot viec nha ba noi giao.
+     *
+     * Document nay chi may ba ghi, va tablet xoa di khi da khep dot lai. Con nam do
+     * nghia la chua ai nhan.
+     */
+    fun ngheViecNha(context: Context, khi: (ViecNhaCho?) -> Unit): ListenerRegistration? =
+        hop(context, Duong.D_VIEC_NHA)?.addSnapshotListener { snap, loi ->
+            if (loi != null) return@addSnapshotListener
+            khi(ViecNhaCho.doc(snap))
+        }
+
     /** Nhat ky mot ngay, dang "yyyy-MM-dd". */
     fun ngheNhatKy(context: Context, ngay: String, khi: (List<String>) -> Unit): ListenerRegistration? =
         nha(context)?.collection(Duong.NHAT_KY)?.document(ngay)
@@ -214,6 +308,9 @@ object Kho {
         val n = nha(context) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
         val noi = mutableMapOf<String, Any>(
             Duong.F_KIEU to kieu,
+            // May nay la cua Ba Huy, khong gioi han lenh nao. May ba noi go lenh
+            // thi gui Nguoi.BA_NOI, va tablet chi nhan moi lenh cho gio.
+            Duong.F_AI to Nguoi.BA_HUY,
             // Gio may chu gui kem gio may chu: tablet lay cai nay de bo lenh go tu
             // hom qua, con dong ho hai may thi khong bao gio khop nhau tuyet doi.
             Duong.F_TAO_LUC to FieldValue.serverTimestamp(),
@@ -247,6 +344,27 @@ object Kho {
             guiLenh(context, Lenh.NHAN, chu = chu)
             xong(KetQua.Xong)
         }.addOnFailureListener { xong(KetQua.Hong(loiNguoiDoc(it))) }
+    }
+
+    /**
+     * Xoa dot viec nha sau khi may nay da thay tablet cong gio.
+     *
+     * XOA CO DIEU KIEN, y het ben tablet. hop/viecnha la mot duong dan co dinh: ba
+     * giao dot moi dung luc Ba Huy bam cong gio thi lenh xoa roi trung dot moi, va
+     * may ba thay document bien mat se tuong tablet da nhan - trong khi chua ai nhan
+     * ca, va ba thi khong con nut de gui lai.
+     */
+    fun xoaViecNha(context: Context, maPhien: String, xong: (KetQua) -> Unit = {}) {
+        val h = hop(context, Duong.D_VIEC_NHA) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
+        h.firestore.runTransaction { tr ->
+            val nay = tr.get(h)
+            if (nay.exists() && nay.getString(Duong.F_MA_PHIEN) == maPhien) tr.delete(h)
+            null
+        }.addOnSuccessListener { xong(KetQua.Xong) }
+            .addOnFailureListener {
+                Log.w(TAG, "xoa viec nha hong", it)
+                xong(KetQua.Hong(loiNguoiDoc(it)))
+            }
     }
 
     // ---------------------------------------------------------------- rieng tu

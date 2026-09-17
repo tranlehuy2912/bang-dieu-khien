@@ -17,6 +17,22 @@ service cloud.firestore {
         && request.auth.uid in get(/databases/$(database)/documents/nha/$(nhaId)).data.uids;
     }
 
+    // Nguoi nha quyen han: may ba noi.
+    //
+    // Tach hai danh sach vi hai muc quyen khac han. Ai o trong uids thi go duoc moi
+    // lenh, ke ca KHOA may hay tat quan tri thiet bi de go app. Ai o trong uidsPhu
+    // thi chi cho gio va giao viec nha - chan o day chu khong trong vao viec app ben
+    // may ba khong hien nhung nut kia ra.
+    //
+    // Dung data.get(..., []) chu khong phai data.uidsPhu: nhung cai nha lap tu truoc
+    // khong co truong do, ma cham thang vao mot truong khong ton tai thi ca bieu thuc
+    // bao loi chu khong ra false - tuc la ca nha do tac cung.
+    function laNguoiPhu(nhaId) {
+      return request.auth != null
+        && request.auth.uid in get(/databases/$(database)/documents/nha/$(nhaId))
+             .data.get('uidsPhu', []);
+    }
+
     match /nha/{nhaId} {
 
       // Lap nha. Chi cho tao khi nguoi tao tu ghi dung mot minh vao danh sach:
@@ -55,7 +71,58 @@ service cloud.firestore {
         allow create: if request.auth != null && request.auth.uid == uid;
         allow read: if request.auth != null
           && (request.auth.uid == uid || laNguoiNha(nhaId));
-        allow update, delete: if laNguoiNha(nhaId);
+
+        // Nguoi nha ket nap bang cach ghi trangThai vao day.
+        //
+        // Nhung may dang xin CUNG phai ghi lai duoc o cua chinh no: go sai ma mot
+        // lan la o do da co trangThai = "SAI", va lan xin thu hai la mot lan GHI DE
+        // chu khong con la tao moi - luat cu chan dung cho do, nen go sai mot lan la
+        // khong bao gio xin lai duoc nua. Cho ghi de, voi dieu kien lan ghi do KHONG
+        // mang theo trangThai: may xin duoc quyen hoi lai, khong duoc quyen tu tra
+        // loi. Ma no co tu ghi "OK" thi cung chi lua duoc chinh no - danh sach nguoi
+        // nha nam o document nha, ma cho do chi nguoi nha moi sua duoc.
+        allow update: if laNguoiNha(nhaId)
+          || (request.auth != null
+              && request.auth.uid == uid
+              && !("trangThai" in request.resource.data));
+        allow delete: if laNguoiNha(nhaId);
+      }
+
+      // ---------------------------------------------------- may ba noi
+      //
+      // Ba cua duoi day mo rieng cho uidsPhu. Nguoi nha day du van di qua cua chung
+      // o duoi cung; Firestore cho qua khi CO MOT luat nao do cho phep, nen ba cai
+      // nay chi noi them chu khong bot cua ai.
+
+      // Cho gio, va chi cho gio.
+      //
+      // Chan ca so phut ngay tai day. Khong phai vi so ba go - ba bam nut co san,
+      // khong go so - ma vi day la cho duy nhat noi duoc cau "may ba khong cap qua
+      // mot tieng" bang thu ma khong ai sua bang cach cai ban app khac.
+      //
+      // Chi allow create: lenh dat xuong roi la cua tablet, khong ai sua hay xoa
+      // duoc nua. Tablet xoa sau khi lam xong, va no la nguoi nha day du.
+      match /lenh/{lenhId} {
+        allow create: if laNguoiPhu(nhaId)
+          && request.resource.data.kieu == 'CHO'
+          && request.resource.data.ai == 'banoi'
+          && request.resource.data.phut is int
+          && request.resource.data.phut > 0
+          && request.resource.data.phut <= 60;
+      }
+
+      // Viec nha: ba ghi de ca ban moi lan bam, va doc lai duoc de may ba cai lai
+      // app van biet dot viec dang do.
+      match /hop/viecnha {
+        allow read, write: if laNguoiPhu(nhaId);
+      }
+
+      // Doc trang thai cong.
+      //
+      // Chi doc, khong ghi. Nho cho nay ma may ba thay duoc chau da lam xong viec
+      // chua va con may phut - duong hop thu Telegram cu khong bao gio lam duoc.
+      match /hop/trangthai {
+        allow read: if laNguoiPhu(nhaId);
       }
 
       // Con lai - trang thai, lenh, bai, nhat ky, tin nhan - chi nguoi nha.

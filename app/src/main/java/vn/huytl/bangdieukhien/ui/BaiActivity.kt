@@ -11,6 +11,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -40,6 +43,7 @@ class BaiActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         b = ActivityBaiBinding.inflate(layoutInflater)
         setContentView(b.root)
+        chuaThanhHeThong()
         b.thanhTren.setNavigationOnClickListener { finish() }
 
         val id = intent.getStringExtra(EXTRA_ID).orEmpty()
@@ -56,6 +60,20 @@ class BaiActivity : AppCompatActivity() {
     override fun onDestroy() {
         nghe?.remove()
         super.onDestroy()
+    }
+
+    /**
+     * Chua cho hai thanh cua he dieu hanh: le tren dat vao thanh tieu de, le duoi
+     * dat vao day nut duyet. Ca hai deu nen trang, nen chua o do thi mau trang phu
+     * kin den mep may.
+     */
+    private fun chuaThanhHeThong() {
+        ViewCompat.setOnApplyWindowInsetsListener(b.root) { _, insets ->
+            val thanh = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            b.thanhTren.updatePadding(top = thanh.top)
+            b.khungNut.updatePadding(bottom = thanh.bottom)
+            insets
+        }
     }
 
     private fun ve(bai: Bai) {

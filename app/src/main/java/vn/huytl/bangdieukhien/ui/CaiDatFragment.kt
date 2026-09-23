@@ -112,8 +112,11 @@ class CaiDatFragment : Fragment() {
 
         b.than.addView(tieu("Ứng dụng"))
         b.than.addView(nhom(
-            muc("App được chơi", "${c.appChoPhep.size} app", "Mở được trong giờ chơi") {
-                chonApp("App được chơi", c.appChoPhep) { guiCaiDat("appChoPhep", it) }
+            // Ten cu "App duoc choi · Mo duoc trong gio choi" noi nguoc nghia: trong gio
+            // choi thi app nao cung mo duoc. Day la danh sach mo duoc ca khi HET gio
+            // choi, tru gio ngu. Goi dung ten ben tablet de hai may noi cung mot cau.
+            muc("App luôn được dùng", "${c.appChoPhep.size} app", "Mở được khi hết giờ chơi, trừ giờ ngủ") {
+                chonApp("App luôn được dùng", c.appChoPhep) { guiCaiDat("appChoPhep", it) }
             },
             muc("App chặn hẳn", "${c.appChan.size} app", "Không mở được kể cả trong giờ chơi") {
                 chonApp("App chặn hẳn", c.appChan) { guiCaiDat("appChan", it) }
@@ -318,7 +321,12 @@ class CaiDatFragment : Fragment() {
             .setTitle(tieuDe)
             .setMultiChoiceItems(ten, da) { _, i, chon -> da[i] = chon }
             .setPositiveButton(R.string.xong) { _, _ ->
-                xong(dsApp.filterIndexed { i, _ -> da[i] }.map { it.goi })
+                // Giu ca nhung goi dang chon ma danh sach app o day khong co. Tablet
+                // chi gui danh sach do luc dich vu vua bat, nen app cai sau luc do
+                // khong nam trong nay; bo chung di thi bam Xong mot cai la app do
+                // roi khoi danh sach tren tablet ma khong ai hay.
+                val khongCo = dangChon.filter { goi -> dsApp.none { it.goi == goi } }
+                xong(dsApp.filterIndexed { i, _ -> da[i] }.map { it.goi } + khongCo)
             }
             .setNegativeButton(R.string.huy, null)
             .show()

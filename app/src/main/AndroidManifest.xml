@@ -37,5 +37,18 @@
             android:name=".ui.XemAnhActivity"
             android:exported="false"
             android:theme="@style/Theme.BangDieuKhien.Anh" />
+
+        <!-- Cho app Claude doc anh bai tap khi Ba Huy bam "Nhờ Claude chấm lại".
+             Chi mo dung thu muc anh tai tu Telegram ve, va chi cho doc tung tam
+             duoc gui kem, khong cho app nao tu vao xem. Xem ui/NhoClaude.kt. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.anh"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/duong_anh" />
+        </provider>
     </application>
 </manifest>

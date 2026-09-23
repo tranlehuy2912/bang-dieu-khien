@@ -167,11 +167,20 @@ data class TrangThai(
     }
 }
 
-/** Mot tam anh trong lan nop bai. */
+/**
+ * Mot tam anh trong lan nop bai.
+ *
+ * [khau] la ten hang cua enum CaptureStage ben tablet: DAN_DO, DE_BAI, BAI_GIAI.
+ * Ban dau cho nay so voi "DANDO" va "DEBAI", thieu dau gach duoi, nen anh de bai va
+ * anh vo dan do deu bi ghi nhan "Bài giải". Van nhan kieu viet cu cho chac.
+ */
 data class Anh(val fileId: String, val khau: String) {
-    fun tenKhau(): String = when (khau) {
-        "DANDO" -> "Vở dặn dò"
-        "DEBAI" -> "Đề bài"
+    val laDanDo: Boolean get() = khau == "DAN_DO" || khau == "DANDO"
+    val laDeBai: Boolean get() = khau == "DE_BAI" || khau == "DEBAI"
+
+    fun tenKhau(): String = when {
+        laDanDo -> "Vở dặn dò"
+        laDeBai -> "Đề bài"
         else -> "Bài giải"
     }
 }

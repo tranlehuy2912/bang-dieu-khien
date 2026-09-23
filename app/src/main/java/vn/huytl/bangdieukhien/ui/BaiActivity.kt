@@ -15,6 +15,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.firestore.ListenerRegistration
@@ -81,8 +82,50 @@ class BaiActivity : AppCompatActivity() {
         b.than.removeAllViews()
 
         veBanCham(bai)
+        veNutClaude(bai)
         veAnh(bai)
         veNut(bai)
+    }
+
+    // ----------------------------------------------------------- nho Claude
+
+    /**
+     * Nut gui bai nay sang app Claude de cham lai. Xem [NhoClaude].
+     *
+     * Hien ca voi bai da duyet, khong chi bai dang cho: may cham nham thuong chi lo
+     * ra sau khi da cap gio, nhu bai 10:23 ngay 23/9/2026.
+     */
+    private fun veNutClaude(bai: Bai) {
+        if (NhoClaude.anhCanGui(bai).isEmpty()) return
+
+        val chuNut = "Nhờ Claude chấm lại"
+        val nut = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+            text = chuNut
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = 12.dp().toInt() }
+        }
+        nut.setOnClickListener {
+            if (Nha.token(this).isBlank()) {
+                Dinh.noi(this, "Chưa đặt token bot nên không lấy được ảnh. Vào tab Cài đặt để đặt.")
+                return@setOnClickListener
+            }
+            nut.isEnabled = false
+            nut.text = "Đang lấy ảnh bài…"
+            lifecycleScope.launch {
+                val anh = NhoClaude.layAnh(this@BaiActivity, bai)
+                nut.isEnabled = true
+                nut.text = chuNut
+                if (anh.isEmpty()) {
+                    Dinh.noi(this@BaiActivity, "Không lấy được ảnh bài. Kiểm tra mạng rồi thử lại.")
+                    return@launch
+                }
+                NhoClaude.mo(this@BaiActivity, anh, NhoClaude.loiNho(bai, Nha.tenCon(this@BaiActivity)))
+                Dinh.noi(this@BaiActivity, "Đã chép sẵn lời nhờ. Ô chat còn trống thì giữ vào ô đó rồi dán.")
+            }
+        }
+        b.than.addView(nut)
     }
 
     // ------------------------------------------------------------- ban cham

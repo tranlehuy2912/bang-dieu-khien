@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thu muc duy nhat FileProvider duoc mo ra: anh bai tap TaiAnh tai tu Telegram
+     ve, nam o cacheDir/anh. Doi thu muc trong TaiAnh thi phai doi ca dong nay, khong
+     thi bam "Nhờ Claude chấm lại" la app tat ngang. -->
+<paths>
+    <cache-path
+        name="anh"
+        path="anh/" />
+</paths>

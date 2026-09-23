@@ -3,6 +3,10 @@ package vn.huytl.bangdieukhien.ui
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -34,6 +38,7 @@ class BangFragment : Fragment() {
     private var ngheTrangThai: ListenerRegistration? = null
     private var ngheNhatKy: ListenerRegistration? = null
     private var ngheViecNha: ListenerRegistration? = null
+    private var ngheHoiAi: ListenerRegistration? = null
     private var moiNhat: TrangThai? = null
 
     /** Dot viec nha ba noi dang giao, null la khong co dot nao tren Firestore. */
@@ -141,6 +146,10 @@ class BangFragment : Fragment() {
                 if (dong.isEmpty()) getString(R.string.bang_chua_co_gi)
                 else dong.joinToString("\n")
         }
+        ngheHoiAi = Kho.ngheHoiAi(ct, Dinh.homNay()) { dong ->
+            if (_b == null) return@ngheHoiAi
+            b.hoiAi.text = veHoiAi(dong)
+        }
         ngheViecNha = Kho.ngheViecNha(ct) { dot ->
             if (_b == null) return@ngheViecNha
             viecCho = dot
@@ -154,8 +163,41 @@ class BangFragment : Fragment() {
         tay.removeCallbacks(nhip)
         ngheTrangThai?.remove()
         ngheNhatKy?.remove()
+        ngheHoiAi?.remove()
         ngheViecNha?.remove()
         super.onStop()
+    }
+
+    /**
+     * The "Hoi AI hom nay": moi cau hai dong, gio va ten app nhat o tren, cau con go
+     * o duoi.
+     *
+     * Tablet ghi moi cau thanh mot dong "23/09 17:36  [ChatGPT]  cau hoi", xem
+     * NhatKyAi ben do. Tach ra cho de doc; dong nao khong dung khuon thi hien nguyen
+     * dong chu khong bo, de khong mat chu nao cua con.
+     *
+     * Ngay tren dong da bo: the nay chi co hom nay, ma document tren Firestore cung
+     * dat ten theo ngay.
+     */
+    private fun veHoiAi(dong: List<String>): CharSequence {
+        if (dong.isEmpty()) return getString(R.string.bang_chua_hoi_ai)
+        val nhat = ContextCompat.getColor(requireContext(), R.color.ink_soft)
+        val sb = SpannableStringBuilder()
+        dong.forEach { d ->
+            if (sb.isNotEmpty()) sb.append("\n\n")
+            val m = KHUON_HOI_AI.matchEntire(d)
+            if (m == null) {
+                sb.append(d)
+                return@forEach
+            }
+            val (gio, app, cau) = m.destructured
+            val dau = sb.length
+            sb.append("$gio · $app")
+            sb.setSpan(ForegroundColorSpan(nhat), dau, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            sb.setSpan(RelativeSizeSpan(0.9f), dau, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            sb.append("\n").append(cau)
+        }
+        return sb
     }
 
     override fun onDestroyView() {
@@ -608,6 +650,15 @@ class BangFragment : Fragment() {
     private data class Bo(val chu: String, val mau: Int, val mauNhat: Int)
 
     companion object {
+        /**
+         * Khuon mot dong trong so hoi AI cua tablet: ngay, gio, [ten app], cau.
+         *
+         * Hai dau cach giua cac phan la dung nhu tablet ghi - xem NhatKyAi.ghi ben
+         * homework-gate. Doi khuon ben do ma quen doi o day thi khong hong gi: moi
+         * dong chi hien nguyen ban, xau hon mot chut.
+         */
+        private val KHUON_HOI_AI = Regex("""^\d{2}/\d{2} (\d{2}:\d{2}) {2}\[(.*?)\] {2}(.*)$""")
+
         /**
          * Doi tablet dap bay lau roi moi bao la no khong dap.
          *

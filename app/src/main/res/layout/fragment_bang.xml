@@ -368,6 +368,33 @@
                 android:text="@string/bang_chua_co_gi" />
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Cau con hoi app AI hom nay. Tach khoi nhat ky: nhat ky la chuyen cong
+             dong mo, con day la chu con go, can doc tung cau. -->
+        <TextView
+            style="@style/Chu.Tieu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/bang_hoi_ai" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/The"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/hoiAi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="4dp"
+                android:padding="16dp"
+                android:textColor="@color/ink"
+                android:textSize="14sp"
+                android:textIsSelectable="true"
+                android:text="@string/bang_chua_hoi_ai" />
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Mo toan bo may: viec cua rieng Ba Huy, de cuoi cung de khong bam nham. -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/nutMoMay"

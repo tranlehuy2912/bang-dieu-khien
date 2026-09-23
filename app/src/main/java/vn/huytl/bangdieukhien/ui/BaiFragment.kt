@@ -118,10 +118,15 @@ class BaiFragment : Fragment() {
             v.nhan.backgroundTintList = ContextCompat.getColorStateList(ct, nen)
 
             val cham = bai.cham
+            val cl = bai.claude
             v.tomTat.text = when {
-                cham == null -> getString(R.string.bai_ai_chua_cham)
-                cham.tomTat.isNotBlank() -> cham.tomTat
-                else -> "${cham.mon}: đúng ${cham.soDung()}/${cham.cac.size} câu"
+                cham != null && cham.tomTat.isNotBlank() -> cham.tomTat
+                cham != null && cham.cac.isNotEmpty() ->
+                    "${cham.mon}: đúng ${cham.soDung()}/${cham.cac.size} câu"
+                cl != null -> "Claude chấm: đúng ${cl.cac.count { it.chac && it.dung }}/${cl.cac.size} câu"
+                // May tat cham AI thi day la danh sach bai cho Ba Huy cham bang Claude.
+                bai.dangCho && bai.anh.isNotEmpty() -> "Máy chưa chấm. Bấm vào để nhờ Claude chấm."
+                else -> getString(R.string.bai_ai_chua_cham)
             }
 
             veAnh(bai)

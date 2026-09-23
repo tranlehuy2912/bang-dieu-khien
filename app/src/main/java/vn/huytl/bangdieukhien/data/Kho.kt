@@ -295,25 +295,30 @@ object Kho {
      * Khong ghi de [Duong.F_CHAM]: ban cua may giu nguyen de doi chieu, va man ket
      * qua ben tablet tu chon ket luan cua Claude khi co. Viec cong gio cho cau may
      * cham nham thi di duong lenh [Lenh.SUA_CHAM], vi chi tablet biet con han muc
-     * hay dang gio ngu.
+     * hay dang gio ngu. Bai may chua cham thi ban nay la ban cham dau tien, va viec
+     * tinh phut di lenh [Lenh.CHAM_BAI].
      */
     fun ghiChamClaude(
         context: Context,
         baiId: String,
         cac: List<CauClaude>,
+        /** Claude cham luon vi may chua cham. Xem [KetQuaClaude.chinh]. */
+        chinh: Boolean = false,
         xong: (KetQua) -> Unit = {}
     ) {
         val n = nha(context) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
         val ban = mapOf(
             "luc" to System.currentTimeMillis(),
+            "chinh" to chinh,
             "cac" to cac.map {
-                mapOf(
-                    "ma" to it.ma,
-                    "dung" to it.dung,
-                    "chac" to it.chac,
-                    "conViet" to it.conViet,
-                    "goiY" to it.goiY
-                )
+                buildMap {
+                    put("ma", it.ma)
+                    put("dung", it.dung)
+                    put("chac", it.chac)
+                    put("conViet", it.conViet)
+                    put("goiY", it.goiY)
+                    if (it.de.isNotBlank()) put("de", it.de)
+                }
             }
         )
         n.collection(Duong.BAI).document(baiId).update(Duong.F_CHAM_CLAUDE, ban)

@@ -216,11 +216,45 @@ data class CauClaude(
     val chac: Boolean,
     val conViet: String,
     /** Goi y cho con tu sua, chi co o cau sai. Khong chua dap an. */
-    val goiY: String
+    val goiY: String,
+    /** So dong con viet cho cau nay. Tablet tinh phut theo so dong, xem LuatCongGio. */
+    val soDong: Int = 0,
+    /** 1 la viet bang muc do, 0 la khong, -1 la khong noi. Chi can o lan on tap. */
+    val mucDo: Int = -1,
+    /** De Claude chep tu anh, chi can khi con khong khai theo sach. */
+    val de: String = "",
+    /** Dang bai Claude xep, ten hang cua DangBai ben tablet. Chi can o cau ngoai sach. */
+    val dang: String = "",
+    /**
+     * Cau nay thuoc bai co giao trong vo dan do. null la Claude khong noi, luc do tablet
+     * tu quyet theo luat cua may cham.
+     */
+    val trongDanDo: Boolean? = null
 )
 
-/** Ban Claude cham lai, nam o [Duong.F_CHAM_CLAUDE] canh ban cham cua may. */
-data class KetQuaClaude(val luc: Long, val cac: List<CauClaude>) {
+/**
+ * Cac cau con khai truoc khi chup, kem de tung cau. Tablet ghi luc con nop.
+ *
+ * Co cai nay thi loi nho gui Claude co de bai ngay ca khi tablet khong tu cham.
+ * Xem [Duong.F_KHAI].
+ */
+data class KhaiBai(
+    val tenNguon: String,
+    val bai: String,
+    val mon: String,
+    val onTap: Boolean,
+    val cac: List<Cau>
+) {
+    data class Cau(val ma: String, val cauId: String, val de: String, val dang: String)
+}
+
+/** Ban Claude cham, nam o [Duong.F_CHAM_CLAUDE] canh ban cham cua may. */
+data class KetQuaClaude(
+    val luc: Long,
+    val cac: List<CauClaude>,
+    /** true la Claude cham luon vi may chua cham, false la Claude cham lai ban cua may. */
+    val chinh: Boolean = false
+) {
     fun cua(ma: String): CauClaude? = cac.firstOrNull { it.ma == ma.trim() }
 }
 
@@ -233,7 +267,8 @@ data class Bai(
     val anh: List<Anh>,
     val cham: KetQuaCham?,
     val messageId: Long,
-    val claude: KetQuaClaude? = null
+    val claude: KetQuaClaude? = null,
+    val khai: KhaiBai? = null
 ) {
     val dangCho: Boolean get() = trangThai == CHO
 
@@ -256,7 +291,31 @@ data class Bai(
                 anh = anh,
                 cham = docCham(d.get(Duong.F_CHAM) as? Map<*, *>),
                 messageId = d.getLong(Duong.F_MESSAGE_ID) ?: 0L,
-                claude = docClaude(d.get(Duong.F_CHAM_CLAUDE) as? Map<*, *>)
+                claude = docClaude(d.get(Duong.F_CHAM_CLAUDE) as? Map<*, *>),
+                khai = docKhai(d.get(Duong.F_KHAI) as? Map<*, *>)
+            )
+        }
+
+        private fun docKhai(m: Map<*, *>?): KhaiBai? {
+            if (m == null) return null
+            val cac = (m["cac"] as? List<*>).orEmpty().mapNotNull { c ->
+                val o = c as? Map<*, *> ?: return@mapNotNull null
+                val ma = (o["ma"] as? String)?.trim().orEmpty()
+                if (ma.isEmpty()) return@mapNotNull null
+                KhaiBai.Cau(
+                    ma = ma,
+                    cauId = o["cauId"] as? String ?: "",
+                    de = o["de"] as? String ?: "",
+                    dang = o["dang"] as? String ?: ""
+                )
+            }
+            if (cac.isEmpty()) return null
+            return KhaiBai(
+                tenNguon = m["tenNguon"] as? String ?: "",
+                bai = m["bai"] as? String ?: "",
+                mon = m["mon"] as? String ?: "",
+                onTap = m["onTap"] as? Boolean ?: false,
+                cac = cac
             )
         }
 
@@ -271,11 +330,16 @@ data class Bai(
                     dung = o["dung"] as? Boolean ?: false,
                     chac = o["chac"] as? Boolean ?: true,
                     conViet = o["conViet"] as? String ?: "",
-                    goiY = o["goiY"] as? String ?: ""
+                    goiY = o["goiY"] as? String ?: "",
+                    de = o["de"] as? String ?: ""
                 )
             }
             if (cac.isEmpty()) return null
-            return KetQuaClaude((m["luc"] as? Number)?.toLong() ?: 0L, cac)
+            return KetQuaClaude(
+                luc = (m["luc"] as? Number)?.toLong() ?: 0L,
+                cac = cac,
+                chinh = m["chinh"] as? Boolean ?: false
+            )
         }
 
         private fun docCham(m: Map<*, *>?): KetQuaCham? {
@@ -334,6 +398,8 @@ data class CaiDat(
     val gioDay: Int = 6 * 60,
     val tranPhutMoiNgay: Int = 120,
     val khoaCaiDat: Boolean = true,
+    /** Tablet co tu cham bai bang AI khong. Tat thi Ba Huy cham bang Claude. */
+    val chamBangAi: Boolean = true,
     val appChoPhep: List<String> = emptyList(),
     val appChan: List<String> = emptyList(),
     val appAi: List<String> = emptyList(),
@@ -349,6 +415,7 @@ data class CaiDat(
                 gioDay = (d.getLong("gioDay") ?: (6 * 60L)).toInt(),
                 tranPhutMoiNgay = (d.getLong("tranPhutMoiNgay") ?: 120L).toInt(),
                 khoaCaiDat = d.getBoolean("khoaCaiDat") ?: true,
+                chamBangAi = d.getBoolean("chamBangAi") ?: true,
                 appChoPhep = (d.get("appChoPhep") as? List<String>).orEmpty(),
                 appChan = (d.get("appChan") as? List<String>).orEmpty(),
                 appAi = (d.get("appAi") as? List<String>).orEmpty(),

@@ -127,7 +127,48 @@ class CaiDatFragment : Fragment() {
             }
         ))
 
+        b.than.addView(tieu("Chấm bài"))
+        b.than.addView(nhom(
+            muc("Chấm bài bằng AI trên tablet", if (c.chamBangAi) "Bật" else "Tắt",
+                if (c.chamBangAi) "Máy tự chấm và tự cộng giờ" else "Ba chấm bằng Claude ở tab Bài") {
+                hoiChamBangAi(c.chamBangAi)
+            }
+        ))
+
         veMucMay()
+    }
+
+    /**
+     * Hoi lai truoc khi doi cach cham, vi hai cach khac nhau o nhung cho de quen.
+     *
+     * Tat AI thi bai nop nam cho, khong ai cham cho den khi Ba Huy dan ket qua Claude.
+     * Vo dan do thi con chup kem luc nop, va Claude doc no cung luc cham bai, nen tron
+     * goi 45 phut van tinh. Chi mat buoc con soat vo dan do ngay tu dau buoi.
+     */
+    private fun hoiChamBangAi(dangBat: Boolean) {
+        val (tieuDe, noi, nut) = if (dangBat) {
+            Triple(
+                "Tắt chấm bằng AI?",
+                "Bài con nộp sẽ nằm chờ, máy không tự chấm và không tự cộng giờ. Mỗi bài, " +
+                    "mở tab Bài, bấm Nhờ Claude chấm, rồi dán kết quả của Claude về.\n\n" +
+                    "Con chụp vở dặn dò kèm lúc nộp. Claude đọc vở dặn dò cùng lúc chấm " +
+                    "bài, nên gói 45 phút làm hết bài cô giao vẫn tính như cũ.",
+                "Tắt"
+            )
+        } else {
+            Triple(
+                "Bật lại chấm bằng AI?",
+                "Máy sẽ tự chấm và tự cộng giờ mỗi lần con nộp. Nút Nhờ Claude chấm lại " +
+                    "vẫn dùng được khi thấy máy chấm nhầm.",
+                "Bật"
+            )
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(tieuDe)
+            .setMessage(noi)
+            .setNegativeButton(R.string.huy, null)
+            .setPositiveButton(nut) { _, _ -> guiCaiDat("chamBangAi", !dangBat) }
+            .show()
     }
 
     private fun chepMaNha() {

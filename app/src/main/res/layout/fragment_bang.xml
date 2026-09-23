@@ -89,6 +89,17 @@
                     android:textStyle="bold"
                     android:text="@string/bang_dang_hoi" />
 
+                <!-- Tablet dang mo app gi. Ngay duoi nhan: nhan noi cong dang the
+                     nao, dong nay noi con dang lam gi voi no. -->
+                <TextView
+                    android:id="@+id/dangMo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/ink"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+
                 <TextView
                     android:id="@+id/dongHo"
                     style="@style/Chu.So"
@@ -276,15 +287,22 @@
                 android:text="Khác" />
         </LinearLayout>
 
+        <TextView
+            style="@style/Chu.Tieu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="8dp"
+            android:text="Phiên đang chạy" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/nutDung"
-                style="@style/Nut.Nhanh"
+                style="@style/Nut.Phien"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
@@ -293,7 +311,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/nutBot"
-                style="@style/Nut.Nhanh"
+                style="@style/Nut.Phien"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
@@ -302,13 +320,13 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/nutKhoa"
-                style="@style/Nut.Nhanh"
+                style="@style/Nut.Phien"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Khoá ngay"
-                app:backgroundTint="@color/alert_soft"
-                android:textColor="@color/alert" />
+                android:textColor="@color/alert"
+                app:strokeColor="@color/alert" />
         </LinearLayout>
 
         <!-- Lenh dang tren duong di, hay vua hong.

@@ -7,6 +7,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import vn.huytl.bangdieukhien.R
 import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.Nha
@@ -29,18 +30,11 @@ class MainActivity : AppCompatActivity() {
         chuaThanhHeThong()
 
         b.thanhDuoi.setOnItemSelectedListener { muc ->
-            moThe(
-                when (muc.itemId) {
-                    R.id.tab_bai -> BaiFragment()
-                    R.id.tab_chat -> ChatFragment()
-                    R.id.tab_caidat -> CaiDatFragment()
-                    else -> BangFragment()
-                }
-            )
+            moThe(muc.itemId)
             true
         }
 
-        if (savedInstanceState == null) moThe(BangFragment())
+        if (savedInstanceState == null) moThe(R.id.tab_bang)
     }
 
     override fun onStart() {
@@ -75,8 +69,43 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun moThe(f: Fragment) {
-        supportFragmentManager.beginTransaction().replace(R.id.khung, f).commit()
+    /**
+     * Mo mot the, giu lai cac the da mo thay vi dung lai tu dau.
+     *
+     * Truoc day cho nay goi replace(): moi lan quay ve the Bang la mot lan dung lai
+     * ca man hinh - mat cho dang cuon, dong ho nhay ve gach roi moi co so, va danh
+     * sach bai tai lai het anh.
+     *
+     * Kem theo setMaxLifecycle chu khong chi hide(): the bi an ma van o muc STARTED
+     * thi onStop khong chay, ma cac the nay go lang nghe Firestore trong onStop. Bo
+     * dong do la ca bon the cung nghe mot luc, va cai gia phai tra nam o hoa don
+     * Firestore chu khong hien ra tren man hinh nao.
+     */
+    private fun moThe(id: Int) {
+        val ten = id.toString()
+        val qly = supportFragmentManager
+        val giaoDich = qly.beginTransaction()
+
+        qly.fragments.forEach {
+            giaoDich.hide(it)
+            giaoDich.setMaxLifecycle(it, Lifecycle.State.CREATED)
+        }
+
+        val the = qly.findFragmentByTag(ten)
+        if (the == null) {
+            giaoDich.add(R.id.khung, taoThe(id), ten)
+        } else {
+            giaoDich.show(the)
+            giaoDich.setMaxLifecycle(the, Lifecycle.State.RESUMED)
+        }
+        giaoDich.commit()
+    }
+
+    private fun taoThe(id: Int): Fragment = when (id) {
+        R.id.tab_bai -> BaiFragment()
+        R.id.tab_chat -> ChatFragment()
+        R.id.tab_caidat -> CaiDatFragment()
+        else -> BangFragment()
     }
 
     /** Cho [BangFragment] day sang the bai tap khi Ba Huy bam vao o "đang chờ". */

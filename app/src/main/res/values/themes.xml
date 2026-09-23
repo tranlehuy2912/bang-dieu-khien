@@ -48,7 +48,22 @@
         <item name="android:fontFeatureSettings">tnum</item>
     </style>
 
-    <style name="Nut.Nhanh" parent="Widget.Material3.Button.TonalButton">
+    <!-- Nut cap gio: viec chinh cua man hinh nay, nen la nut dac mau chu dao. -->
+    <style name="Nut.Nhanh" parent="Widget.Material3.Button">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="cornerRadius">16dp</item>
+    </style>
+
+    <!--
+      Nut dieu khien phien dang chay: tam dung, bot gio, khoa.
+
+      Nhat hon han nhom tren. Truoc day ca bay nut deu cung mot the tonal, cung co
+      chu, xep hai hang lien nhau - ma "cho choi 45 phut" voi "bot 15 phut" thi
+      nguoc chieu han nhau. Nhin phai ra hai nhom truoc khi doc chu.
+    -->
+    <style name="Nut.Phien" parent="Widget.Material3.Button.OutlinedButton">
         <item name="android:textSize">15sp</item>
         <item name="android:minHeight">52dp</item>
         <item name="cornerRadius">16dp</item>

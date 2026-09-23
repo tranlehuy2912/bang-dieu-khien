@@ -1,6 +1,9 @@
 package vn.huytl.bangdieukhien.ui
 
 import android.app.TimePickerDialog
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
@@ -94,8 +97,8 @@ class CaiDatFragment : Fragment() {
                     guiCaiDat("phutMacDinh", it)
                 }
             },
-            muc("Trần mỗi ngày", Dinh.phut(c.tranPhutMoiNgay), "Duyệt bài không vượt quá số này") {
-                hoiSo("Trần phút mỗi ngày", c.tranPhutMoiNgay, 15, 480) {
+            muc("Tối đa mỗi ngày", Dinh.phut(c.tranPhutMoiNgay), "Duyệt bài không vượt quá số này") {
+                hoiSo("Tối đa phút mỗi ngày", c.tranPhutMoiNgay, 15, 480) {
                     guiCaiDat("tranPhutMoiNgay", it)
                 }
             },
@@ -127,13 +130,28 @@ class CaiDatFragment : Fragment() {
         veMucMay()
     }
 
+    private fun chepMaNha() {
+        val ma = Nha.maNha(requireContext())
+        if (ma.isBlank()) return
+        val bang = requireContext()
+            .getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        bang.setPrimaryClip(ClipData.newPlainText("Mã nhà", ma))
+        Dinh.noi(requireContext(), "Đã chép mã nhà.")
+    }
+
     /** May muc thuoc ve chinh dien thoai nay, khong gui di dau ca. */
     private fun veMucMay() {
         b.than.addView(tieu("Máy này"))
         b.than.addView(nhom(
             muc("Token bot Telegram", if (Nha.token(requireContext()).isBlank()) "chưa đặt" else "đã đặt",
                 "Chỉ dùng để tải ảnh bài tập về xem") { hoiToken() },
-            muc("Mã nhà", Nha.maNha(requireContext()).take(8) + "…", null) {},
+            // Bam vao la chep. Truoc day dong nay bam khong ra gi ca, ma van loe len
+            // mot cai vi no nam trong cung mot the co nen bam duoc - va ma nha thi
+            // dung la thu thinh thoang phai go sang may khac.
+            muc(
+                "Mã nhà", Nha.maNha(requireContext()).take(8) + "…",
+                "Chạm để chép mã đầy đủ"
+            ) { chepMaNha() },
             muc("Ghép đôi lại", "", "Nối máy này với tablet một lần nữa") {
                 startActivity(Intent(requireContext(), GhepDoiActivity::class.java))
             },

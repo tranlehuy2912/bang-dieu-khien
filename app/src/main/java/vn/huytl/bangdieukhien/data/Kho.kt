@@ -329,6 +329,15 @@ object Kho {
             }
     }
 
+    /**
+     * Hoi tablet con song khong, va trang thai that bay gio la gi.
+     *
+     * Khong cho cau tra loi o day: tablet dap bang cach day mot ban trang thai moi,
+     * va listener dang mo san se nhan duoc. Xem [Lenh.PING].
+     */
+    fun guiPing(context: Context, xong: (KetQua) -> Unit = {}) =
+        guiLenh(context, Lenh.PING, xong = xong)
+
     /** Nhan mot cau cho con. Tablet hien thanh thong bao co tieng. */
     fun guiTin(context: Context, chu: String, xong: (KetQua) -> Unit = {}) {
         val n = nha(context) ?: return xong(KetQua.Hong(THIEU_FIREBASE))

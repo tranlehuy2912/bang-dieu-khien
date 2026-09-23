@@ -40,7 +40,12 @@
     <string name="bang_han_ngay">Hạn mức hôm nay</string>
     <string name="bang_nhat_ky">Hôm nay</string>
     <string name="bang_chua_co_gi">Hôm nay chưa có gì xảy ra.</string>
-    <string name="bang_mat_lien_lac">Tablet chưa báo về lâu rồi. Số liệu dưới đây có thể cũ.</string>
+    <!-- Man nay hoi tablet mot cau moi lan mo ra, nen cau bao khong con la "so lieu
+         co the cu" - mot loi canh bao khong lam gi duoc - ma la mot su that kem gio:
+         tablet khong tra loi, va day la lan cuoi no noi gi. -->
+    <string name="bang_khong_dap">Tablet không trả lời. Số liệu dưới đây là lần cuối nó báo về, lúc %1$s.</string>
+    <string name="bang_khong_dap_lan_nao">Tablet không trả lời, và chưa lần nào báo về kể từ khi nối máy.</string>
+    <string name="bang_hoi_hong">Không hỏi được tablet: %1$s</string>
 
     <!-- Bai tap -->
     <string name="bai_trong">Chưa có bài nào được nộp.</string>

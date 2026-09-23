@@ -82,7 +82,15 @@ data class TrangThai(
     val coPin: Boolean = true,
     val pinMay: Int = -1,
     val dangSac: Boolean = false,
+    /** Ten app dang tren man hinh tablet. Rong la khong mo app nao. */
     val appTruocMat: String = "",
+    /** Luc mo app do, theo gio tablet. 0 la khong co. */
+    val appTruocMatTu: Long = 0L,
+    /**
+     * Man hinh tablet dang sang. null la khong biet: tablet ban cu chua gui truong
+     * nay, hoac dich vu canh app ben do dang khong chay.
+     */
+    val manHinhSang: Boolean? = null,
     val banApp: String = "",
     val capNhatLuc: Long = 0L,
     /** Cau tablet noi lai sau khi lam lenh gan nhat, rong la chua co gi. */
@@ -103,25 +111,24 @@ data class TrangThai(
         else -> conLaiMs
     }
 
-    /** Tablet im lang qua lau thi so lieu tren man hinh khong con dang tin. */
-    fun cu(bayGio: Long = System.currentTimeMillis()): Boolean =
-        capNhatLuc > 0L && bayGio - capNhatLuc > CU_SAU_MS
-
     fun coCanhBao(): Boolean = !quyenTroGiup || !quyenQuanTri || !quyenNoi || !coPin
 
     companion object {
-        /**
-         * Tablet ghi lai moi luc doi trang thai, va it nhat mot lan moi 15 phut -
-         * nhung tu 23:00 den 05:00 thi mot tieng mot lan, de do danh thuc may ban dem.
+        /*
+         * KHONG CON NGUONG "SO LIEU CU" O DAY NUA.
          *
-         * Nen nguong nay phai qua duoc mot tieng cong them mot nhip tre, khong thi
-         * ca dem man hinh nay bao "tablet chua bao ve lau roi" trong khi tablet van
-         * chay binh thuong. Doi lai, mot tablet chet that giua dem cung phai qua mot
-         * tieng ruoi moi bi goi ten - chap nhan duoc, vi giua dem thi khong ai nhin.
+         * Ban truoc co CU_SAU_MS = 90 phut: tablet im lang lau hon the thi man hinh
+         * bao "chua bao ve lau roi". Con so do phai di theo nhip tim ben tablet, ma
+         * nhip tim do chay bang Handler - dong ho dung lai khi CPU ngu - nen mot
+         * tablet nam im tren ban ca buoi toi van bi goi ten oan. Mot canh bao keu
+         * sai nhieu lan thi lan keu dung cung khong ai tin.
          *
-         * Con so nay phai di theo NHIP_TIM_DEM_MS ben tablet (DongBo.kt).
+         * Bay gio man Bang hoi thang: mo app la go mot lenh PING, tablet dap bang
+         * mot ban trang thai moi trong duoi mot giay. Tra loi thi so lieu dung cua
+         * giay nay; khong tra loi sau [BangFragment.CHO_PING_MS] thi noi thang la
+         * tablet khong tra loi, kem gio bao ve lan cuoi. Khong con con so nao phai
+         * khop giua hai app.
          */
-        const val CU_SAU_MS = 90 * 60_000L
 
         fun doc(d: DocumentSnapshot?): TrangThai? {
             if (d == null || !d.exists()) return null
@@ -146,6 +153,8 @@ data class TrangThai(
                 pinMay = (d.getLong(Duong.F_PIN_MAY) ?: -1L).toInt(),
                 dangSac = d.getBoolean(Duong.F_DANG_SAC) ?: false,
                 appTruocMat = d.getString(Duong.F_APP_TRUOC_MAT).orEmpty(),
+                appTruocMatTu = d.getLong(Duong.F_APP_TRUOC_MAT_TU) ?: 0L,
+                manHinhSang = d.getBoolean(Duong.F_MAN_HINH_SANG),
                 banApp = d.getString(Duong.F_BAN_APP).orEmpty(),
                 capNhatLuc = d.getLong(Duong.F_CAP_NHAT_LUC) ?: 0L,
                 traLoi = (d.get(Duong.F_TRA_LOI) as? Map<*, *>)?.get("chu") as? String ?: "",

@@ -7,8 +7,10 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
+import org.json.JSONObject
 import vn.huytl.bangdieukhien.data.Anh
 import vn.huytl.bangdieukhien.data.Bai
+import vn.huytl.bangdieukhien.data.CauClaude
 import vn.huytl.bangdieukhien.data.KetQuaCham
 import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.telegram.TaiAnh
@@ -35,6 +37,11 @@ import java.util.Locale
  *
  * Loi nho con duoc chep vao bo nho tam. App nhan chia se co the bo qua phan chu khi
  * co anh di kem, luc do Ba Huy giu vao o chat roi dan.
+ *
+ * DUONG VE. Claude app khong ghi duoc len Firebase. Nen loi nho dan Claude in them
+ * mot khoi JSON o cuoi cau tra loi, kem ma bai. Ba Huy chep cau tra loi, quay lai man
+ * chi tiet bai bam "Dán kết quả của Claude", va [docKetQua] doc khoi do ra. Ma bai
+ * trong khoi chan viec dan nham ket qua sang bai khac.
  */
 object NhoClaude {
 
@@ -71,7 +78,7 @@ object NhoClaude {
         val ten = tenCon.trim().takeIf { it.isNotEmpty() && it != "con" } ?: "con tôi"
         val cham = bai.cham
 
-        appendLine("Nhờ bạn chấm lại bài tập về nhà của $ten. Tôi là bố của con.")
+        appendLine("$DAU_LOI_NHO của $ten. Tôi là bố của con.")
         appendLine(
             "Máy chấm tự động trên tablet đã chấm bài này, nhưng máy hay đọc nhầm chữ " +
                 "và giải nhầm, nên tôi cần bạn chấm lại độc lập."
@@ -139,7 +146,117 @@ object NhoClaude {
             "3. Với mỗi câu con làm sai: một câu gợi ý để con tự sửa, gọi con là \"con\", " +
                 "không đưa đáp án."
         )
-        append("4. Cuối cùng: số câu con làm đúng thật.")
+        appendLine("4. Số câu con làm đúng thật.")
+        appendLine(
+            "5. Cuối cùng, in đúng một khối JSON theo mẫu dưới đây để tôi dán vào app. " +
+                "Mỗi câu một mục trong \"ket_qua\", giữ nguyên mã câu như trên. \"dung\" là " +
+                "kết luận của bạn. \"chac\" là false nếu bạn không đọc chắc chữ con viết. " +
+                "\"con_viet\" là kết quả cuối con viết, theo bạn đọc. \"goi_y\" chỉ viết " +
+                "cho câu con làm sai: đúng câu gợi ý ở mục 3, không đưa đáp án."
+        )
+        val maMau = cham?.cac?.firstOrNull()?.ma?.takeIf { it.isNotBlank() } ?: "2.28"
+        // Mau CO Y khong phai JSON hop le: "true hoặc false" khong doc duoc. Bam nut
+        // nho Claude la loi nho nay nam san trong bo nho tam, va neu Ba Huy quen chep
+        // cau tra loi cua Claude ma bam dan luon, mot mau doc duoc se thanh ket qua
+        // that - cau mau thanh dung, tablet cong gio oan.
+        append(
+            "{\"bai\":\"${bai.id}\",\"ket_qua\":[{\"ma\":\"$maMau\",\"dung\":true hoặc false," +
+                "\"chac\":true hoặc false,\"con_viet\":\"...\",\"goi_y\":\"...\"}]}"
+        )
+    }
+
+    /** Dong mo dau cua moi loi nho, de nhan ra bo nho tam dang giu loi nho chu khong phai tra loi. */
+    private const val DAU_LOI_NHO = "Nhờ bạn chấm lại bài tập về nhà"
+
+    /**
+     * Bo nho tam dang giu chinh loi nho gui Claude, chua phai cau tra loi.
+     *
+     * Canh de xay ra nhat: bam "Nhờ Claude chấm lại", gui trong Claude, doc xong quay
+     * lai bam dan ma quen chep cau tra loi.
+     */
+    fun laLoiNho(chu: String?): Boolean = chu?.contains(DAU_LOI_NHO) == true
+
+    /** Ket qua Claude cham lai, doc tu cau tra loi Ba Huy chep tu app Claude. */
+    data class KetQuaDan(
+        /** Ma bai Claude chep lai tu loi nho. Rong la Claude khong ghi. */
+        val bai: String,
+        val cac: List<CauClaude>
+    )
+
+    /**
+     * Tim khoi JSON o cuoi cau tra loi cua Claude, doc ra ket luan tung cau.
+     *
+     * Nut chep trong app Claude chep ca cau tra loi: bang, loi giai thich, va khoi
+     * JSON nam trong khung code. Nen o day khong doi chu phai la JSON tron: tim chu
+     * "ket_qua" cuoi cung, lui ve dau ngoac nhon mo gan nhat, roi dem ngoac de lay
+     * dung mot khoi. Dem ngoac thi bo qua ngoac nam trong chuoi, vi goi y cua Claude
+     * co the chep lai mot bieu thuc co ngoac.
+     *
+     * Tra null khi khong thay khoi nao doc duoc: bo nho tam dang giu thu khac, hay
+     * Claude quen in khoi JSON.
+     */
+    fun docKetQua(chu: String?): KetQuaDan? {
+        if (chu.isNullOrBlank()) return null
+        val moc = chu.lastIndexOf("\"ket_qua\"")
+        if (moc < 0) return null
+        val dau = chu.lastIndexOf('{', moc)
+        if (dau < 0) return null
+
+        var sau = 0
+        var trongChuoi = false
+        var thoat = false
+        var cuoi = -1
+        for (i in dau until chu.length) {
+            val ch = chu[i]
+            if (trongChuoi) {
+                when {
+                    thoat -> thoat = false
+                    ch == '\\' -> thoat = true
+                    ch == '"' -> trongChuoi = false
+                }
+                continue
+            }
+            when (ch) {
+                '"' -> trongChuoi = true
+                '{' -> sau++
+                '}' -> {
+                    sau--
+                    if (sau == 0) {
+                        cuoi = i
+                        break
+                    }
+                }
+            }
+        }
+        if (cuoi < 0) return null
+
+        val o = runCatching { JSONObject(chu.substring(dau, cuoi + 1)) }.getOrNull()
+            ?: return null
+        val mang = o.optJSONArray("ket_qua") ?: return null
+        val cac = (0 until mang.length()).mapNotNull { i ->
+            val c = mang.optJSONObject(i) ?: return@mapNotNull null
+            val ma = c.optString("ma").trim()
+            if (ma.isEmpty()) return@mapNotNull null
+            /*
+             * "dung" phai la true hay false that, khong phai chu.
+             *
+             * org.json doc de dai: gap "dung":true hoặc false no doc ra mot chuoi chu
+             * khong bao loi, va optBoolean lai doan tu chuoi. Mot cau khong co ket luan
+             * ro rang thi khong mang thong tin gi, bo di. "chac" viet sai thi coi la
+             * khong chac, de cau do giu theo may.
+             */
+            val dung = c.opt("dung") as? Boolean ?: return@mapNotNull null
+            val chac = if (c.has("chac")) c.opt("chac") as? Boolean ?: false else true
+            CauClaude(
+                ma = ma,
+                dung = dung,
+                chac = chac,
+                conViet = c.optString("con_viet").trim(),
+                goiY = c.optString("goi_y").trim()
+            )
+        }
+        if (cac.isEmpty()) return null
+        return KetQuaDan(o.optString("bai").trim(), cac)
     }
 
     /**

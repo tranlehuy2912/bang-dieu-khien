@@ -208,6 +208,22 @@ data class KetQuaCham(
     fun coCauKhongRo(): Boolean = cac.any { !it.docRo }
 }
 
+/** Ket luan cua Claude cho mot cau, Ba Huy dan tu app Claude vao. */
+data class CauClaude(
+    val ma: String,
+    val dung: Boolean,
+    /** false la Claude khong doc chac chu con viet. Luc do khong lat ket luan cua may. */
+    val chac: Boolean,
+    val conViet: String,
+    /** Goi y cho con tu sua, chi co o cau sai. Khong chua dap an. */
+    val goiY: String
+)
+
+/** Ban Claude cham lai, nam o [Duong.F_CHAM_CLAUDE] canh ban cham cua may. */
+data class KetQuaClaude(val luc: Long, val cac: List<CauClaude>) {
+    fun cua(ma: String): CauClaude? = cac.firstOrNull { it.ma == ma.trim() }
+}
+
 /** Mot lan con nop bai. */
 data class Bai(
     val id: String,
@@ -216,7 +232,8 @@ data class Bai(
     val soPhut: Int,
     val anh: List<Anh>,
     val cham: KetQuaCham?,
-    val messageId: Long
+    val messageId: Long,
+    val claude: KetQuaClaude? = null
 ) {
     val dangCho: Boolean get() = trangThai == CHO
 
@@ -238,8 +255,27 @@ data class Bai(
                 soPhut = (d.getLong(Duong.F_SO_PHUT) ?: 0L).toInt(),
                 anh = anh,
                 cham = docCham(d.get(Duong.F_CHAM) as? Map<*, *>),
-                messageId = d.getLong(Duong.F_MESSAGE_ID) ?: 0L
+                messageId = d.getLong(Duong.F_MESSAGE_ID) ?: 0L,
+                claude = docClaude(d.get(Duong.F_CHAM_CLAUDE) as? Map<*, *>)
             )
+        }
+
+        private fun docClaude(m: Map<*, *>?): KetQuaClaude? {
+            if (m == null) return null
+            val cac = (m["cac"] as? List<*>).orEmpty().mapNotNull { c ->
+                val o = c as? Map<*, *> ?: return@mapNotNull null
+                val ma = (o["ma"] as? String)?.trim().orEmpty()
+                if (ma.isEmpty()) return@mapNotNull null
+                CauClaude(
+                    ma = ma,
+                    dung = o["dung"] as? Boolean ?: false,
+                    chac = o["chac"] as? Boolean ?: true,
+                    conViet = o["conViet"] as? String ?: "",
+                    goiY = o["goiY"] as? String ?: ""
+                )
+            }
+            if (cac.isEmpty()) return null
+            return KetQuaClaude((m["luc"] as? Number)?.toLong() ?: 0L, cac)
         }
 
         private fun docCham(m: Map<*, *>?): KetQuaCham? {

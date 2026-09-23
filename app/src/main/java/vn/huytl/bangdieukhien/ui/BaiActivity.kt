@@ -1,5 +1,6 @@
 package vn.huytl.bangdieukhien.ui
 
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
@@ -22,6 +23,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.launch
 import vn.huytl.bangdieukhien.R
 import vn.huytl.bangdieukhien.data.Bai
+import vn.huytl.bangdieukhien.data.CauCham
 import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.Lenh
 import vn.huytl.bangdieukhien.data.Nha
@@ -126,6 +128,130 @@ class BaiActivity : AppCompatActivity() {
             }
         }
         b.than.addView(nut)
+
+        // Nut thu hai: dua ket qua Claude cham ve lai day. Xem [danKetQua].
+        b.than.addView(
+            MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+                text = "Dán kết quả của Claude"
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { bottomMargin = 12.dp().toInt() }
+                setOnClickListener { danKetQua(bai) }
+            }
+        )
+    }
+
+    /**
+     * Doc ket qua Claude tu bo nho tam, hoi lai Ba Huy, roi ghi va bao tablet.
+     *
+     * Claude app khong tu ghi duoc len Firebase, nen ket qua di ve bang tay: Ba Huy
+     * chep cau tra loi trong Claude, quay lai day bam nut. Loi nho da dan Claude in
+     * mot khoi JSON o cuoi, xem [NhoClaude.docKetQua].
+     *
+     * LUON HOI LAI TRUOC KHI GHI. Hop thoai ke ra dung nhung cau Claude cham khac
+     * may, vi do la cho duy nhat sinh ra viec: cau may bao sai ma Claude bao dung thi
+     * tablet cong gio cho con. Cau may bao dung ma Claude bao sai thi chi ghi lai de
+     * con biet, khong rut gio.
+     */
+    private fun danKetQua(bai: Bai) {
+        val chu = getSystemService(ClipboardManager::class.java)?.primaryClip
+            ?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(this)?.toString()
+        if (NhoClaude.laLoiNho(chu)) {
+            MaterialAlertDialogBuilder(this)
+                .setTitle("Đây là lời nhờ, chưa phải kết quả")
+                .setMessage(
+                    "Bộ nhớ tạm đang giữ lời nhờ gửi Claude. Trong app Claude, bấm chép " +
+                        "câu trả lời của Claude rồi quay lại đây bấm nút này."
+                )
+                .setPositiveButton("Đã hiểu", null)
+                .show()
+            return
+        }
+        val ket = NhoClaude.docKetQua(chu)
+        if (ket == null) {
+            MaterialAlertDialogBuilder(this)
+                .setTitle("Chưa thấy kết quả của Claude")
+                .setMessage(
+                    "Trong app Claude, bấm chép câu trả lời có khối JSON ở cuối, " +
+                        "rồi quay lại đây bấm nút này."
+                )
+                .setPositiveButton("Đã hiểu", null)
+                .show()
+            return
+        }
+        // Chep nham cau tra loi cua bai khac la cong gio nham cho cau cung ma o bai khac.
+        if (ket.bai.isNotEmpty() && ket.bai != bai.id) {
+            MaterialAlertDialogBuilder(this)
+                .setTitle("Kết quả của bài khác")
+                .setMessage(
+                    "Khối kết quả này ghi mã bài ${ket.bai}, còn bài đang mở là ${bai.id}. " +
+                        "Mở đúng bài rồi dán lại."
+                )
+                .setPositiveButton("Đã hiểu", null)
+                .show()
+            return
+        }
+
+        val theoMa = bai.cham?.cac.orEmpty().associateBy { it.ma.trim() }
+        val thanhDung = ket.cac.filter { it.chac && it.dung }
+            .mapNotNull { cl -> theoMa[cl.ma]?.takeIf { !(it.docRo && it.dung) } }
+        val thanhSai = ket.cac.filter { it.chac && !it.dung }
+            .mapNotNull { cl -> theoMa[cl.ma]?.takeIf { it.docRo && it.dung } }
+        val khongChac = ket.cac.filter { !it.chac }.map { it.ma }
+        val dung = ket.cac.count { it.chac && it.dung }
+
+        val noi = buildString {
+            append("Claude chấm đúng $dung/${ket.cac.size} câu.")
+            if (thanhDung.isNotEmpty()) {
+                append("\n\nMáy bảo sai, Claude bảo đúng: ")
+                append(thanhDung.joinToString(", ") { it.ma }).append(". ")
+                append("Tablet sẽ bỏ các câu này khỏi danh sách cần sửa của con và cộng giờ theo luật.")
+            }
+            if (thanhSai.isNotEmpty()) {
+                append("\n\nMáy bảo đúng, Claude bảo sai: ")
+                append(thanhSai.joinToString(", ") { it.ma }).append(". ")
+                append("Giờ của các câu này đã cộng rồi, tablet không rút lại.")
+            }
+            if (khongChac.isNotEmpty()) {
+                append("\n\nClaude đọc chưa chắc: ").append(khongChac.joinToString(", "))
+                append(". Các câu này vẫn giữ theo máy.")
+            }
+            if (thanhDung.isEmpty() && thanhSai.isEmpty()) append("\n\nClaude chấm giống máy.")
+        }
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Kết quả của Claude")
+            .setMessage(noi)
+            .setNegativeButton(R.string.huy, null)
+            .setPositiveButton(if (thanhDung.isEmpty()) "Ghi" else "Ghi và báo tablet") { _, _ ->
+                ghiKetQua(bai, ket, thanhDung)
+            }
+            .show()
+    }
+
+    /**
+     * Ghi ban Claude len bai va, neu co cau may cham nham, go lenh sua cham.
+     *
+     * Hai viec chay song song chu khong noi duoi nhau: ghi ban Claude chi xong khi may
+     * chu nhan, ma mat mang thi lenh sua cham van nen nam san trong hang doi cua tablet.
+     */
+    private fun ghiKetQua(bai: Bai, ket: NhoClaude.KetQuaDan, thanhDung: List<CauCham>) {
+        Kho.ghiChamClaude(this, bai.id, ket.cac) { kq ->
+            if (kq is Kho.KetQua.Hong) Dinh.noi(this, kq.viSao)
+        }
+        if (thanhDung.isEmpty()) {
+            Dinh.noi(this, "Đã ghi kết quả của Claude.")
+            return
+        }
+        Kho.guiLenh(
+            this, Lenh.SUA_CHAM, baiId = bai.id,
+            giaTri = thanhDung.map { mapOf("ma" to it.ma, "de" to it.de) }
+        ) { kq ->
+            Dinh.noi(
+                this,
+                if (kq is Kho.KetQua.Hong) kq.viSao else "Đã báo tablet. Tablet trả lời ở màn Bảng."
+            )
+        }
     }
 
     // ------------------------------------------------------------- ban cham
@@ -159,6 +285,17 @@ class BaiActivity : AppCompatActivity() {
                 (layoutParams as LinearLayout.LayoutParams).topMargin = 6.dp().toInt()
             })
         }
+        // Da dan ket qua Claude: mot dong tong, con tung cau khac may thi ghi ngay
+        // duoi cau do. Xem [danKetQua].
+        bai.claude?.let { cl ->
+            val dungCl = cl.cac.count { it.chac && it.dung }
+            trong.addView(
+                chu(
+                    "Claude chấm lại lúc ${Dinh.lucNgan(cl.luc)}: đúng $dungCl/${cl.cac.size} câu",
+                    14f, bold = true, mau = R.color.brand
+                ).apply { (layoutParams as LinearLayout.LayoutParams).topMargin = 8.dp().toInt() }
+            )
+        }
 
         // Mot dong moi cau: dung hay sai, va co doc ro khong.
         //
@@ -186,6 +323,16 @@ class BaiActivity : AppCompatActivity() {
             }
             if (!c.docRo) cot.addView(chu("AI đọc không rõ câu này", 13f, mau = R.color.wait))
             if (c.nhanXet.isNotBlank()) cot.addView(chu(c.nhanXet, 13f, mau = R.color.ink_mo))
+            val cl = bai.claude?.cua(c.ma)
+            if (cl != null && cl.chac && cl.dung != (c.docRo && c.dung)) {
+                cot.addView(
+                    chu(
+                        if (cl.dung) "Claude: đúng, máy chấm nhầm"
+                        else "Claude: sai" + if (cl.goiY.isNotBlank()) ". ${cl.goiY}" else "",
+                        13f, bold = true, mau = if (cl.dung) R.color.ok else R.color.alert
+                    )
+                )
+            }
             hang.addView(cot)
             trong.addView(hang)
         }

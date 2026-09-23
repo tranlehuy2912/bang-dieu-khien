@@ -290,6 +290,41 @@ object Kho {
     // ------------------------------------------------------------------- ghi
 
     /**
+     * Ghi ban Claude cham lai vao dung bai do, canh ban cham cua may.
+     *
+     * Khong ghi de [Duong.F_CHAM]: ban cua may giu nguyen de doi chieu, va man ket
+     * qua ben tablet tu chon ket luan cua Claude khi co. Viec cong gio cho cau may
+     * cham nham thi di duong lenh [Lenh.SUA_CHAM], vi chi tablet biet con han muc
+     * hay dang gio ngu.
+     */
+    fun ghiChamClaude(
+        context: Context,
+        baiId: String,
+        cac: List<CauClaude>,
+        xong: (KetQua) -> Unit = {}
+    ) {
+        val n = nha(context) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
+        val ban = mapOf(
+            "luc" to System.currentTimeMillis(),
+            "cac" to cac.map {
+                mapOf(
+                    "ma" to it.ma,
+                    "dung" to it.dung,
+                    "chac" to it.chac,
+                    "conViet" to it.conViet,
+                    "goiY" to it.goiY
+                )
+            }
+        )
+        n.collection(Duong.BAI).document(baiId).update(Duong.F_CHAM_CLAUDE, ban)
+            .addOnSuccessListener { xong(KetQua.Xong) }
+            .addOnFailureListener {
+                Log.w(TAG, "ghi ban Claude hong", it)
+                xong(KetQua.Hong(loiNguoiDoc(it)))
+            }
+    }
+
+    /**
      * Dat mot lenh vao hang doi cua tablet.
      *
      * Tablet nghe hang nay, lam xong thi xoa document di. Khong sua trang thai o

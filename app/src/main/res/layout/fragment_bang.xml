@@ -329,6 +329,24 @@
                 app:strokeColor="@color/alert" />
         </LinearLayout>
 
+        <!-- Tin cua co giao trong nhom lop Zalo. Ba Huy chep tin ben Zalo roi bam nut
+             nay, tablet dua len man chinh cho con va ba noi doc. Truoc day chi gui duoc
+             bang lenh /tinco ben Telegram. -->
+        <TextView
+            style="@style/Chu.Tieu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="8dp"
+            android:text="Tin của cô giáo" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/nutTinCo"
+            style="@style/Nut.Phien"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Dán tin cô gửi trong nhóm lớp" />
+
         <!-- Lenh dang tren duong di, hay vua hong.
 
              Truoc day cho nay khong co gi: bam mot nut la khong thay phan hoi nao

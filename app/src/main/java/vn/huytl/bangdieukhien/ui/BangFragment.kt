@@ -1,15 +1,20 @@
 package vn.huytl.bangdieukhien.ui
 
+import android.content.ClipboardManager
+import android.content.DialogInterface
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.InputType
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -120,6 +125,7 @@ class BangFragment : Fragment() {
         b.nutBot.setOnClickListener { gui(Lenh.BOT, phut = 15) }
         b.nutKhoa.setOnClickListener { hoiRoiKhoa() }
         b.nutMoMay.setOnClickListener { hoiMoMay() }
+        b.nutTinCo.setOnClickListener { hoiTinCo() }
         b.theBaiCho.setOnClickListener { (activity as? MainActivity)?.sangTheBai() }
         b.theViecKet.setOnClickListener { hoiRoiGoDotKet() }
     }
@@ -370,6 +376,11 @@ class BangFragment : Fragment() {
         b.nutDung.isEnabled = tt.cong == Cong.DANG_CHOI || tt.cong == Cong.TAM_DUNG
         b.nutBot.isEnabled = tt.cong == Cong.DANG_CHOI
         b.nutKhoa.isEnabled = tt.cong != Cong.KHOA || tt.cheDoBaBat
+        // Cac nut nay bam duoc o moi trang thai. Phai bat lai o day vi [khoaNut] tat
+        // chung trong luc gui: truoc day khong cho nao bat lai, nen bam xong mot lenh
+        // la hang Cho choi ngay va nut Mo toan bo may cu nam xam.
+        listOf(b.cho15, b.cho30, b.cho45, b.choKhac, b.nutMoMay, b.nutTinCo)
+            .forEach { it.isEnabled = true }
         b.nutMoMay.text =
             if (tt.cheDoBaBat) "Đóng chế độ Ba Huy, khoá máy lại"
             else "Mở toàn bộ máy cho Ba Huy dùng"
@@ -561,7 +572,7 @@ class BangFragment : Fragment() {
     }
 
     /**
-     * Dong bao tinh hinh duoi hai hang nut, va khoa nut khi dang gui.
+     * Dong bao tinh hinh duoi cac hang nut, va khoa nut khi dang gui.
      *
      * Goi ca tu [ve] lan tu chinh [gui]: luc vua bam thi chua co ban trang thai moi
      * nao tu Firestore ve de [ve] chay theo.
@@ -589,7 +600,7 @@ class BangFragment : Fragment() {
     private fun khoaNut() {
         listOf(
             b.cho15, b.cho30, b.cho45, b.choKhac,
-            b.nutDung, b.nutBot, b.nutKhoa, b.nutMoMay
+            b.nutDung, b.nutBot, b.nutKhoa, b.nutMoMay, b.nutTinCo
         ).forEach { it.isEnabled = false }
     }
 
@@ -647,6 +658,64 @@ class BangFragment : Fragment() {
             .show()
     }
 
+    // ----------------------------------------------------------- tin cua co
+
+    /**
+     * Dua mot tin cua co giao len man chinh tablet.
+     *
+     * Ba Huy chep tin trong nhom lop Zalo roi bam nut nay: chu trong bo nho tam dien
+     * san vao o, sua bot duoc truoc khi gui. Bo nho tam khong co chu thi o de trong
+     * cho go tay. Chi doc bo nho tam luc Ba Huy bam nut, y nhu nut dan ket qua Claude.
+     *
+     * Nut Dua len tablet khong dong hop thoai khi o con trong hay tin dai qua: dong
+     * lai la mat chu vua dan, ma chu do Ba Huy co the da sua bot.
+     */
+    private fun hoiTinCo() {
+        val ct = requireContext()
+        val o = EditText(ct).apply {
+            setText(chuBoNhoTam())
+            hint = "Dán hoặc gõ tin của cô"
+            inputType = InputType.TYPE_CLASS_TEXT or
+                InputType.TYPE_TEXT_FLAG_MULTI_LINE or
+                InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+            gravity = Gravity.TOP or Gravity.START
+            minLines = 3
+            maxLines = 10
+            setPadding(48, 32, 48, 32)
+        }
+        val hop = MaterialAlertDialogBuilder(ct)
+            .setTitle("Tin của cô giáo")
+            .setMessage(
+                "Tin hiện ở màn chính tablet, máy kêu báo cho " +
+                    "${getString(R.string.child_name)}. Tablet đang tắt thì tin chờ đến " +
+                    "lúc mở máy."
+            )
+            .setView(o)
+            .setPositiveButton("Đưa lên tablet", null)
+            .setNegativeButton(R.string.huy, null)
+            .show()
+        hop.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener {
+            val chu = o.text.toString().trim()
+            when {
+                chu.isEmpty() -> o.error = "Chưa có chữ nào."
+                chu.length > TIN_CO_TOI_DA ->
+                    o.error = "Tin dài ${chu.length} ký tự, cắt bớt còn dưới $TIN_CO_TOI_DA."
+                else -> {
+                    hop.dismiss()
+                    gui(Lenh.TIN_CO, chu = chu)
+                }
+            }
+        }
+    }
+
+    /** Chu dang nam trong bo nho tam, rong neu khong co. */
+    private fun chuBoNhoTam(): String {
+        val ct = requireContext()
+        return ct.getSystemService(ClipboardManager::class.java)?.primaryClip
+            ?.takeIf { it.itemCount > 0 }?.getItemAt(0)
+            ?.coerceToText(ct)?.toString()?.trim().orEmpty()
+    }
+
     private data class Bo(val chu: String, val mau: Int, val mauNhat: Int)
 
     companion object {
@@ -678,5 +747,14 @@ class BangFragment : Fragment() {
          * bao gio cu, du dai de nghich thanh tab khong sinh ra mot tram lenh.
          */
         private const val GIAN_HOI_MS = 30_000L
+
+        /**
+         * Tin cua co dai nhat bao nhieu ky tu.
+         *
+         * Tin that trong nhom lop chi vai tram chu. Tran nay chan mot lan dan nham ca
+         * mot van ban dai: tablet giu tin trong file cai dat chung, va file do ghi lai
+         * ca cuc moi lan app doi bat ky muc nao.
+         */
+        private const val TIN_CO_TOI_DA = 3000
     }
 }

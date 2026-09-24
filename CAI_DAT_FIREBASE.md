@@ -82,6 +82,10 @@ Không dán thì máy bà bấm gì cũng bị từ chối.
 > đã dán luật, và file cấu hình đã nằm ở `nop-bai/app/src/debug/google-services.json`.
 > Máy ảo đã chạy thử và nối đúng vào dự án đó. Phần dưới giữ lại để sau này cần dựng
 > lại thì có đường đi, **đừng tạo thêm một dự án thử thứ hai**.
+>
+> Ngày 24/09/2026 khai thêm app `vn.huytl.bangdieukhien` vào dự án thử. File
+> `google-services.json` tải từ dự án thử chứa cả ba app, nên một bản dùng chung được
+> cho `app/src/debug/` của cả ba repo.
 
 Máy ảo cũng ghi vào Firestore thật: mỗi lần chạy bộ test là một "nhà" mới mở ra
 trong dự án. Chung một dự án thì rác của máy ảo nằm cạnh dữ liệu thật của Lê Hòa,
@@ -110,8 +114,7 @@ app/google-services.json             dự án THẬT (tablet của Lê Hòa dùn
    - Muốn thử cả app điện thoại trên máy ảo thì khai thêm app
      `vn.huytl.bangdieukhien`, file tải về đặt ở
      `~/Documents/Working/nop-bai/bang-dieu-khien/app/src/debug/google-services.json`.
-     Bảng điều khiển chỉ bật Firebase khi đã có `app/google-services.json` (file thật
-     ở mục 4), nên riêng file debug này thì bản gỡ lỗi vẫn chưa nối được.
+     (Đã khai ngày 24/09/2026 với tên "Bảng điều khiển (máy ảo)".)
 5. **Firestore Database → Rules** → dán `firestore.rules` → **Publish**
 
 **Kiểm lại:**

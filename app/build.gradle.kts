@@ -19,13 +19,37 @@ val hasKeystore = keystorePropsFile.exists()
 // Bat vo dieu kien thi may nao chua tai file ve la build do ngay tu dau, ke ca khi
 // chi muon xem code co bien dich duoc khong. Thieu file thi app van dung duoc -
 // no bao "chua noi Firebase" o man ghep doi thay vi tat ngang.
-val coFirebase = file("google-services.json").exists()
+//
+// HAI DU AN FIREBASE, MOI BAN BUILD MOT CAI, y het hai app kia:
+//
+//   app/src/debug/google-services.json   du an THU  - may ao dung
+//   app/google-services.json             du an THAT - dien thoai Ba Huy dung
+//
+// Truoc day cho nay chi xet file o goc. May nao chi co file du an thu - may Mac
+// dung de chay may ao chang han - thi plugin khong bat, va ban go loi khong noi
+// duoc Firestore du file da nam dung cho.
+val fileFirebaseThat = file("google-services.json")
+val fileFirebaseThu = file("src/debug/google-services.json")
+val coFirebase = fileFirebaseThat.exists() || fileFirebaseThu.exists()
 if (coFirebase) {
     apply(plugin = "com.google.gms.google-services")
 } else {
     logger.warn(
         "Chua co app/google-services.json - ban build nay khong noi duoc Firestore. " +
             "Xem CAI_DAT_FIREBASE.md."
+    )
+}
+
+if (coFirebase && !fileFirebaseThu.exists()) {
+    logger.warn(
+        "CHU Y: chua co app/src/debug/google-services.json, nen BAN GO LOI DANG NOI " +
+            "VAO DU AN FIREBASE THAT. Xem CAI_DAT_FIREBASE.md muc 6."
+    )
+}
+if (coFirebase && !fileFirebaseThat.exists()) {
+    logger.warn(
+        "CHU Y: chua co app/google-services.json, ban release se khong build duoc. " +
+            "File do la du an that, dien thoai Ba Huy dung."
     )
 }
 

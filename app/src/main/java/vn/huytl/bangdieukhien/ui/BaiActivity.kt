@@ -171,7 +171,8 @@ class BaiActivity : AppCompatActivity() {
                 .show()
             return
         }
-        val ket = NhoClaude.docKetQua(chu)
+        // Doi ma va de ve dung cau con khai truoc moi phep so, ca duong cham lai lan cham luon.
+        val ket = NhoClaude.docKetQua(chu)?.let { NhoClaude.theoKhai(it, bai.khai) }
         if (ket == null) {
             MaterialAlertDialogBuilder(this)
                 .setTitle("Chưa thấy kết quả của Claude")

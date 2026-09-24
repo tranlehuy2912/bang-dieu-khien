@@ -16,6 +16,7 @@ import vn.huytl.bangdieukhien.data.KhaiBai
 import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.telegram.TaiAnh
 import java.io.File
+import java.text.Normalizer
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -451,7 +452,7 @@ object NhoClaude {
         val mang = o.optJSONArray("ket_qua") ?: return null
         val cac = (0 until mang.length()).mapNotNull { i ->
             val c = mang.optJSONObject(i) ?: return@mapNotNull null
-            val ma = c.optString("ma").trim()
+            val ma = c.chuoi("ma")
             if (ma.isEmpty()) return@mapNotNull null
             /*
              * "dung" phai la true hay false that, khong phai chu.
@@ -467,8 +468,8 @@ object NhoClaude {
                 ma = ma,
                 dung = dung,
                 chac = chac,
-                conViet = c.optString("con_viet").trim(),
-                goiY = c.optString("goi_y").trim(),
+                conViet = c.chuoi("con_viet"),
+                goiY = c.chuoi("goi_y"),
                 // So dong chi doi so phut, khong doi dung sai, nen doc de dai: "4" cung la 4.
                 soDong = c.optInt("so_dong", 0).coerceAtLeast(0),
                 // Khong noi mau muc thi la -1, khong phai "khong do": tablet noi rieng hai
@@ -478,8 +479,8 @@ object NhoClaude {
                     is Number -> if (m.toInt() == 1) 1 else 0
                     else -> -1
                 },
-                de = c.optString("de").trim(),
-                dang = c.optString("dang").trim().uppercase(Locale.ROOT),
+                de = c.chuoi("de"),
+                dang = c.chuoi("dang").uppercase(Locale.ROOT),
                 // Chi nhan true hay false that. Khong noi thi tablet tu quyet theo luat
                 // cua may cham: co trang vo thi la lam them, khong co thi la bai co giao.
                 trongDanDo = c.opt("trong_dan_do") as? Boolean
@@ -496,7 +497,53 @@ object NhoClaude {
             // 45 phut.
             lamHet = o.opt("lam_het_dan_do") as? Boolean ?: false
         )
-        return KetQuaDan(o.optString("bai").trim(), cac, danDo)
+        return KetQuaDan(o.chuoi("bai"), cac, danDo)
+    }
+
+    /**
+     * Doc mot truong chu. Khong co truong, hay truong la null, thi ra chuoi rong.
+     *
+     * KHONG dung optString: org.json ban Android doi null thanh chu "null", da thu tren
+     * may ao ngay 24/9/2026. Claude hay ghi null cho cho khong co gi, va luc do goi y
+     * "null" hien cho con doc, con de "null" lam tablet tuong cau do co de. Kiem thu
+     * JVM dung ban org.json khac, tra chuoi rong, nen khong bat duoc loi nay. So thi
+     * van doc ra chu: "con_viet": 5 la "5".
+     */
+    private fun JSONObject.chuoi(ten: String): String =
+        if (isNull(ten)) "" else opt(ten).toString().trim()
+
+    /**
+     * Ma cau da bo het nhung cach viet khac nhau cua cung mot cau.
+     *
+     * Claude co khi chep "2.33A", "2.33 a", "Câu 2.33a" hay "2.33a)" thay cho "2.33a".
+     * Chi bo nhung thu khong bao gio phan biet hai cau: hoa thuong, khoang trang, chu
+     * "câu" hay "bài" o dau, dau cham, ngoac dong va hai cham o cuoi.
+     *
+     * Y het ChamTheoClaude.chuanMa ben tablet. Sua ben nay thi sua ca ben do.
+     */
+    internal fun chuanMa(ma: String): String {
+        val t = Normalizer.normalize(ma, Normalizer.Form.NFC).lowercase().filterNot { it.isWhitespace() }
+        val dau = listOf("câu", "cau", "bài", "bai").firstOrNull { t.startsWith(it) }
+        return (if (dau == null) t else t.removePrefix(dau)).trimEnd('.', ')', ']', ':')
+    }
+
+    /**
+     * Dua ket qua Claude ve dung ma, de va dang bai cua cac cau con khai.
+     *
+     * Ma lech cach viet thi doi ve ma trong khai: so y het thi cau do khong khop cau nao,
+     * tablet mat de va tra 0 phut du con lam dung. Cau con khai thi Claude khong chep de,
+     * nen dien de va dang tu khai: tablet van tinh dung cau do ke ca khi no mat ban khai
+     * cua minh. Cau khong khop cau khai nao thi giu nguyen, do la cau ngoai sach.
+     */
+    fun theoKhai(ket: KetQuaDan, khai: KhaiBai?): KetQuaDan {
+        if (khai == null) return ket
+        val daDung = mutableSetOf<String>()
+        return ket.copy(cac = ket.cac.map { c ->
+            val k = khai.cac.firstOrNull { chuanMa(it.ma) == chuanMa(c.ma) && it.ma !in daDung }
+                ?: return@map c
+            daDung += k.ma
+            c.copy(ma = k.ma, de = c.de.ifBlank { k.de }, dang = c.dang.ifBlank { k.dang })
+        })
     }
 
     /**

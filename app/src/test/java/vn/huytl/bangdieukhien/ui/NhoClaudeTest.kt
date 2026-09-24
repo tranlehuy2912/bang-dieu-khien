@@ -2,6 +2,7 @@ package vn.huytl.bangdieukhien.ui
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -9,6 +10,7 @@ import org.junit.Test
 import vn.huytl.bangdieukhien.data.Anh
 import vn.huytl.bangdieukhien.data.Bai
 import vn.huytl.bangdieukhien.data.CauCham
+import vn.huytl.bangdieukhien.data.CauClaude
 import vn.huytl.bangdieukhien.data.KetQuaCham
 import vn.huytl.bangdieukhien.data.KhaiBai
 
@@ -291,5 +293,57 @@ class NhoClaudeTest {
         assertTrue(ket.danDo!!.baiDuocGiao.isEmpty())
         // Khong co truong nao ve vo dan do thi khong co ban doc vo dan do.
         assertNull(NhoClaude.docKetQua("""{"ket_qua":[{"ma":"1","dung":true}]}""")!!.danDo)
+    }
+
+    // ---------------------------------------------------- null va ma cau lech
+
+    @Test
+    fun null_doc_thanh_chuoi_rong_so_doc_thanh_chu() {
+        // Kiem thu JVM dung org.json ban khac voi Android: ban Android doi null thanh chu
+        // "null" (da thu tren may ao). Test nay ghim ket qua ma docKetQua phai ra.
+        val ket = NhoClaude.docKetQua(
+            """{"bai":null,"ket_qua":[""" +
+                """{"ma":"1","dung":false,"con_viet":null,"goi_y":null,"de":null,"dang":null},""" +
+                """{"ma":2,"dung":true,"con_viet":5}]}"""
+        )!!
+        assertEquals("", ket.bai)
+        val (a, b) = ket.cac
+        assertEquals("", a.conViet)
+        assertEquals("", a.goiY)
+        assertEquals("", a.de)
+        assertEquals("", a.dang)
+        assertEquals("2", b.ma)
+        assertEquals("5", b.conViet)
+    }
+
+    @Test
+    fun ma_lech_cach_viet_doi_ve_ma_khai_kem_de_va_dang() {
+        val ket = NhoClaude.KetQuaDan(
+            bai = "b77",
+            cac = listOf(
+                CauClaude(ma = "Câu 2.33A", dung = true, chac = true, conViet = "40xy", goiY = ""),
+                CauClaude(ma = "2.28)", dung = true, chac = true, conViet = "B", goiY = ""),
+                CauClaude(ma = "5", dung = true, chac = true, conViet = "5", goiY = "", de = "Tính 2 + 3.")
+            )
+        )
+        val (a, b, c) = NhoClaude.theoKhai(ket, khai).cac
+        assertEquals("2.33a", a.ma)
+        assertEquals("Rút gọn (2x + 5y)^2 − (2x − 5y)^2", a.de)
+        assertEquals("CAU_NHO", a.dang)
+        assertEquals("2.28", b.ma)
+        assertEquals("TRAC_NGHIEM", b.dang)
+        // Cau ngoai sach giu nguyen, ke ca de Claude chep.
+        assertEquals("5", c.ma)
+        assertEquals("Tính 2 + 3.", c.de)
+        // Khong co khai thi khong doi gi.
+        assertEquals(ket, NhoClaude.theoKhai(ket, null))
+    }
+
+    @Test
+    fun chuan_ma_chi_bo_cach_viet_khong_bo_noi_dung() {
+        assertEquals("2.33a", NhoClaude.chuanMa("2.33 a:"))
+        assertEquals("b3.c7", NhoClaude.chuanMa("Câu B3.C7."))
+        assertEquals("1", NhoClaude.chuanMa("Bài 1)"))
+        assertNotEquals(NhoClaude.chuanMa("2.33a"), NhoClaude.chuanMa("2.33b"))
     }
 }

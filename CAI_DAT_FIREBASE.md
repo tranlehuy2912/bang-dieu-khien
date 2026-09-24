@@ -41,7 +41,7 @@ biểu tượng Android.
 - App nickname: `Nộp bài`
 - SHA-1: để trống, bấm **Register app**
 - Bấm **Download google-services.json**, chép file đó vào:
-  `~/Documents/homework-gate/app/google-services.json`
+  `~/Documents/Working/nop-bai/nop-bai/app/google-services.json`
 - Mấy bước "Add Firebase SDK" tiếp theo: **bỏ qua**, tôi đã viết sẵn trong Gradle.
 
 **Lần 2 — điện thoại của Ba Huy** (bấm **Add app** → Android lần nữa):
@@ -49,14 +49,14 @@ biểu tượng Android.
 - App nickname: `Bảng điều khiển`
 - SHA-1: để trống, bấm **Register app**
 - Tải `google-services.json` rồi chép vào:
-  `~/Documents/homework-gate-3/app/google-services.json`
+  `~/Documents/Working/nop-bai/bang-dieu-khien/app/google-services.json`
 
 **Lần 3 — điện thoại của bà nội** (bấm **Add app** → Android lần nữa):
 - Android package name: `vn.huytl.chogiochoi`
 - App nickname: `Cho giờ chơi`
 - SHA-1: để trống, bấm **Register app**
 - Tải `google-services.json` rồi chép vào:
-  `~/Documents/homework-gate-2/app/google-services.json`
+  `~/Documents/Working/nop-bai/cho-gio-choi/app/google-services.json`
 
 Ba file trùng tên nhưng khác nội dung, đừng chép nhầm chỗ. Cả ba đã nằm trong
 `.gitignore`.
@@ -79,7 +79,7 @@ Không dán thì máy bà bấm gì cũng bị từ chối.
 
 > **Đã làm xong ngày 16/09/2026.** Dự án thử tên `homework-gate-thu` đã tạo, đã bật
 > Firestore (asia-southeast1) và đăng nhập ẩn danh, đã khai app `vn.huytl.homeworkgate`,
-> đã dán luật, và file cấu hình đã nằm ở `homework-gate/app/src/debug/google-services.json`.
+> đã dán luật, và file cấu hình đã nằm ở `nop-bai/app/src/debug/google-services.json`.
 > Máy ảo đã chạy thử và nối đúng vào dự án đó. Phần dưới giữ lại để sau này cần dựng
 > lại thì có đường đi, **đừng tạo thêm một dự án thử thứ hai**.
 
@@ -106,16 +106,18 @@ app/google-services.json             dự án THẬT (tablet của Lê Hòa dùn
    - Android package name: `vn.huytl.homeworkgate`
    - SHA-1 để trống → **Register app** → **Download google-services.json**
    - Chép file đó vào — **chú ý đường dẫn khác mục 4 ở trên**:
-     `~/Documents/homework-gate/app/src/debug/google-services.json`
+     `~/Documents/Working/nop-bai/nop-bai/app/src/debug/google-services.json`
    - Muốn thử cả app điện thoại trên máy ảo thì khai thêm app
      `vn.huytl.bangdieukhien`, file tải về đặt ở
-     `~/Documents/homework-gate-3/app/src/debug/google-services.json`
+     `~/Documents/Working/nop-bai/bang-dieu-khien/app/src/debug/google-services.json`.
+     Bảng điều khiển chỉ bật Firebase khi đã có `app/google-services.json` (file thật
+     ở mục 4), nên riêng file debug này thì bản gỡ lỗi vẫn chưa nối được.
 5. **Firestore Database → Rules** → dán `firestore.rules` → **Publish**
 
 **Kiểm lại:**
 
 ```
-tools/emu.sh status
+nop-bai/tools/emu.sh status
 ```
 
 Dòng đầu phải ra như thế này:
@@ -146,7 +148,8 @@ DANG NOI VAO DU AN FIREBASE THAT`, và `emu.sh status` ghi rõ `<-- DU AN THAT!`
 
 ## Xong thì báo tôi
 
-Tôi chạy `tools/kiemtra.sh` để thử kết nối trước khi cài lên máy thật.
+Tôi chạy `nop-bai/tools/emu.sh status` để xem bản gỡ lỗi và bản thật đang nối dự án
+Firebase nào trước khi cài lên máy thật.
 
 ---
 

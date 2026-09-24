@@ -4,9 +4,9 @@ App thứ ba trong nhà:
 
 | App | Máy | Việc |
 |---|---|---|
-| **Nộp bài** (`homework-gate`) | tablet Lê Hòa | chụp bài, khoá máy, canh giờ chơi |
-| **Cho giờ chơi** (`homework-gate-2`) | điện thoại bà nội | cho cháu chơi N phút, và giao việc nhà |
-| **Bảng điều khiển** (`homework-gate-3`) | điện thoại Ba Huy | duyệt bài, xem, chỉnh — thay phần lệnh Telegram |
+| **Nộp bài** (`nop-bai`) | tablet Lê Hòa | chụp bài, khoá máy, canh giờ chơi |
+| **Cho giờ chơi** (`cho-gio-choi`) | điện thoại bà nội | cho cháu chơi N phút, và giao việc nhà |
+| **Bảng điều khiển** (`bang-dieu-khien`) | điện thoại Ba Huy | duyệt bài, xem, chỉnh — thay phần lệnh Telegram |
 
 ## Vì sao không đi bằng Telegram
 
@@ -52,6 +52,11 @@ nền nào.
 
 Một quy tắc giữ cho mọi thứ không rối: **mỗi document chỉ một bên được ghi.**
 
+Ngoại lệ có chủ ý: `chat/` hai bên cùng ghi, trường `chamClaude` trong `bai/` do
+Bảng điều khiển ghi, và tablet xoá `hop/viecnha` khi một đợt việc đã khép. Tên
+trường đầy đủ nằm ở `Duong.kt` (ba bản giống nhau); sơ đồ dưới đây mà lệch với
+file đó thì `Duong.kt` đúng.
+
 ```
 nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhepHetHan }
 │                               uids    = người nhà đầy đủ (tablet, điện thoại Ba Huy)
@@ -63,13 +68,19 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 ├── hop/trangthai               ◄── chỉ TABLET ghi
 │     cong          LOCKED|PENDING|GRANTED|ACTIVE|PAUSED
 │     ketThucLuc    epoch ms phiên kết thúc (0 = không chạy)
-│     conLaiMs      số ms còn lại lúc ghi
+│     conLaiMs      số ms đang giữ khi PAUSED, GRANTED, PENDING; 0 khi đang chơi
+│                   (điện thoại tự trừ từ ketThucLuc)
+│     tongPhienMs   cả phiên dài bao nhiêu ms, đứng yên suốt phiên, để vẽ thanh chạy
 │     phutDaDuyet   hôm nay đã duyệt bao nhiêu phút
 │     phutConLai    hạn mức ngày còn lại
 │     soBaiCho      mấy bài đang chờ duyệt
+│     viecNha       tên các việc nhà chưa xong, để hiểu vì sao tablet đang khoá
 │     cheDoBa       { bat, hetLuc }
 │     quyen         { trogiup, quantri, noi, pin }
-│     pinMay, mang, banApp, capNhatLuc
+│     appTruocMat   tên app đang trên màn hình, LUÔN là chuỗi; đi kèm appTruocMatTu
+│                   (lúc mở app đó) và manHinhSang. Vắng cả ba là không biết
+│     traLoi        { chu, luc, ai }: câu tablet nói lại sau khi làm một lệnh
+│     pinMay, dangSac, banApp, capNhatLuc
 │
 ├── hop/caidat                  ◄── chỉ TABLET ghi (bản sao cấu hình đang chạy)
 ├── hop/danhsachapp             ◄── chỉ TABLET ghi (app đang cài, để chọn từ xa)
@@ -77,18 +88,37 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 ├── lenh/{id}                   ◄── ĐIỆN THOẠI ghi, tablet đọc rồi xoá
 │     kieu   DUYET TUCHOI CHO BOT DUNG TIEP KHOA MOMAY DONGMAY XOAPIN CAIDAT NHAN
 │            CONGVIECNHA — cộng bù một đợt việc nhà tablet đã bỏ lỡ
-│     phut, baiId, chu, taoLuc
+│            CHOGOAPP    tắt quản trị thiết bị để gỡ app
+│            PING        hỏi tablet ngay, tablet đẩy một bản trạng thái đầy đủ
+│            SUACHAM     sửa bản chấm của máy theo kết quả Claude chấm lại
+│            CHAMBAI     bản chấm đầu tiên do Claude chấm (tablet tắt AI, hay AI hỏng)
+│            TINCO       tin của cô giáo, không bị bỏ vì quá cũ
+│     phut, baiId, chu, giaTri
+│     tao    epoch ms theo đồng hồ máy gửi. Tablet dùng trường này để xếp lệnh
+│            và bỏ lệnh quá nửa tiếng. taoLuc (server timestamp) chỉ Bảng điều
+│            khiển ghi, tablet không đọc
 │     ai     bahuy | banoi — máy bà chỉ tạo được lệnh CHO, luật chặn tận gốc
 │
-├── hop/viecnha                 ◄── chỉ MÁY BÀ NỘI ghi
+├── hop/viecnha                 ◄── MÁY BÀ NỘI ghi, tablet xoá khi đợt đã khép
 │     maPhien   đổi mã nghĩa là bà giao đợt mới, không phải sửa đợt đang chạy
 │     luc       lúc bà bấm, để tablet bỏ lệnh cũ quá nửa tiếng
 │     viec[]    { ten, phut, xong }
+│               Đợt khép lại (xong hết, hoặc bà bỏ hết) thì tablet xoá document,
+│               nếu maPhien vẫn là đợt đó. Máy bà coi document biến mất là tablet
+│               đã nhận.
 │
-├── bai/{baiId}                 ◄── chỉ TABLET ghi
+├── bai/{baiId}                 ◄── TABLET ghi, riêng chamClaude do Bảng điều khiển ghi
 │     luc, trangThai CHO|DUYET|TUCHOI, soPhut, messageId
-│     anh[]   { fileId, khau: DANDO|DEBAI|BAIGIAI }
+│     anh[]   { fileId, khau: DAN_DO|DE_BAI|BAI_GIAI }
+│             (Bảng điều khiển đọc được cả DANDO|DEBAI|BAIGIAI)
 │     cham    kết quả AI chấm, nếu có
+│     khai    các câu con khai trước khi chụp, kèm đề:
+│             { tenNguon, bai, mon, onTap, cac[] }
+│     chamClaude  kết quả Claude chấm lại mà Ba Huy dán vào: { luc, cac[] }.
+│             Nằm cạnh cham, không ghi đè lên nó
+│
+├── socai/{cauId}_{luc}         ◄── chỉ TABLET ghi, mỗi lần chấm một câu là một document
+│                               sổ cái, để cài lại app thì kéo về được (keoSoVe)
 │
 ├── nhatky/{yyyy-MM-dd}         ◄── chỉ TABLET ghi, gộp cả ngày vào một document
 ├── hoiai/{yyyy-MM-dd}          ◄── chỉ TABLET ghi

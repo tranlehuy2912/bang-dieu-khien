@@ -114,9 +114,20 @@ class CaiDatFragment : Fragment() {
         b.than.addView(nhom(
             // Ten cu "App duoc choi · Mo duoc trong gio choi" noi nguoc nghia: trong gio
             // choi thi app nao cung mo duoc. Day la danh sach mo duoc ca khi HET gio
-            // choi, tru gio ngu. Goi dung ten ben tablet de hai may noi cung mot cau.
-            muc("App luôn được dùng", "${c.appChoPhep.size} app", "Mở được khi hết giờ chơi, trừ giờ ngủ") {
-                chonApp("App luôn được dùng", c.appChoPhep) { guiCaiDat("appChoPhep", it) }
+            // choi, tru gio ngu va gio di hoc. Goi dung ten ben tablet de hai may noi
+            // cung mot cau.
+            //
+            // Truoc 27/9/2026 muc nay ten "App luon duoc dung". Doi ten khi co them muc
+            // "Dung moi luc" ngay duoi: hai chu "luon" va "moi luc" dat canh nhau la nham.
+            muc("Dùng khi hết giờ chơi", "${c.appChoPhep.size} app", "Trừ giờ ngủ và giờ đi học") {
+                chonApp("Dùng khi hết giờ chơi", c.appChoPhep) { guiCaiDat("appChoPhep", it) }
+            },
+            // Khong bao gio khoa theo gio, ke ca gio ngu, gio hoc va luc lam viec nha. Them
+            // cho Telegram: Le Hoa nhan tin voi ba bang Telegram that. Tablet ban cu khong
+            // biet muc nay thi tra loi "Khong co muc cai dat", va hop/caidat khong co
+            // truong appMoiLuc nen dem ra 0 app.
+            muc("Dùng mọi lúc", "${c.appMoiLuc.size} app", "Kể cả giờ ngủ, giờ học, lúc làm việc nhà") {
+                chonApp("Dùng mọi lúc", c.appMoiLuc) { guiCaiDat("appMoiLuc", it) }
             },
             muc("App chặn hẳn", "${c.appChan.size} app", "Không mở được kể cả trong giờ chơi") {
                 chonApp("App chặn hẳn", c.appChan) { guiCaiDat("appChan", it) }

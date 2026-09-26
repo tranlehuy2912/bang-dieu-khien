@@ -87,6 +87,11 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │     pinMay, dangSac, banApp, capNhatLuc
 │
 ├── hop/caidat                  ◄── chỉ TABLET ghi (bản sao cấu hình đang chạy)
+│     appChoPhep    app "Dùng khi hết giờ chơi": mở được lúc hết giờ chơi, trừ giờ
+│                   ngủ và giờ đi học. Trước 27/09/2026 tên là "App luôn được dùng"
+│     appMoiLuc     app "Dùng mọi lúc": không khoá theo giờ nào, màn chặn giờ học và
+│                   việc nhà nhường cho nó. Danh sách cấm và giờ riêng vẫn áp dụng
+│     appChan, appAi, gioiHanApp, và các con số giờ
 ├── hop/danhsachapp             ◄── chỉ TABLET ghi (app đang cài, để chọn từ xa)
 ├── hop/dando                   ◄── chỉ TABLET ghi: vở dặn dò đang còn hiệu lực, cùng
 │                                   dạng với danDo trong bai/ kèm luc. Hết hiệu lực thì
@@ -165,7 +170,9 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │
 ├── nhatky/{yyyy-MM-dd}         ◄── chỉ TABLET ghi, gộp cả ngày vào một document
 ├── hoiai/{yyyy-MM-dd}          ◄── chỉ TABLET ghi
-└── chat/{id}                   hai bên cùng ghi, mỗi tin một document
+└── chat/{id}                   hai bên cùng ghi, mỗi tin một document. Từ 27/09/2026
+                                chỉ còn cho màn chat cũ dự phòng, xem "Lê Hòa nhắn tin
+                                bằng Telegram thật"
 ```
 
 ### Đồng hồ đếm ngược không tốn lượt ghi
@@ -264,6 +271,20 @@ tạo lệnh `CHO` từ 1 đến 60 phút. Ngày đó app bà bỏ sáu nút, lu
 của máy bà. Máy bà còn chạy bản cũ thì bấm nút giờ sẽ bị Firestore từ chối. Phần đếm
 một lượt mỗi ngày bên tablet (`LuotBaNoi`) vẫn còn trong code nhưng không còn lệnh nào
 của máy bà tới được đó.
+
+## Lê Hòa nhắn tin bằng Telegram thật
+
+Từ 27/09/2026 Lê Hòa có tài khoản Telegram riêng trên tablet. Nút "Nhắn cho ba Huy"
+mở thẳng khung chat giữa tài khoản đó và tài khoản của Ba Huy, bằng link
+`tg://openmessage?user_id=` với chat id cài lúc đặt bot. Tin không đi qua bot hay
+Firestore nữa, nên không hiện ở tab Chat của app này.
+
+Telegram mở được lúc nào là theo các danh sách app, như mọi app khác. Ba Huy để nó
+trong "Dùng mọi lúc" thì Lê Hòa nhắn được cả giờ ngủ, giờ học, lúc làm việc nhà.
+
+Tablet đọc thông báo của Telegram, chỉ mã khung chat và số tin, để nút ở màn chính
+ghi "Ba Huy nhắn 3 tin mới". Màn chat cũ trong app và tab Chat ở đây còn giữ ít lâu
+làm đường dự phòng: bấm giữ nút là vào màn cũ.
 
 ## Telegram còn lại gì
 

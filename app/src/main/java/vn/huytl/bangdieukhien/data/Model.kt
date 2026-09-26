@@ -453,6 +453,8 @@ data class CaiDat(
     /** Tablet co tu cham bai bang AI khong. Tat thi Ba Huy cham bang Claude. */
     val chamBangAi: Boolean = true,
     val appChoPhep: List<String> = emptyList(),
+    /** App dung moi luc, ke ca gio ngu va gio di hoc. Tablet ban cu khong ghi truong nay. */
+    val appMoiLuc: List<String> = emptyList(),
     val appChan: List<String> = emptyList(),
     val appAi: List<String> = emptyList(),
     val gioiHanApp: Map<String, Int> = emptyMap()
@@ -469,6 +471,7 @@ data class CaiDat(
                 khoaCaiDat = d.getBoolean("khoaCaiDat") ?: true,
                 chamBangAi = d.getBoolean("chamBangAi") ?: true,
                 appChoPhep = (d.get("appChoPhep") as? List<String>).orEmpty(),
+                appMoiLuc = (d.get("appMoiLuc") as? List<String>).orEmpty(),
                 appChan = (d.get("appChan") as? List<String>).orEmpty(),
                 appAi = (d.get("appAi") as? List<String>).orEmpty(),
                 gioiHanApp = (d.get("gioiHanApp") as? Map<String, Number>)

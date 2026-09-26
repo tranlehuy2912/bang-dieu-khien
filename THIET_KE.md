@@ -174,8 +174,8 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 ```
 
 Trước 27/09/2026 còn `chat/{id}`, hai bên cùng ghi, mỗi tin một document. Khung chat
-trong app đã bỏ, không ai ghi hay đọc nữa; các document cũ vẫn nằm đó, xem "Lê Hòa nhắn
-tin bằng Telegram thật".
+trong app đã bỏ, và tablet bản mới xoá hết document cũ một lần lúc nối, xem "Lê Hòa
+nhắn tin bằng Telegram thật".
 
 ### Đồng hồ đếm ngược không tốn lượt ghi
 
@@ -290,7 +290,10 @@ ghi "Ba Huy nhắn 3 tin mới".
 Cùng ngày, Ba Huy bảo bỏ hẳn đường nhắn cũ: khung chat trong app Nộp bài, tab Nhắn ở
 app này, lệnh `NHAN`, và chuyện bot chuyển chữ thường cho Lê Hòa. Ba gõ chữ thường
 hay gửi ảnh cho bot thì bot trả lời là tin không tới Lê Hòa, nhắn thẳng trên Telegram.
-Tin cũ vẫn nằm trong `chat/` và trong bộ nhớ riêng của app trên tablet, không ai xoá.
+Ba Huy bảo xoá luôn tin cũ. Tablet bản mới làm việc đó một lần: lúc nối Firestore thì
+xoá từng lô document trong `chat/` đến khi rỗng rồi đánh dấu đã xong (hỏng giữa chừng
+thì lần nối sau xoá tiếp); lúc app khởi động thì xoá các câu chat trong prefs, thư mục
+ảnh chat và kênh thông báo "Tin nhắn của Ba Huy". Xem `DongBo.xoaChatCu` và `ChatCu`.
 
 ## Telegram còn lại gì
 

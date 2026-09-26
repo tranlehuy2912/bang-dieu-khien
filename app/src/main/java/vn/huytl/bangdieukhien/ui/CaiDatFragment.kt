@@ -145,8 +145,9 @@ class CaiDatFragment : Fragment() {
      * Hoi lai truoc khi doi cach cham, vi hai cach khac nhau o nhung cho de quen.
      *
      * Tat AI thi bai nop nam cho, khong ai cham cho den khi Ba Huy dan ket qua Claude.
-     * Vo dan do thi con chup kem luc nop, va Claude doc no cung luc cham bai, nen tron
-     * goi 45 phut van tinh. Chi mat buoc con soat vo dan do ngay tu dau buoi.
+     * Vo dan do van nhu luc bat: con chup mot lan dau buoi, may doc cho con soat, va
+     * Claude cham theo dung danh sach do, nen tron goi 45 phut van tinh. Con chua soat
+     * vo thi lan nop chup trang vo kem, va Claude tu doc anh.
      */
     private fun hoiChamBangAi(dangBat: Boolean) {
         val (tieuDe, noi, nut) = if (dangBat) {
@@ -154,8 +155,9 @@ class CaiDatFragment : Fragment() {
                 "Tắt chấm bằng AI?",
                 "Bài con nộp sẽ nằm chờ, máy không tự chấm và không tự cộng giờ. Mỗi bài, " +
                     "mở tab Bài, bấm Nhờ Claude chấm, rồi dán kết quả của Claude về.\n\n" +
-                    "Con chụp vở dặn dò kèm lúc nộp. Claude đọc vở dặn dò cùng lúc chấm " +
-                    "bài, nên gói 45 phút làm hết bài cô giao vẫn tính như cũ.",
+                    "Vở dặn dò vẫn như cũ: con chụp một lần đầu buổi, máy đọc cho con soát, " +
+                    "và Claude chấm theo đúng danh sách con đã soát. Gói 45 phút làm hết bài " +
+                    "cô giao vẫn tính như cũ.",
                 "Tắt"
             )
         } else {

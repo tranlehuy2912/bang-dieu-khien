@@ -27,6 +27,7 @@ import vn.huytl.bangdieukhien.data.CauCham
 import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.Lenh
 import vn.huytl.bangdieukhien.data.Nha
+import vn.huytl.bangdieukhien.data.VoDaSoat
 import vn.huytl.bangdieukhien.databinding.ActivityBaiBinding
 import vn.huytl.bangdieukhien.telegram.TaiAnh
 
@@ -272,6 +273,7 @@ class BaiActivity : AppCompatActivity() {
      *
      * Lan nop co trang vo dan do thi ke ra Claude doc vo ra gi, vi 45 phut tron goi
      * dua vao dung ba thu do. Ba Huy nhin mot dong la biet Claude doc dung hay nham.
+     * Lan nop dung ban vo con soat thi ke lai danh sach do, kem cho Claude thay lech.
      */
     private fun hoiChamMoi(bai: Bai, ket: NhoClaude.KetQuaDan) {
         val dung = ket.cac.count { it.chac && it.dung }
@@ -293,7 +295,9 @@ class BaiActivity : AppCompatActivity() {
                 append("\n\nBài ôn không viết mực đỏ: ").append(khongDo.joinToString(", "))
                 append(". Tablet sẽ chưa cộng giờ, chờ bấm Duyệt.")
             }
-            if (bai.anh.any { it.laDanDo }) append("\n\n").append(noiDanDo(ket.danDo))
+            val soat = bai.voDaSoat
+            if (soat != null) append("\n\n").append(noiVoDaSoat(soat, ket))
+            else if (bai.anh.any { it.laDanDo }) append("\n\n").append(noiDanDo(ket.danDo))
             append("\n\n")
             append(
                 if (bai.dangCho) "Tablet tính phút theo luật rồi báo trên Telegram."
@@ -331,6 +335,37 @@ class BaiActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Mot doan ke vo dan do con soat, Claude thay con lam het chua, va cho Claude thay
+     * danh sach lech voi trang vo.
+     *
+     * Cho lech chi de Ba Huy doc: tablet van tinh goi theo danh sach con soat. Nen hop
+     * thoai noi luon duong ra khi Claude noi dung: bam Huy, xem lai anh, roi tu duyet.
+     */
+    private fun noiVoDaSoat(v: VoDaSoat, ket: NhoClaude.KetQuaDan): String = buildString {
+        append("Vở dặn dò con soát, ngày ").append(ngayGon(v.ngay)).append(": ")
+        val d = ket.danDo
+        if (v.cacBai.isEmpty()) {
+            append("cô không giao bài tập nào, nên không có gói 45 phút. Muốn cho gói thì ")
+            append("bấm nút dưới tin vở dặn dò trên Telegram.")
+        } else {
+            append("cô giao ").append(v.cacBai.joinToString(", ")).append(". ")
+            append(
+                when {
+                    d == null -> "Claude không ghi con làm hết chưa, nên không có gói 45 phút."
+                    !d.lamHet -> "Claude thấy con chưa làm hết, nên chưa có gói 45 phút."
+                    else -> "Claude thấy con đã làm hết. Tablet cộng gói 45 phút nếu ngày " +
+                        "trong vở còn hiệu lực và hôm đó chưa tính gói."
+                }
+            )
+        }
+        if (ket.voLech.isNotBlank()) {
+            append("\n\nClaude thấy vở lệch với danh sách con soát: ").append(ket.voLech.trim())
+            append("\nTablet vẫn tính theo danh sách con soát. Thấy Claude nói đúng thì bấm ")
+            append("Huỷ, xem lại ảnh vở rồi tự duyệt.")
+        }
+    }
+
     /** "2026-09-23" thanh "23/9/2026". Kieu khac thi de nguyen. */
     private fun ngayGon(ngay: String): String =
         Regex("^(\\d{4})-(\\d{1,2})-(\\d{1,2})$").find(ngay.trim())?.let { m ->
@@ -353,7 +388,8 @@ class BaiActivity : AppCompatActivity() {
             return
         }
         // Kieu goi xem Duong.Lenh.CHAM_BAI. "coAnhDanDo" la de tablet biet lan nop nay
-        // co trang vo khong, vi luat tron goi xu hai canh do khac nhau.
+        // co vo dan do khong - anh hay ban con soat - vi luat tron goi xu hai canh do
+        // khac nhau.
         val giaTri = buildMap<String, Any> {
             put("cac", ket.cac.map {
                 buildMap<String, Any> {
@@ -369,11 +405,20 @@ class BaiActivity : AppCompatActivity() {
                     it.trongDanDo?.let { t -> put("trongDanDo", t) }
                 }
             })
-            put("coAnhDanDo", bai.anh.any { it.laDanDo })
-            ket.danDo?.let { d ->
-                d.ngay?.let { put("ngayDanDo", it) }
-                put("baiDuocGiao", d.baiDuocGiao)
-                put("lamHetDanDo", d.lamHet)
+            val soat = bai.voDaSoat
+            put("coAnhDanDo", soat != null || bai.anh.any { it.laDanDo })
+            if (soat != null) {
+                // Ngay va danh sach bai la cua ban con soat, Claude chi noi con lam het
+                // chua. Tablet con giu ban cua no tu luc nop va dung ban do truoc.
+                put("ngayDanDo", soat.ngay)
+                put("baiDuocGiao", soat.cacBai)
+                put("lamHetDanDo", ket.danDo?.lamHet ?: false)
+            } else {
+                ket.danDo?.let { d ->
+                    d.ngay?.let { put("ngayDanDo", it) }
+                    put("baiDuocGiao", d.baiDuocGiao)
+                    put("lamHetDanDo", d.lamHet)
+                }
             }
         }
         Kho.guiLenh(this, Lenh.CHAM_BAI, baiId = bai.id, giaTri = giaTri) { kq ->

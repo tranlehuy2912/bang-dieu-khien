@@ -114,6 +114,9 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │     cham    kết quả AI chấm, nếu có
 │     khai    các câu con khai trước khi chụp, kèm đề:
 │             { tenNguon, bai, mon, onTap, cac[] }
+│     danDo   vở dặn dò con soát từ đầu buổi, khi lần nộp không chụp trang vở:
+│             { ngay, cacBai[], dongKhac[], fileId }. Ảnh trang vở cũng nằm cuối
+│             anh[] với khau DAN_DO. Claude chấm theo đúng ngày và danh sách này
 │     chamClaude  kết quả Claude chấm lại mà Ba Huy dán vào: { luc, cac[] }.
 │             Nằm cạnh cham, không ghi đè lên nó
 │

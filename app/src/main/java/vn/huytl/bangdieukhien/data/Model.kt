@@ -248,6 +248,38 @@ data class KhaiBai(
     data class Cau(val ma: String, val cauId: String, val de: String, val dang: String)
 }
 
+/**
+ * Vo dan do con da soat tu dau buoi, tablet chep vao bai luc nop. Xem [Duong.F_DAN_DO].
+ *
+ * Co cai nay thi Claude khong phai tu doc trang vo: ngay va cac bai co giao da co san,
+ * may doc va con da soat lai. [fileId] la anh trang vo de Claude doi chieu, rong la
+ * tablet chua gui duoc anh.
+ */
+data class VoDaSoat(
+    /** Ngay ghi tren vo, dang yyyy-MM-dd. */
+    val ngay: String,
+    /** Cac dong con tich la bai tap. Rong la hom do co khong giao bai tap nao. */
+    val cacBai: List<String>,
+    val dongKhac: List<String> = emptyList(),
+    val fileId: String = ""
+) {
+    companion object {
+        /** null la bai khong dung ban soat nao, hay ban ghi thieu ngay. */
+        fun doc(m: Map<*, *>?): VoDaSoat? {
+            val ngay = (m?.get("ngay") as? String)?.trim().orEmpty()
+            if (ngay.isEmpty()) return null
+            fun ds(ten: String) = (m?.get(ten) as? List<*>).orEmpty()
+                .mapNotNull { (it as? String)?.trim()?.takeIf { t -> t.isNotEmpty() } }
+            return VoDaSoat(
+                ngay = ngay,
+                cacBai = ds("cacBai"),
+                dongKhac = ds("dongKhac"),
+                fileId = (m?.get(Duong.F_FILE_ID) as? String)?.trim().orEmpty()
+            )
+        }
+    }
+}
+
 /** Ban Claude cham, nam o [Duong.F_CHAM_CLAUDE] canh ban cham cua may. */
 data class KetQuaClaude(
     val luc: Long,
@@ -267,6 +299,8 @@ data class Bai(
     val anh: List<Anh>,
     val cham: KetQuaCham?,
     val messageId: Long,
+    /** Vo dan do con soat ma lan nop nay dung thay cho trang vo. Xem [VoDaSoat]. */
+    val voDaSoat: VoDaSoat? = null,
     val claude: KetQuaClaude? = null,
     val khai: KhaiBai? = null
 ) {
@@ -291,6 +325,7 @@ data class Bai(
                 anh = anh,
                 cham = docCham(d.get(Duong.F_CHAM) as? Map<*, *>),
                 messageId = d.getLong(Duong.F_MESSAGE_ID) ?: 0L,
+                voDaSoat = VoDaSoat.doc(d.get(Duong.F_DAN_DO) as? Map<*, *>),
                 claude = docClaude(d.get(Duong.F_CHAM_CLAUDE) as? Map<*, *>),
                 khai = docKhai(d.get(Duong.F_KHAI) as? Map<*, *>)
             )

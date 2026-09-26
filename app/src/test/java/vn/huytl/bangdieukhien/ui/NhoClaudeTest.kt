@@ -13,6 +13,7 @@ import vn.huytl.bangdieukhien.data.CauCham
 import vn.huytl.bangdieukhien.data.CauClaude
 import vn.huytl.bangdieukhien.data.KetQuaCham
 import vn.huytl.bangdieukhien.data.KhaiBai
+import vn.huytl.bangdieukhien.data.VoDaSoat
 
 /**
  * Doc ket qua Claude tu cau tra loi Ba Huy chep ve, va loi nho gui sang Claude.
@@ -281,6 +282,111 @@ class NhoClaudeTest {
         assertEquals(true, ket.cac[0].trongDanDo)
         // Viet sai kieu thi coi nhu Claude khong noi, tablet tu quyet.
         assertNull(ket.cac[1].trongDanDo)
+    }
+
+    @Test
+    fun trang_vo_chup_kem_thi_dan_chi_doc_buoi_gan_ngay_nop() {
+        // Vo cua Le Hoa chep lien tay, mot trang hai ba buoi. Khong dan thi Claude de gop
+        // bai cua ca trang vao mot ngay.
+        val chu = NhoClaude.loiNho(baiCoVo(), "Lê Hòa")
+        assertTrue(chu.contains("chép liền nhiều buổi"))
+        assertTrue(chu.contains("buổi có ngày gần ngày nộp bài nhất mà không sau ngày nộp"))
+    }
+
+    // ------------------------------------------------------- vo dan do con soat
+
+    private val soat = VoDaSoat(
+        ngay = "2026-09-23",
+        cacBai = listOf("Toán: bài 2.28 trang 47", "Toán: bài 2.33 trang 48"),
+        dongKhac = listOf("KHTN: mang sách vở đầy đủ"),
+        fileId = "fv"
+    )
+
+    /** Tablet gan anh trang vo cua ban soat vao cuoi danh sach anh cua bai. */
+    private fun baiCoVoSoat() = baiChuaCham(khai).copy(
+        anh = listOf(Anh("f1", "DE_BAI"), Anh("f2", "BAI_GIAI"), Anh("fv", "DAN_DO")),
+        voDaSoat = soat
+    )
+
+    @Test
+    fun vo_con_soat_thi_chep_san_danh_sach_va_chi_hoi_lam_het_chua() {
+        val chu = NhoClaude.loiNho(baiCoVoSoat(), "Lê Hòa")
+        assertTrue(chu.contains("- Ngày ghi trên vở: 2026-09-23."))
+        assertTrue(chu.contains("- Bài cô giao: Toán: bài 2.28 trang 47; Toán: bài 2.33 trang 48."))
+        assertTrue(chu.contains("- Dặn dò khác: KHTN: mang sách vở đầy đủ."))
+        assertTrue(chu.contains("không tự đọc lại danh sách từ ảnh"))
+        assertTrue(chu.contains("gồm trang vở dặn dò, ảnh đề bài và ảnh vở bài làm của con."))
+        // Ngay va danh sach da co san, khong hoi lai Claude.
+        assertFalse(chu.contains("ngay_dan_do"))
+        assertFalse(chu.contains("bai_duoc_giao"))
+        assertTrue(chu.contains("\"lam_het_dan_do\":true hoặc false,\"vo_lech\":\"...\",\"ket_qua\""))
+        assertTrue(chu.contains("\"trong_dan_do\":true hoặc false"))
+        assertTrue(chu.contains("4. Vở dặn dò: con đã làm hết các bài cô giao ở trên chưa, và"))
+        assertTrue(chu.contains("5. Cuối cùng"))
+        assertTrue(NhoClaude.laLoiNho(chu))
+        assertNull(NhoClaude.docKetQua(chu))
+        // Anh trang vo di dau de Claude doi chieu, du tablet gan no o cuoi.
+        assertEquals(listOf("fv", "f1", "f2"), NhoClaude.anhCanGui(baiCoVoSoat()).map { it.fileId })
+    }
+
+    @Test
+    fun vo_con_soat_khong_co_bai_tap_thi_noi_ro_moi_cau_la_lam_them() {
+        val chu = NhoClaude.loiNho(baiCoVoSoat().copy(voDaSoat = soat.copy(cacBai = emptyList())), "Lê Hòa")
+        assertTrue(chu.contains("- Bài cô giao: hôm đó cô KHÔNG giao bài tập nào."))
+        assertTrue(chu.contains("Danh sách rỗng thì mọi câu đều false."))
+    }
+
+    @Test
+    fun vo_con_soat_chua_co_anh_thi_khong_hoi_cho_lech() {
+        // Tablet chua gui duoc tin vo dan do: co danh sach ma khong co anh trang vo.
+        val bai = baiCoVoSoat().copy(
+            anh = listOf(Anh("f2", "BAI_GIAI")),
+            voDaSoat = soat.copy(fileId = "")
+        )
+        val chu = NhoClaude.loiNho(bai, "Lê Hòa")
+        assertTrue(chu.contains("- Bài cô giao: Toán: bài 2.28 trang 47"))
+        assertTrue(chu.contains("Ảnh đính kèm là ảnh vở bài làm của con."))
+        assertFalse(chu.contains("vo_lech"))
+        assertTrue(chu.contains("\"lam_het_dan_do\":true hoặc false,\"ket_qua\""))
+        assertTrue(chu.contains("4. Vở dặn dò: con đã làm hết các bài cô giao ở trên chưa."))
+    }
+
+    @Test
+    fun doc_cho_lech_cua_vo_con_soat() {
+        val ket = NhoClaude.docKetQua(
+            """{"bai":"b77","lam_het_dan_do":true,"vo_lech":"Vở còn bài 2.34, danh sách thiếu.",""" +
+                """"ket_qua":[{"ma":"2.28","dung":true,"trong_dan_do":true}]}"""
+        )!!
+        assertTrue(ket.danDo!!.lamHet)
+        assertNull(ket.danDo!!.ngay)
+        assertEquals("Vở còn bài 2.34, danh sách thiếu.", ket.voLech)
+        assertEquals(true, ket.cac.single().trongDanDo)
+        // Khong co truong nay, hay Claude ghi null, thi la khop.
+        assertEquals("", NhoClaude.docKetQua("""{"ket_qua":[{"ma":"1","dung":true}]}""")!!.voLech)
+        assertEquals(
+            "",
+            NhoClaude.docKetQua("""{"vo_lech":null,"ket_qua":[{"ma":"1","dung":true}]}""")!!.voLech
+        )
+    }
+
+    @Test
+    fun doc_ban_vo_con_soat_tu_firestore() {
+        val v = VoDaSoat.doc(
+            mapOf(
+                "ngay" to " 2026-09-23 ",
+                "cacBai" to listOf("Toán: bài 2.28", " ", 5),
+                "dongKhac" to listOf("Mang sách vở"),
+                "fileId" to "fv"
+            )
+        )!!
+        assertEquals("2026-09-23", v.ngay)
+        assertEquals(listOf("Toán: bài 2.28"), v.cacBai)
+        assertEquals(listOf("Mang sách vở"), v.dongKhac)
+        assertEquals("fv", v.fileId)
+        // Bai khong dung ban soat, hay ban thieu ngay.
+        assertNull(VoDaSoat.doc(null))
+        assertNull(VoDaSoat.doc(mapOf("cacBai" to listOf("bài 2"))))
+        assertEquals("", VoDaSoat.doc(mapOf("ngay" to "2026-09-23"))!!.fileId)
     }
 
     @Test

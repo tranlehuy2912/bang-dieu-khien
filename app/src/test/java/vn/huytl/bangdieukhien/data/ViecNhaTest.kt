@@ -150,6 +150,16 @@ class ViecNhaTest {
     }
 
     @Test
+    fun co_ten_ma_de_trong_so_phut_thi_tinh_10_phut() {
+        // Dong moi bam Them co so phut de trong. Go ten roi bo do so phut thi van luu.
+        val kq = ViecNha.kiem(listOf("Tưới cây" to "", "" to ""))
+        assertTrue(kq.dung)
+        assertEquals(listOf(ViecNha.Viec("Tưới cây", ViecNha.PHUT_KHI_TRONG)), kq.cac)
+        // Go so phut ma quen ten thi bao, khong lang le bo dong do.
+        assertNotNull(ViecNha.kiem(listOf("" to "15")).loi[0])
+    }
+
+    @Test
     fun kiem_danh_sach_bao_loi_dung_dong() {
         val kq = ViecNha.kiem(
             listOf(

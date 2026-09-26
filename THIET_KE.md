@@ -131,9 +131,9 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │     viec[]    { ten, phut, xong }
 │     ai        người giao đợt này, bahuy | banoi. Thiếu là banoi (máy bà bản cũ).
 │               Chỉ để tablet gọi đúng người, không mở quyền gì
-│               Đợt khép lại (xong hết, hoặc bà bỏ hết) thì tablet xoá document,
-│               nếu maPhien vẫn là đợt đó. Máy bà coi document biến mất là tablet
-│               đã nhận.
+│               Đợt khép lại (xong hết, hoặc bỏ hết) thì tablet xoá document,
+│               nếu maPhien vẫn là đợt đó. Hai điện thoại coi document biến mất là
+│               tablet đã nhận.
 │
 ├── bai/{baiId}                 ◄── TABLET ghi, riêng chamClaude và anKhoiDanhSach do
 │                                   Bảng điều khiển ghi
@@ -215,7 +215,7 @@ Cho giờ và việc nhà đi hai đường khác nhau, và khác vì bản ch�
 - **cho giờ** là một sự kiện — một document trong `lenh/`, tablet làm xong thì xoá
   đi. Đọc hai lần là cộng giờ hai lần, nên phải xoá.
 - **việc nhà** là trạng thái đầy đủ — cả danh sách việc lẫn việc nào đã xong nằm
-  gọn trong `hop/viecnha`, bà bấm gì thì ghi đè cả bản. Đọc lại cùng một bản mười
+  gọn trong `hop/viecnha`, mỗi lần bấm là ghi lại cả bản. Đọc lại cùng một bản mười
   lần cũng không sao, vì `ViecNha.apDung` bên tablet so với bản đang giữ rồi mới
   quyết. Nhờ thế listener bắn lại vì đổi mạng hay vì khởi động lại app cũng không
   sinh ra hai lần cộng giờ.

@@ -279,16 +279,27 @@ object Kho {
      * May nay va may ba cung ghi document nay, tablet xoa di khi da khep dot lai. Dot
      * xong het ma con nam do nghia la tablet chua nhan.
      */
-    fun ngheViecNha(context: Context, khi: (ViecNha.Dot?) -> Unit): ListenerRegistration? =
+    fun ngheViecNha(
+        context: Context,
+        khi: (dot: ViecNha.Dot?, loi: String?) -> Unit
+    ): ListenerRegistration? =
         hop(context, Duong.D_VIEC_NHA)?.addSnapshotListener { snap, loi ->
-            if (loi != null) return@addSnapshotListener
-            khi(ViecNha.docDot(snap?.data))
+            // Hong thi bao ra, de the Viec nha khong nam trong mai cho mot ban dau tien
+            // khong bao gio toi. Firestore dung han listener sau loi.
+            if (loi != null) return@addSnapshotListener khi(null, loiNguoiDoc(loi))
+            khi(ViecNha.docDot(snap?.data), null)
         }
 
-    /** Nghe danh sach viec chung. null la chua co danh sach nao tren Firestore. */
+    /**
+     * Nghe danh sach viec chung. null la chua co danh sach nao tren Firestore, hay
+     * doc hong: ca hai truong hop the Viec nha dung danh sach mac dinh.
+     */
     fun ngheDanhSachViec(context: Context, khi: (List<ViecNha.Viec>?) -> Unit): ListenerRegistration? =
         hop(context, Duong.D_DANH_SACH_VIEC)?.addSnapshotListener { snap, loi ->
-            if (loi != null) return@addSnapshotListener
+            if (loi != null) {
+                Log.w(TAG, "nghe danh sach viec hong", loi)
+                return@addSnapshotListener khi(null)
+            }
             khi(ViecNha.docDanhSach(snap?.get(Duong.F_VIEC) as? List<*>).takeIf { it.isNotEmpty() })
         }
 
@@ -498,22 +509,39 @@ object Kho {
     /** Bam xong mot viec. Da co nguoi bam xong roi thi thoi, khong ghi va khong bao loi. */
     fun xongViec(context: Context, maPhien: String, ten: String, xong: (KetQua) -> Unit) =
         doiViecNha(context, xong) { cu ->
-            val dot = cungDot(cu, maPhien)
+            val dot = cungDot(cu, maPhien) ?: return@doiViecNha null
             if (dot.cac.none { it.ten == ten && !it.xong }) null
             else dot.xong(ten, System.currentTimeMillis())
         }
 
+    /**
+     * Bo mot viec chua xong.
+     *
+     * The khong hien nut Bo cho viec da xong, nhung the co the cham mot nhip so voi may
+     * chu: ba vua bam xong viec do ben may ba, bo di la mat so phut Le Hoa vua lam ra.
+     */
     fun boViec(context: Context, maPhien: String, ten: String, xong: (KetQua) -> Unit) =
         doiViecNha(context, xong) { cu ->
-            val dot = cungDot(cu, maPhien)
-            if (dot.cac.none { it.ten == ten }) null
+            val dot = cungDot(cu, maPhien) ?: return@doiViecNha null
+            if (dot.cac.none { it.ten == ten && !it.xong }) null
             else dot.bo(ten, System.currentTimeMillis())
         }
 
+    /**
+     * Bo het viec da giao. Tablet mo khoa ma khong cong phut nao.
+     *
+     * Dot da xong het tren may chu thi khong bo: trong luc hop hoi lai dang mo, ba co the
+     * vua bam xong viec cuoi. Bo luc do la xoa mat so phut Le Hoa da lam ra, ma tablet
+     * dang tat thi no chi thay danh sach rong.
+     */
     fun boHetViec(context: Context, maPhien: String, xong: (KetQua) -> Unit) =
         doiViecNha(context, xong) { cu ->
-            val dot = cungDot(cu, maPhien)
-            if (dot.cac.isEmpty()) null else dot.boHet(System.currentTimeMillis())
+            val dot = cungDot(cu, maPhien) ?: return@doiViecNha null
+            when {
+                dot.cac.isEmpty() -> null
+                dot.xongHet -> throw LoiViec(DA_XONG_HET)
+                else -> dot.boHet(System.currentTimeMillis())
+            }
         }
 
     /**
@@ -564,8 +592,12 @@ object Kho {
     }
 
     /** Dot tren may chu phai dung la dot dang hien tren man hinh, khong thi dung lai. */
-    private fun cungDot(cu: ViecNha.Dot?, maPhien: String): ViecNha.Dot {
-        if (cu == null || cu.maPhien != maPhien) throw LoiViec(DOT_DA_DOI)
+    private fun cungDot(cu: ViecNha.Dot?, maPhien: String): ViecNha.Dot? {
+        // Document da mat thi thoi, khong bao loi: chi tablet xoa, va no chi xoa dot da
+        // khep, nen cai vua bam khong con gi de lam. Gap khi hai nguoi cung bam xong viec
+        // cuoi mot luc. Da la dot khac thi dung lai va bao.
+        if (cu == null) return null
+        if (cu.maPhien != maPhien) throw LoiViec(DOT_DA_DOI)
         return cu
     }
 
@@ -618,6 +650,9 @@ object Kho {
     private const val DA_CO_DOT = "Bà vừa giao một đợt việc khác. Xem lại phần Việc nhà."
 
     private const val DOT_DA_DOI = "Đợt việc vừa đổi trên máy khác. Xem lại rồi bấm lại."
+
+    private const val DA_XONG_HET =
+        "Các việc vừa được bấm xong hết nên không bỏ nữa. Tablet chưa nhận thì bấm Gửi lại."
 
     private const val THIEU_FIREBASE =
         "Bản app này chưa nối Firebase (thiếu google-services.json lúc build)."

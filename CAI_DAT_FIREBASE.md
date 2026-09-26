@@ -71,9 +71,9 @@ khác project là không thấy nhau.
 3. **Publish**
 
 Làm lại bước này mỗi lần `firestore.rules` đổi. Luật không đi theo bản app: nó nằm
-trong console, và dán bản cũ đè lên là mở lại đúng cái vừa chặn. Lần này luật có
-thêm `uidsPhu` — danh sách quyền hẹp cho máy bà nội, chỉ cho giờ và giao việc nhà.
-Không dán thì máy bà bấm gì cũng bị từ chối.
+trong console, và dán bản cũ đè lên là mở lại đúng cái vừa chặn. Luật có `uidsPhu`,
+danh sách quyền hẹp cho máy bà nội: từ 26/09/2026 máy bà chỉ giao việc nhà, trước đó
+còn cho giờ. Không dán thì máy bà bấm gì cũng bị từ chối.
 
 Ngày 26/09/2026 luật đổi hai chỗ. Thêm cửa `hop/danhsachviec`: máy bà đọc được
 danh sách việc chung. Bỏ cửa `lenh/` của máy bà: app bà

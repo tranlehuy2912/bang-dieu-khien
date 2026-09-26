@@ -107,6 +107,7 @@ class BangFragment : Fragment() {
     private val nhip = object : Runnable {
         override fun run() {
             veDongHo()
+            khoiViec?.moiGiay()
             // Qua han cho ma tablet van im: ve lai dung mot lan de cham doi mau va
             // dong canh bao moc len. Khong ve moi giay - khong co gi doi nua.
             if (khongDap() != daBaoKhongDap) {

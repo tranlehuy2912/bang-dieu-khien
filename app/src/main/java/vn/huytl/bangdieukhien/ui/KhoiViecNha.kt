@@ -64,6 +64,9 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
      */
     private var conSong = true
 
+    /** Lan ve gan nhat co ve canh "tablet bo qua" khong. Xem [moiGiay]. */
+    private var daVeBoQua = false
+
     init {
         b.nutSuaViec.setOnClickListener { hoiSuaDanhSach() }
         ve()
@@ -71,12 +74,16 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
 
     fun batNghe() {
         goNghe()
-        ngheDot = Kho.ngheViecNha(ct) { moi ->
+        ngheDot = Kho.ngheViecNha(ct) { moi, hong ->
             if (!conSong) return@ngheViecNha
-            // Sang dot khac thi cau bao hong cua lan bam truoc khong con noi ve cai gi
-            // tren man hinh nua.
-            if (moi?.maPhien != dot?.maPhien && !dangGui) loi = ""
-            dot = moi
+            if (hong != null) {
+                dot = null
+                loi = hong
+            } else {
+                // Noi dung doi thi cau bao hong cua lan bam truoc khong con dung nua.
+                if (moi != dot && !dangGui) loi = ""
+                dot = moi
+            }
             daCoDot = true
             ve()
         }
@@ -97,6 +104,18 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
         ngheDot = null
         ngheDanhSach?.remove()
         ngheDanhSach = null
+    }
+
+    /**
+     * Goi moi giay tu BangFragment, trong luc man Bang dang mo.
+     *
+     * Canh "tablet bo qua" tinh theo gio: dot xong het nam do qua nua tieng. Khong co
+     * nhip nay thi man mo san luc moc do di qua van ghi "dang cho tablet nhan", vi
+     * khong co gi tren Firestore doi de ve lai.
+     */
+    fun moiGiay() {
+        val d = dot ?: return
+        if (conSong && d.xongHet && d.tabletDaBoQua() != daVeBoQua) ve()
     }
 
     /** Man hinh bo view. Tu day khong ve gi nua. */
@@ -171,6 +190,7 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
     private fun veDot(d: ViecNha.Dot) {
         val choNhan = d.xongHet
         val boQua = d.tabletDaBoQua()
+        daVeBoQua = boQua
         val nguoi = if (d.ai == Nguoi.BA_HUY) ct.getString(R.string.parent_name) else "Bà nội"
         veChu(
             when {
@@ -189,7 +209,11 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
                 chinhMo = !v.xong && !dangGui,
                 khiChinh = { xong(d.maPhien, v.ten) },
                 nhanPhu = if (v.xong) null else ct.getString(R.string.viec_bo),
-                khiPhu = { boViec(d.maPhien, v.ten) }
+                // Bo viec duy nhat la bo het: tablet mo khoa ma khong cong phut nao. Nut Bo
+                // nam sat nut Xong, nen hoi lai y nhu nut Bo het.
+                khiPhu = {
+                    if (d.cac.size == 1) hoiBoHet(d.maPhien) else boViec(d.maPhien, v.ten)
+                }
             )
         }
         if (choNhan) {
@@ -315,13 +339,16 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
         if (dangGui) return
         dangGui = true
         loi = ""
+        val dotLucBam = dot?.maPhien
         ve()
         viec { kq ->
             dangGui = false
             if (!conSong) return@viec
             when (kq) {
                 is Kho.KetQua.Xong -> khiXong()
-                is Kho.KetQua.Hong -> loi = kq.viSao
+                // Trong luc gui ma the da sang dot khac thi cau bao hong noi ve dot cu, doc
+                // se hieu nham la dot dang hien. Bo di.
+                is Kho.KetQua.Hong -> if (dot?.maPhien == dotLucBam) loi = kq.viSao
             }
             ve()
         }
@@ -391,7 +418,9 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
 
         (danhSachChung ?: ViecNha.MAC_DINH).take(Duong.TOI_DA_VIEC)
             .forEach { themHang(it.ten, it.phut.toString()) }
-        nutThem.setOnClickListener { themHang("", "10").oTen.requestFocus() }
+        // So phut de trong, khong dien san 10: dong vua them ma bo do thi phai coi la
+        // dong trong va bo qua. Ten co ma phut trong thi tinh 10 phut, xem ViecNha.kiem.
+        nutThem.setOnClickListener { themHang("", "").oTen.requestFocus() }
         cot.addView(nutThem)
 
         val hop = MaterialAlertDialogBuilder(ct)

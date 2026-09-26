@@ -74,6 +74,9 @@ object ViecNha {
     /** So phut cua mot viec, ca hai dien thoai va tablet cung keo ve khoang nay. */
     const val PHUT_TOI_DA = 240
 
+    /** So phut cho viec co ten ma de trong o phut. */
+    const val PHUT_KHI_TRONG = 10
+
     // ------------------------------------------------------------- danh sach
 
     /** Doc truong [Duong.F_VIEC] cua hop/danhsachviec. Muc thieu ten thi bo. */
@@ -95,9 +98,9 @@ object ViecNha {
     /**
      * Kiem cac dong Ba Huy vua go: moi dong la (ten, so phut) dang chu.
      *
-     * Dong trong ca hai o thi bo qua - la dong vua bam Them ma khong go gi. Ten trung
-     * thi bao loi chu khong gop: tablet va hai may nhan viec theo ten, hai viec cung
-     * ten thi bam Xong mot cai la xong ca hai.
+     * Dong trong ca hai o thi bo qua - la dong vua bam Them ma khong go gi. Co ten ma de
+     * trong so phut thi tinh [PHUT_KHI_TRONG]. Ten trung thi bao loi chu khong gop: tablet
+     * va hai may nhan viec theo ten, hai viec cung ten thi bam Xong mot cai la xong ca hai.
      */
     fun kiem(dong: List<Pair<String, String>>): KiemDanhSach {
         val loi = MutableList<String?>(dong.size) { null }
@@ -107,7 +110,7 @@ object ViecNha {
             val ten = tenGo.trim()
             val phutChu = phutGo.trim()
             if (ten.isEmpty() && phutChu.isEmpty()) return@forEachIndexed
-            val phut = phutChu.toIntOrNull()
+            val phut = if (phutChu.isEmpty()) PHUT_KHI_TRONG else phutChu.toIntOrNull()
             loi[i] = when {
                 ten.isEmpty() -> "Chưa có tên việc."
                 !daCo.add(ten.lowercase()) -> "Trùng tên với một việc ở trên."

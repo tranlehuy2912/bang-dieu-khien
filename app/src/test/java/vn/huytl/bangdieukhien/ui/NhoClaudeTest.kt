@@ -121,9 +121,9 @@ class NhoClaudeTest {
         val chu = NhoClaude.loiNho(bai, "Lê Hòa")
 
         assertTrue(chu.contains("bài tập về nhà của Lê Hòa"))
-        assertTrue(chu.contains("Con khai đang làm: SGK Toán 8 — tập một — trang 47."))
+        assertTrue(chu.contains("Lê Hòa khai đang làm: SGK Toán 8 — tập một — trang 47."))
         assertTrue(chu.contains("\"bai\":\"b1308359\""))
-        assertTrue(chu.indexOf("Cách chấm từng câu") < chu.indexOf("Máy đọc con viết: 11000000000"))
+        assertTrue(chu.indexOf("Cách chấm từng câu") < chu.indexOf("Máy đọc Lê Hòa viết: 11000000000"))
     }
 
     @Test
@@ -177,13 +177,13 @@ class NhoClaudeTest {
 
         assertTrue(chu.contains("Nhờ bạn chấm bài tập về nhà của Lê Hòa"))
         assertTrue(chu.contains("người chấm duy nhất"))
-        assertTrue(chu.contains("Con khai đang làm: SGK Toán 8 — tập một — trang 47."))
+        assertTrue(chu.contains("Lê Hòa khai đang làm: SGK Toán 8 — tập một — trang 47."))
         assertTrue(chu.contains("ảnh đề bài và ảnh vở bài làm"))
         assertTrue(chu.contains("2. Câu 2.33a. Đề: Rút gọn (2x + 5y)^2 − (2x − 5y)^2"))
         assertTrue(chu.contains("\"so_dong\""))
         assertTrue(chu.contains("\"bai\":\"b77\""))
         // Khong co ket luan cua may nao de ke ra, va khong hoi mau muc khi khong on tap.
-        assertFalse(chu.contains("Máy đọc con viết"))
+        assertFalse(chu.contains("Máy đọc Lê Hòa viết"))
         assertFalse(chu.contains("muc_do"))
         // Cau trong sach da co de va dang, mau khong doi Claude chep lai.
         assertFalse(chu.contains("\"de\":\"chép đề"))
@@ -196,7 +196,7 @@ class NhoClaudeTest {
     @Test
     fun loi_nho_cham_luon_khong_khai_thi_doi_claude_chep_de_va_xep_dang() {
         val chu = NhoClaude.loiNho(baiChuaCham(null), "Lê Hòa")
-        assertTrue(chu.contains("Con không khai trước"))
+        assertTrue(chu.contains("Lê Hòa không khai trước"))
         assertTrue(chu.contains("\"de\":\"chép đề câu đó\",\"dang\":\"CAU_NHO\""))
         assertTrue(chu.contains("KHONG_TINH"))
         assertNull(NhoClaude.docKetQua(chu))
@@ -222,6 +222,45 @@ class NhoClaudeTest {
             val chu = NhoClaude.loiNho(bai, "Lê Hòa")
             assertFalse(chu.contains("gọi con là \"con\""))
             assertTrue(chu.contains("không mở đầu bằng \"Con\""))
+        }
+    }
+
+    @Test
+    fun doc_dong_khai_ca_kieu_cu_lan_kieu_ghi_ten() {
+        // Tablet tu ngay 26/9/2026 ghi "• Lê Hòa khai:", ban cham cu van la "• Con khai:".
+        fun baiKhai(dong: String) = Bai(
+            id = "b9", luc = 0L, trangThai = Bai.DUYET, soPhut = 0, anh = emptyList(),
+            cham = KetQuaCham(
+                cac = listOf(CauCham(ma = "2.28", de = "Đề", ketQua = "A")),
+                tomTat = "🤖 AI chấm: Toán\n$dong\n• ..."
+            ),
+            messageId = 0L
+        )
+        listOf("• Con khai: SGK Toán 8 — trang 47", "• Lê Hòa khai: SGK Toán 8 — trang 47").forEach {
+            val chu = NhoClaude.loiNho(baiKhai(it), "Lê Hòa")
+            assertTrue(it, chu.contains("Lê Hòa khai đang làm: SGK Toán 8 — trang 47."))
+        }
+    }
+
+    @Test
+    fun loi_nho_goi_ten_khong_goi_con() {
+        // Chi con "con số" (chu so), ten truong "con_viet" va hai cho dan Claude dung goi
+        // "con" - hai cho do nam trong ngoac kep.
+        val chamLai = Bai(
+            id = "b9", luc = 0L, trangThai = Bai.DUYET, soPhut = 0, anh = emptyList(),
+            cham = KetQuaCham(cac = listOf(CauCham(ma = "2.28", de = "Đề", ketQua = "A"))),
+            messageId = 0L
+        )
+        val chuCon = Regex("""(?<![\p{L}_"])[Cc]on(?![\p{L}_"])""")
+        listOf(
+            chamLai, baiChuaCham(khai), baiChuaCham(null), baiChuaCham(khai.copy(onTap = true)),
+            baiCoVo(), baiCoVoSoat()
+        ).forEach { bai ->
+            val chu = NhoClaude.loiNho(bai, "Lê Hòa").replace("con số", "")
+            val sot = chuCon.findAll(chu)
+                .map { chu.substring(maxOf(0, it.range.first - 20), minOf(chu.length, it.range.last + 20)) }
+                .toList()
+            assertTrue(sot.joinToString(" | "), sot.isEmpty())
         }
     }
 
@@ -262,7 +301,7 @@ class NhoClaudeTest {
     @Test
     fun loi_nho_co_vo_dan_do_thi_hoi_ngay_bai_co_giao_va_lam_het_chua() {
         val chu = NhoClaude.loiNho(baiCoVo(), "Lê Hòa")
-        assertTrue(chu.contains("gồm trang vở dặn dò, ảnh đề bài và ảnh vở bài làm của con."))
+        assertTrue(chu.contains("gồm trang vở dặn dò, ảnh đề bài và ảnh vở bài làm của Lê Hòa."))
         assertTrue(chu.contains("\"ngay_dan_do\": ngày ghi trong vở"))
         assertTrue(chu.contains("\"lam_het_dan_do\":true hoặc false,\"ket_qua\""))
         assertTrue(chu.contains("\"trong_dan_do\":true hoặc false"))
@@ -330,13 +369,13 @@ class NhoClaudeTest {
         assertTrue(chu.contains("- Bài cô giao: Toán: bài 2.28 trang 47; Toán: bài 2.33 trang 48."))
         assertTrue(chu.contains("- Dặn dò khác: KHTN: mang sách vở đầy đủ."))
         assertTrue(chu.contains("không tự đọc lại danh sách từ ảnh"))
-        assertTrue(chu.contains("gồm trang vở dặn dò, ảnh đề bài và ảnh vở bài làm của con."))
+        assertTrue(chu.contains("gồm trang vở dặn dò, ảnh đề bài và ảnh vở bài làm của Lê Hòa."))
         // Ngay va danh sach da co san, khong hoi lai Claude.
         assertFalse(chu.contains("ngay_dan_do"))
         assertFalse(chu.contains("bai_duoc_giao"))
         assertTrue(chu.contains("\"lam_het_dan_do\":true hoặc false,\"vo_lech\":\"...\",\"ket_qua\""))
         assertTrue(chu.contains("\"trong_dan_do\":true hoặc false"))
-        assertTrue(chu.contains("4. Vở dặn dò: con đã làm hết các bài cô giao ở trên chưa, và"))
+        assertTrue(chu.contains("4. Vở dặn dò: Lê Hòa đã làm hết các bài cô giao ở trên chưa, và"))
         assertTrue(chu.contains("5. Cuối cùng"))
         assertTrue(NhoClaude.laLoiNho(chu))
         assertNull(NhoClaude.docKetQua(chu))
@@ -360,10 +399,10 @@ class NhoClaudeTest {
         )
         val chu = NhoClaude.loiNho(bai, "Lê Hòa")
         assertTrue(chu.contains("- Bài cô giao: Toán: bài 2.28 trang 47"))
-        assertTrue(chu.contains("Ảnh đính kèm là ảnh vở bài làm của con."))
+        assertTrue(chu.contains("Ảnh đính kèm là ảnh vở bài làm của Lê Hòa."))
         assertFalse(chu.contains("vo_lech"))
         assertTrue(chu.contains("\"lam_het_dan_do\":true hoặc false,\"ket_qua\""))
-        assertTrue(chu.contains("4. Vở dặn dò: con đã làm hết các bài cô giao ở trên chưa."))
+        assertTrue(chu.contains("4. Vở dặn dò: Lê Hòa đã làm hết các bài cô giao ở trên chưa."))
     }
 
     @Test

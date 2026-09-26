@@ -215,7 +215,8 @@ class BaiActivity : AppCompatActivity() {
             if (thanhDung.isNotEmpty()) {
                 append("\n\nMáy bảo sai, Claude bảo đúng: ")
                 append(thanhDung.joinToString(", ") { it.ma }).append(". ")
-                append("Tablet sẽ bỏ các câu này khỏi danh sách cần sửa của con và cộng giờ theo luật.")
+                append("Tablet sẽ bỏ các câu này khỏi danh sách cần sửa của ")
+                append(getString(R.string.child_name)).append(" và cộng giờ theo luật.")
             }
             if (thanhSai.isNotEmpty()) {
                 append("\n\nMáy bảo đúng, Claude bảo sai: ")
@@ -284,7 +285,8 @@ class BaiActivity : AppCompatActivity() {
         val noi = buildString {
             append("Claude chấm đúng $dung/${ket.cac.size} câu.")
             if (sot.isNotEmpty()) {
-                append("\n\nClaude không chấm câu con đã khai: ").append(sot.joinToString(", "))
+                append("\n\nClaude không chấm câu ${getString(R.string.child_name)} đã khai: ")
+                append(sot.joinToString(", "))
                 append(". Tablet sẽ ghi là chưa thấy bài làm.")
             }
             if (khongChac.isNotEmpty()) {
@@ -302,7 +304,7 @@ class BaiActivity : AppCompatActivity() {
             append(
                 if (bai.dangCho) "Tablet tính phút theo luật rồi báo trên Telegram."
                 else "Bài này đã xử lý rồi nên tablet không cộng giờ nữa. Kết quả chỉ được " +
-                    "ghi lại để con xem câu nào sai."
+                    "ghi lại để ${getString(R.string.child_name)} xem câu nào sai."
             )
         }
         MaterialAlertDialogBuilder(this)
@@ -321,14 +323,15 @@ class BaiActivity : AppCompatActivity() {
         d.baiDuocGiao.isEmpty() ->
             "Vở dặn dò: Claude không thấy bài tập nào được giao, nên không có gói 45 phút."
         else -> buildString {
+            val con = getString(R.string.child_name)
             append("Vở dặn dò")
             d.ngay?.let { append(" ngày ").append(ngayGon(it)) }
             append(": cô giao ").append(d.baiDuocGiao.joinToString(", ")).append(". ")
             append(
                 when {
-                    !d.lamHet -> "Claude thấy con chưa làm hết, nên chưa có gói 45 phút."
+                    !d.lamHet -> "Claude thấy $con chưa làm hết, nên chưa có gói 45 phút."
                     d.ngay == null -> "Claude không đọc được ngày trong vở, nên không có gói 45 phút."
-                    else -> "Claude thấy con đã làm hết. Tablet cộng gói 45 phút nếu ngày " +
+                    else -> "Claude thấy $con đã làm hết. Tablet cộng gói 45 phút nếu ngày " +
                         "trong vở còn hiệu lực và hôm đó chưa tính gói."
                 }
             )
@@ -343,7 +346,8 @@ class BaiActivity : AppCompatActivity() {
      * thoai noi luon duong ra khi Claude noi dung: bam Huy, xem lai anh, roi tu duyet.
      */
     private fun noiVoDaSoat(v: VoDaSoat, ket: NhoClaude.KetQuaDan): String = buildString {
-        append("Vở dặn dò con soát, ngày ").append(ngayGon(v.ngay)).append(": ")
+        val con = getString(R.string.child_name)
+        append("Vở dặn dò $con soát, ngày ").append(ngayGon(v.ngay)).append(": ")
         val d = ket.danDo
         if (v.cacBai.isEmpty()) {
             append("cô không giao bài tập nào, nên không có gói 45 phút. Muốn cho gói thì ")
@@ -352,16 +356,16 @@ class BaiActivity : AppCompatActivity() {
             append("cô giao ").append(v.cacBai.joinToString(", ")).append(". ")
             append(
                 when {
-                    d == null -> "Claude không ghi con làm hết chưa, nên không có gói 45 phút."
-                    !d.lamHet -> "Claude thấy con chưa làm hết, nên chưa có gói 45 phút."
-                    else -> "Claude thấy con đã làm hết. Tablet cộng gói 45 phút nếu ngày " +
+                    d == null -> "Claude không ghi $con làm hết chưa, nên không có gói 45 phút."
+                    !d.lamHet -> "Claude thấy $con chưa làm hết, nên chưa có gói 45 phút."
+                    else -> "Claude thấy $con đã làm hết. Tablet cộng gói 45 phút nếu ngày " +
                         "trong vở còn hiệu lực và hôm đó chưa tính gói."
                 }
             )
         }
         if (ket.voLech.isNotBlank()) {
-            append("\n\nClaude thấy vở lệch với danh sách con soát: ").append(ket.voLech.trim())
-            append("\nTablet vẫn tính theo danh sách con soát. Thấy Claude nói đúng thì bấm ")
+            append("\n\nClaude thấy vở lệch với danh sách $con soát: ").append(ket.voLech.trim())
+            append("\nTablet vẫn tính theo danh sách $con soát. Thấy Claude nói đúng thì bấm ")
             append("Huỷ, xem lại ảnh vở rồi tự duyệt.")
         }
     }

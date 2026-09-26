@@ -1,6 +1,7 @@
 package vn.huytl.bangdieukhien.data
 
 import android.content.Context
+import vn.huytl.bangdieukhien.R
 
 /**
  * Hai thu app nay phai nho giua cac lan mo: nha nao va token bot nao.
@@ -27,9 +28,16 @@ object Nha {
         sp(context).edit().putString(K_TOKEN, token.trim()).commit()
     }
 
-    /** Ten con, tablet gui sang luc ghep doi. Chi de hien tren man hinh. */
+    /**
+     * Ten con, de hien tren man hinh va dua vao loi nho Claude.
+     *
+     * Tablet co ghi ten len Firestore (truong tenCon) nhung app nay chua doc ve, chua cho
+     * nao goi [datTenCon]. Truoc ngay 26/9/2026 cho nay tra ve chu "con", nen loi nho gui
+     * Claude ghi "bai tap ve nha cua con toi" chu khong co ten. Nay lay [R.string.child_name].
+     */
     fun tenCon(context: Context): String =
-        sp(context).getString(K_TEN_CON, null)?.takeIf { it.isNotBlank() } ?: "con"
+        sp(context).getString(K_TEN_CON, null)?.takeIf { it.isNotBlank() }
+            ?: context.getString(R.string.child_name)
 
     fun datTenCon(context: Context, ten: String) {
         sp(context).edit().putString(K_TEN_CON, ten).commit()

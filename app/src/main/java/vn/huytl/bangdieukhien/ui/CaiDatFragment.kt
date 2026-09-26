@@ -150,20 +150,21 @@ class CaiDatFragment : Fragment() {
      * vo thi lan nop chup trang vo kem, va Claude tu doc anh.
      */
     private fun hoiChamBangAi(dangBat: Boolean) {
+        val con = getString(R.string.child_name)
         val (tieuDe, noi, nut) = if (dangBat) {
             Triple(
                 "Tắt chấm bằng AI?",
-                "Bài con nộp sẽ nằm chờ, máy không tự chấm và không tự cộng giờ. Mỗi bài, " +
+                "Bài $con nộp sẽ nằm chờ, máy không tự chấm và không tự cộng giờ. Mỗi bài, " +
                     "mở tab Bài, bấm Nhờ Claude chấm, rồi dán kết quả của Claude về.\n\n" +
-                    "Vở dặn dò vẫn như cũ: con chụp một lần đầu buổi, máy đọc cho con soát, " +
-                    "và Claude chấm theo đúng danh sách con đã soát. Gói 45 phút làm hết bài " +
+                    "Vở dặn dò vẫn như cũ: $con chụp một lần đầu buổi, máy đọc cho $con soát, " +
+                    "và Claude chấm theo đúng danh sách $con đã soát. Gói 45 phút làm hết bài " +
                     "cô giao vẫn tính như cũ.",
                 "Tắt"
             )
         } else {
             Triple(
                 "Bật lại chấm bằng AI?",
-                "Máy sẽ tự chấm và tự cộng giờ mỗi lần con nộp. Nút Nhờ Claude chấm lại " +
+                "Máy sẽ tự chấm và tự cộng giờ mỗi lần $con nộp. Nút Nhờ Claude chấm lại " +
                     "vẫn dùng được khi thấy máy chấm nhầm.",
                 "Bật"
             )

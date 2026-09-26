@@ -2,6 +2,8 @@ package vn.huytl.bangdieukhien.ui
 
 import android.content.Context
 import android.widget.Toast
+import vn.huytl.bangdieukhien.data.Lenh
+import vn.huytl.bangdieukhien.data.LenhCho
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -71,6 +73,35 @@ object Dinh {
         val cungNgay = c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR) &&
             c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR)
         return SimpleDateFormat(if (cungNgay) "HH:mm" else "HH:mm dd/MM", VN).format(Date(luc))
+    }
+
+    /**
+     * Mot lenh dang cho tablet, viet thanh cum nguoi doc: "cho chơi 15 phút".
+     *
+     * Viet thuong o dau vi no dung sau "Đang chờ tablet nhận:". Lenh kieu la (Bang
+     * dieu khien ban moi hon go ra, hay lenh cu) thi hien nguyen ten kieu, con hon la
+     * mot dong trong.
+     */
+    fun lenh(l: LenhCho): String = when (l.kieu) {
+        Lenh.CHO -> l.phut?.let { "cho chơi ${phut(it)}" } ?: "cho chơi"
+        Lenh.DUYET -> "duyệt bài" + (l.phut?.let { ", ${phut(it)}" } ?: "")
+        Lenh.TU_CHOI -> "không duyệt bài"
+        Lenh.BOT -> "bớt ${phut(l.phut ?: 15)}"
+        Lenh.DUNG -> "tạm dừng phiên chơi"
+        Lenh.TIEP -> "cho chơi tiếp"
+        Lenh.KHOA -> "khoá tablet"
+        Lenh.MO_MAY -> l.phut?.let { "mở toàn bộ máy ${phut(it)}" } ?: "mở toàn bộ máy, không đặt hạn"
+        Lenh.DONG_MAY -> "đóng chế độ Ba Huy"
+        Lenh.CHO_GO_APP -> "cho gỡ app"
+        Lenh.XOA_PIN -> "xoá mã PIN"
+        Lenh.CAI_DAT -> "đổi cài đặt"
+        Lenh.NHAN -> "gửi lời nhắn"
+        Lenh.CONG_VIEC_NHA -> "cộng giờ việc nhà"
+        Lenh.SUA_CHAM -> "sửa bản chấm theo Claude"
+        Lenh.CHAM_BAI -> "chấm bài theo Claude"
+        Lenh.TIN_CO -> "tin của cô giáo"
+        Lenh.DOC_VO -> "vở dặn dò Claude đọc"
+        else -> l.kieu.lowercase(VN)
     }
 
     /** Ngay hom nay dang "yyyy-MM-dd", dung lam ten document nhat ky. */

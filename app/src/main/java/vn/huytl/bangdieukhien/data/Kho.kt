@@ -9,6 +9,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.Query
 
 /**
@@ -211,9 +212,21 @@ object Kho {
 
     // ------------------------------------------------------------------- nghe
 
-    fun ngheTrangThai(context: Context, khi: (TrangThai?, String?) -> Unit): ListenerRegistration? =
-        hop(context, Duong.D_TRANG_THAI)?.addSnapshotListener { snap, loi ->
-            if (loi != null) khi(null, loiNguoiDoc(loi)) else khi(TrangThai.doc(snap), null)
+    /**
+     * Nghe ban trang thai tablet ghi.
+     *
+     * Bao kem ban nay doc tu bo nho may hay tu may chu: man Bang chi coi la tablet vua
+     * dap khi thay ban tu may chu khac ban truoc luc hoi. Ban tu bo nho may la cai may
+     * nay nho tu lan truoc, khong chung minh duoc gi. Nghe ca thay doi metadata de biet
+     * luc ban tu may chu ve, ke ca khi noi dung giong het ban trong bo nho.
+     */
+    fun ngheTrangThai(
+        context: Context,
+        khi: (tt: TrangThai?, loi: String?, tuBoNho: Boolean) -> Unit
+    ): ListenerRegistration? =
+        hop(context, Duong.D_TRANG_THAI)?.addSnapshotListener(MetadataChanges.INCLUDE) { snap, loi ->
+            if (loi != null) khi(null, loiNguoiDoc(loi), false)
+            else khi(TrangThai.doc(snap), null, snap?.metadata?.isFromCache == true)
         }
 
     fun ngheCaiDat(context: Context, khi: (CaiDat?) -> Unit): ListenerRegistration? =
@@ -431,6 +444,49 @@ object Kho {
             .addOnSuccessListener { xong(KetQua.Xong) }
             .addOnFailureListener {
                 Log.w(TAG, "gui lenh hong", it)
+                xong(KetQua.Hong(loiNguoiDoc(it)))
+            }
+    }
+
+    /**
+     * Nghe cac lenh may nay da go ma tablet chua lay, cu nhat truoc. Xem [LenhCho].
+     *
+     * Nghe ca thay doi metadata: lenh vua go luc mat mang nam trong bo nho may nay voi
+     * co "chua len may chu", toi luc co mang co do tat ma noi dung khong doi. Khong nghe
+     * metadata thi dong chu cu ghi mai "chưa gửi đi được".
+     *
+     * BAN DOC TU BO NHO MAY THI KHONG TIN HET. Duyet bai o man BaiActivity luc tab Bang
+     * khong nghe: tablet lam xong va xoa lenh, ma bo nho may nay khong hay, van giu lenh
+     * do. Mo lai tab Bang thi ban dau tien den tu bo nho, va dong "Đang chờ tablet nhận"
+     * hien sai mot luc cho toi khi ban tu may chu ve. Nen ban tu bo nho chi lay lenh
+     * chinh may nay chua gui len duoc, phan con lai doi ban tu may chu.
+     */
+    fun ngheLenhCho(context: Context, khi: (List<LenhCho>) -> Unit): ListenerRegistration? =
+        nha(context)?.collection(Duong.LENH)
+            ?.addSnapshotListener(MetadataChanges.INCLUDE) { snap, loi ->
+                if (loi != null || snap == null) return@addSnapshotListener
+                val tuBoNho = snap.metadata.isFromCache
+                khi(
+                    snap.documents
+                        .filter { !tuBoNho || it.metadata.hasPendingWrites() }
+                        .mapNotNull { LenhCho.doc(it) }
+                        .sortedBy { it.tao }
+                )
+            }
+
+    /**
+     * Rut mot lenh tablet chua lay: xoa document do khoi hang.
+     *
+     * Tablet dang mat mang thi luc co mang lai no khong con thay lenh nay. Tablet vua lay
+     * xong thi document da mat, xoa mot document khong con cung khong loi gi; man Bang
+     * se thay trang thai doi theo lenh do.
+     */
+    fun rutLenh(context: Context, id: String, xong: (KetQua) -> Unit = {}) {
+        val n = nha(context) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
+        n.collection(Duong.LENH).document(id).delete()
+            .addOnSuccessListener { xong(KetQua.Xong) }
+            .addOnFailureListener {
+                Log.w(TAG, "rut lenh hong", it)
                 xong(KetQua.Hong(loiNguoiDoc(it)))
             }
     }

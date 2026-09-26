@@ -90,8 +90,18 @@ object ViecNha {
     fun banDanhSach(cac: List<Viec>): List<Map<String, Any>> =
         cac.map { mapOf(Duong.F_TEN to it.ten, Duong.F_PHUT to it.phut) }
 
-    /** Ket qua kiem hop sua danh sach: loi tung dong (null la dong do dung), va ban sach. */
-    data class KiemDanhSach(val loi: List<String?>, val cac: List<Viec>, val loiChung: String?) {
+    /**
+     * Ket qua kiem hop sua danh sach: loi tung dong (null la dong do dung), va ban sach.
+     *
+     * [oPhut] noi loi cua dong do nam o o so phut chu khong phai o ten, de hop sua to do
+     * dung o. Chu bao loi thi van nam duoi o ten, xem dong_sua_viec.xml.
+     */
+    data class KiemDanhSach(
+        val loi: List<String?>,
+        val cac: List<Viec>,
+        val loiChung: String?,
+        val oPhut: List<Boolean> = List(loi.size) { false }
+    ) {
         val dung: Boolean get() = loiChung == null && loi.all { it == null }
     }
 
@@ -104,6 +114,7 @@ object ViecNha {
      */
     fun kiem(dong: List<Pair<String, String>>): KiemDanhSach {
         val loi = MutableList<String?>(dong.size) { null }
+        val oPhut = MutableList(dong.size) { false }
         val cac = mutableListOf<Viec>()
         val daCo = mutableSetOf<String>()
         dong.forEachIndexed { i, (tenGo, phutGo) ->
@@ -114,8 +125,8 @@ object ViecNha {
             loi[i] = when {
                 ten.isEmpty() -> "Chưa có tên việc."
                 !daCo.add(ten.lowercase()) -> "Trùng tên với một việc ở trên."
-                phut == null -> "Số phút phải là số."
-                phut < 0 || phut > PHUT_TOI_DA -> "Số phút từ 0 đến $PHUT_TOI_DA."
+                phut == null -> "Số phút phải là số.".also { oPhut[i] = true }
+                phut < 0 || phut > PHUT_TOI_DA -> "Số phút từ 0 đến $PHUT_TOI_DA.".also { oPhut[i] = true }
                 else -> null
             }
             if (loi[i] == null && phut != null) cac += Viec(ten, phut)
@@ -126,7 +137,7 @@ object ViecNha {
             cac.size > Duong.TOI_DA_VIEC -> "Tối đa ${Duong.TOI_DA_VIEC} việc."
             else -> null
         }
-        return KiemDanhSach(loi, cac, loiChung)
+        return KiemDanhSach(loi, cac, loiChung, oPhut)
     }
 
     // ---------------------------------------------------------------- dot viec

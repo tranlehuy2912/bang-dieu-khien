@@ -101,6 +101,10 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │     capNhatLuc
 │
 ├── lenh/{id}                   ◄── ĐIỆN THOẠI ghi, tablet đọc rồi xoá
+│                                   Bảng điều khiển nghe cả hàng này: lệnh còn nằm đó là
+│                                   tablet chưa lấy, tab Bảng hiện ra kèm nút Rút lại
+│                                   (xoá document trước khi tablet lấy). Quá 30 phút thì
+│                                   ghi là tablet sẽ bỏ qua
 │     kieu   DUYET TUCHOI CHO BOT DUNG TIEP KHOA MOMAY DONGMAY XOAPIN CAIDAT NHAN
 │            CONGVIECNHA — cộng bù một đợt việc nhà tablet đã bỏ lỡ. Bảng điều
 │                        khiển bản mới không gửi nữa: nó bấm Gửi lại như máy bà

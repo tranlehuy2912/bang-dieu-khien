@@ -2,6 +2,8 @@ package vn.huytl.bangdieukhien.ui
 
 import android.content.Context
 import android.content.DialogInterface
+import android.content.res.ColorStateList
+import android.text.InputFilter
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
@@ -271,11 +273,12 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
      *
      * Luc do tablet dang khoa vi viec nha, va cai Ba Huy can bam la nut Xong - khong
      * the de no nam duoi ca hang nut cho gio va tin cua co. Het dot thi tra ve cho cu,
-     * sau cac nut lenh. May ba cung day khoi viec nha len y nhu vay.
+     * sau cac nut lenh va khoi lenh dang cho tablet: khoi do noi ve chinh cac nut vua
+     * bam, nen phai nam sat ngay duoi chung. May ba cung day khoi viec nha len y nhu vay.
      */
     private fun xepLai(dangCoDot: Boolean) {
         val cot = b.theViecNha.parent as? LinearLayout ?: return
-        val moc = if (dangCoDot) b.theVoDanDo else b.chuGui
+        val moc = if (dangCoDot) b.theVoDanDo else b.hopLenhCho
         // Dung cho roi thi thoi: doi cho view moi lan ve lai la moi lan man hinh nhay.
         if (cot.indexOfChild(b.nhanViecNha) == cot.indexOfChild(moc) + 1) return
         cot.removeView(b.nhanViecNha)
@@ -402,7 +405,24 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
         fun themHang(ten: String, phut: String): DongSuaViecBinding {
             val d = DongSuaViecBinding.inflate(LayoutInflater.from(ct), cot, false)
             d.oTen.setText(ten)
+            // O phut khong nhan so lon hon tran ngay luc go, nen gan nhu khong bao gio
+            // phai bao "Số phút từ 0 đến 240". Gan lai ca tran do dai: dat filters la
+            // thay het, ke ca maxLength khai trong XML.
+            d.oPhut.filters = arrayOf(
+                InputFilter.LengthFilter(3),
+                InputFilter { nguon, dau, cuoi, dich, dDau, dCuoi ->
+                    val moi = dich.substring(0, dDau) + nguon.subSequence(dau, cuoi) + dich.substring(dCuoi)
+                    val so = moi.toIntOrNull()
+                    if (moi.isEmpty() || (so != null && so <= ViecNha.PHUT_TOI_DA)) null else ""
+                }
+            )
             d.oPhut.setText(phut)
+            // Chu bao loi so phut nam duoi o ten nhung la dong ghi chu, khong phai loi
+            // cua o ten: to mau do cho no, con vien do va dau cham than de cho o phut.
+            d.khungTen.setHelperTextColor(
+                ColorStateList.valueOf(ContextCompat.getColor(ct, R.color.alert))
+            )
+            d.khungPhut.errorIconDrawable = null
             d.nutXoa.setOnClickListener {
                 cot.removeView(d.root)
                 cacDong.remove(d)
@@ -431,7 +451,14 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
             .show()
         hop.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener {
             val kq = ViecNha.kiem(cacDong.map { it.oTen.text.toString() to it.oPhut.text.toString() })
-            cacDong.forEachIndexed { i, d -> d.khungTen.error = kq.loi[i] }
+            cacDong.forEachIndexed { i, d ->
+                val loi = kq.loi[i]
+                val oPhut = loi != null && kq.oPhut[i]
+                d.khungTen.error = if (oPhut) null else loi
+                d.khungTen.helperText = if (oPhut) loi else null
+                // Mot dau cach: du de o phut vien do, ma khong chen chu vao o hep do.
+                d.khungPhut.error = if (oPhut) " " else null
+            }
             chuLoi.text = kq.loiChung.orEmpty()
             chuLoi.visibility = if (kq.loiChung == null) View.GONE else View.VISIBLE
             if (!kq.dung) return@setOnClickListener

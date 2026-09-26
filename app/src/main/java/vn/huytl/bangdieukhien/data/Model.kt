@@ -480,3 +480,63 @@ data class CaiDat(
 
 /** Mot app dang cai tren tablet, de chon tu xa ma khong phai go ten goi. */
 data class AppTrenMay(val goi: String, val ten: String)
+
+/**
+ * Mot lenh may nay da go ma tablet chua lay. Xem [Kho.ngheLenhCho].
+ *
+ * Tablet lam xong lenh nao la xoa document do, ke ca lenh qua cu no bo qua. Nen lenh
+ * con nam trong hang tuc la tablet chua nhan: dang mat mang, dang tat may, hay chi la
+ * mot hai giay chua kip.
+ *
+ * VI SAO PHAI HIEN RA. Firestore nhan lenh xong la nut tren man Bang sang lai, ma luc
+ * do tablet chua lam gi. Tablet mat mang thi lenh nam cho toi nua tieng, roi tablet
+ * co mang lai la van lam. Ba Huy bam "15'", khong thay gi doi, bam them lan nua: hai
+ * lenh cho gio cong don, Le Hoa duoc 30 phut.
+ */
+data class LenhCho(
+    val id: String,
+    val kieu: String,
+    val phut: Int?,
+    /** Luc go, theo dong ho may nay. Tablet cung lay truong nay de bo lenh qua cu. */
+    val tao: Long,
+    /** Chua len duoc may chu: chinh dien thoai dang mat mang. */
+    val chuaLenMang: Boolean
+) {
+    /** Qua [Duong.QUA_CU_MS] thi tablet co lay duoc cung bo qua. */
+    fun quaHan(bayGio: Long = System.currentTimeMillis()): Boolean =
+        tao > 0L && bayGio - tao > Duong.QUA_CU_MS
+
+    /**
+     * Co dang hien tren man Bang khong.
+     *
+     * Tablet co mang thi lenh chi nam trong hang chung mot giay. Hien ngay tu luc go
+     * thi dong nay chop len roi tat sau moi lan bam, ma luc do dong "Đang gửi…" da noi
+     * dung viec do. Nen chi hien lenh da nam do qua [CHO_HIEN_MS], ke ca lenh chua len
+     * duoc may chu: co mang thi co do cung chi ton tai mot thoang.
+     */
+    fun dangHien(bayGio: Long = System.currentTimeMillis()): Boolean =
+        tao <= 0L || bayGio - tao >= CHO_HIEN_MS
+
+    companion object {
+        const val CHO_HIEN_MS = 3_000L
+
+        /**
+         * Doc mot document trong lenh/. Tra null voi lenh khong can hien: PING la may
+         * nay tu hoi, khong phai viec Ba Huy bam; lenh cua nguoi khac thi khong phai
+         * lenh cua may nay de rut lai.
+         */
+        fun doc(d: DocumentSnapshot): LenhCho? {
+            val kieu = d.getString(Duong.F_KIEU) ?: return null
+            if (kieu == Lenh.PING) return null
+            if ((d.getString(Duong.F_AI) ?: Nguoi.BA_HUY) != Nguoi.BA_HUY) return null
+            return LenhCho(
+                id = d.id,
+                kieu = kieu,
+                phut = d.getLong(Duong.F_PHUT)?.toInt(),
+                // Kho.guiLenh ghi ten truong nay thang, khong qua Duong.
+                tao = d.getLong("tao") ?: 0L,
+                chuaLenMang = d.metadata.hasPendingWrites()
+            )
+        }
+    }
+}

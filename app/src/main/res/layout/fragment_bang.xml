@@ -66,8 +66,10 @@
                 android:lineSpacingExtra="3dp" />
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- The chinh: trang thai cong + dong ho dem nguoc. -->
+        <!-- The chinh: trang thai cong + dong ho dem nguoc. Tablet khong tra loi thi
+             the mo di: so trong the la cua lan cuoi tablet bao, khong phai bay gio. -->
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/theChinh"
             style="@style/The"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -248,13 +250,14 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:baselineAligned="false"
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cho15"
                 style="@style/Nut.Nhanh"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="15'" />
@@ -263,7 +266,7 @@
                 android:id="@+id/cho30"
                 style="@style/Nut.Nhanh"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="30'" />
@@ -272,7 +275,7 @@
                 android:id="@+id/cho45"
                 style="@style/Nut.Nhanh"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="45'" />
@@ -281,7 +284,7 @@
                 android:id="@+id/choKhac"
                 style="@style/Nut.Nhanh"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="Khác" />
         </LinearLayout>
@@ -297,13 +300,14 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:baselineAligned="false"
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/nutDung"
                 style="@style/Nut.Phien"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="Tạm dừng" />
@@ -312,7 +316,7 @@
                 android:id="@+id/nutBot"
                 style="@style/Nut.Phien"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="Bớt 15'" />
@@ -321,7 +325,7 @@
                 android:id="@+id/nutKhoa"
                 style="@style/Nut.Phien"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="Khoá ngay"
                 android:textColor="@color/alert"
@@ -358,6 +362,17 @@
             android:layout_marginTop="10dp"
             android:lineSpacingExtra="2dp"
             android:textSize="14sp"
+            android:visibility="gone" />
+
+        <!-- Lenh da len may chu ma tablet chua lay, moi lenh mot dong kem nut Rut lai.
+             Tablet lay lenh nao la xoa lenh do, nen dong nao con day la tablet chua
+             nhan. BangFragment ve khoi nay, xem LenhCho. -->
+        <LinearLayout
+            android:id="@+id/hopLenhCho"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical"
             android:visibility="gone" />
 
         <!-- Viec nha. Chung mot document voi may ba noi: ba giao hay bam xong ben do

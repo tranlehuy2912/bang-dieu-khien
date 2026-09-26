@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Mot dong trong hop sua danh sach viec nha: ten viec, so phut, nut xoa.
 
-     Chep tu hop sua ben may ba noi, noi Ba Huy tung phai cam may ba len de sua. Loi
-     cua ca dong hien duoi o ten: o phut hep qua, chu bao loi dat o do bi gay dong. -->
+     Chep tu hop sua ben may ba noi, noi Ba Huy tung phai cam may ba len de sua. Chu
+     bao loi cua ca dong nam duoi o ten: o phut hep qua, chu dat o do bi gay dong. Loi
+     o so phut thi o phut vien do, con chu duoi o ten la dong ghi chu mau do chu khong
+     phai loi cua o ten, xem KhoiViecNha. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -31,6 +33,7 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/khungPhut"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         android:layout_width="88dp"
         android:layout_height="wrap_content"

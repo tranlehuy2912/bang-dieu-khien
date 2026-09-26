@@ -16,9 +16,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.launch
@@ -26,6 +29,7 @@ import vn.huytl.bangdieukhien.R
 import vn.huytl.bangdieukhien.data.Cong
 import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.Lenh
+import vn.huytl.bangdieukhien.data.LenhCho
 import vn.huytl.bangdieukhien.data.Nguoi
 import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.data.SoSuDung
@@ -54,6 +58,13 @@ class BangFragment : Fragment() {
     private var ngheHoiAi: ListenerRegistration? = null
     private var ngheDanDo: ListenerRegistration? = null
     private var ngheSuDung: ListenerRegistration? = null
+    private var ngheLenh: ListenerRegistration? = null
+
+    /** Lenh may nay da go ma tablet chua lay, cu nhat truoc. Xem [veLenhCho]. */
+    private var lenhCho: List<LenhCho> = emptyList()
+
+    /** Khoi lenh dang cho da ve voi nhung dong nao, de khong dung lai view moi giay. */
+    private var daVeLenhCho = ""
 
     /** So dung app tablet gui sang, null la chua co. Xem [veSuDung]. */
     private var soSuDung: SoSuDung? = null
@@ -95,6 +106,25 @@ class BangFragment : Fragment() {
     private var daBaoKhongDap = false
 
     /**
+     * Doi ban trang thai dau tien TU MAY CHU ve roi moi hoi tablet.
+     *
+     * Truoc day onStart hoi ngay. Mo nguoi thi luc do chua co ban nao, [capNhatTruocKhiHoi]
+     * la 0, va ban dau tien doc ve khac 0 nen bi coi la tablet vua dap: tablet tat mang ma
+     * man hinh van cham xanh, khong co dai canh bao, the khong mo, bam cho gio cung khong
+     * hoi lai. Doi tab qua lai cung vay, chi la hiem hon: ban may nho tu lan truoc cu hon
+     * ban tren may chu. Lay moc tu ban may chu roi moi hoi thi con so truoc khi hoi la so
+     * that. Qua [CHO_BAN_DAU_MS] ma chua co ban tu may chu (may nay mat mang) thi van hoi,
+     * nhu truoc day.
+     */
+    private var hoiKhiCoBanDau = false
+    private val hoiDuPhong = Runnable {
+        if (hoiKhiCoBanDau && _b != null) {
+            hoiKhiCoBanDau = false
+            hoiTablet()
+        }
+    }
+
+    /**
      * Cau tra loi cuoi cung da hien, de khong hien lai mot cau hai lan.
      *
      * Can cho nay vi Firestore goi lai lang nghe moi lan document doi bat cu truong
@@ -108,6 +138,9 @@ class BangFragment : Fragment() {
         override fun run() {
             veDongHo()
             khoiViec?.moiGiay()
+            // Lenh qua ba giay moi hien, qua nua tieng thi doi chu: ca hai moc deu la
+            // gio troi qua chu khong phai Firestore doi, nen phai xet lai moi giay.
+            veLenhCho()
             // Qua han cho ma tablet van im: ve lai dung mot lan de cham doi mau va
             // dong canh bao moc len. Khong ve moi giay - khong co gi doi nua.
             if (khongDap() != daBaoKhongDap) {
@@ -152,16 +185,22 @@ class BangFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         val ct = requireContext()
-        ngheTrangThai = Kho.ngheTrangThai(ct) { tt, loi ->
+        ngheTrangThai = Kho.ngheTrangThai(ct) { tt, loi, tuBoNho ->
             if (_b == null) return@ngheTrangThai
             if (loi != null) {
                 b.chuCanhBao.text = loi
                 b.theCanhBao.visibility = View.VISIBLE
                 return@ngheTrangThai
             }
-            // Ban moi khac ban truoc luc hoi: tablet con song. Xem [capNhatTruocKhiHoi].
-            if (!daDap && tt != null && tt.capNhatLuc != capNhatTruocKhiHoi) daDap = true
+            // Ban moi tu may chu khac ban truoc luc hoi: tablet con song. Ban tu bo nho may
+            // thi khong tinh, xem [hoiKhiCoBanDau].
+            if (!daDap && !tuBoNho && tt != null && tt.capNhatLuc != capNhatTruocKhiHoi) daDap = true
             moiNhat = tt
+            if (hoiKhiCoBanDau && !tuBoNho) {
+                hoiKhiCoBanDau = false
+                tay.removeCallbacks(hoiDuPhong)
+                hoiTablet()
+            }
             ve()
             noiLaiNeuCo(tt)
         }
@@ -187,18 +226,28 @@ class BangFragment : Fragment() {
             daNhanSuDung = true
             veSuDung()
         }
-        hoiTablet()
+        ngheLenh = Kho.ngheLenhCho(ct) { ds ->
+            if (_b == null) return@ngheLenhCho
+            lenhCho = ds
+            veLenhCho()
+        }
+        // Lang nghe o tren hoi tablet khi ban dau tien tu may chu ve. Xem [hoiKhiCoBanDau].
+        hoiKhiCoBanDau = true
+        tay.postDelayed(hoiDuPhong, CHO_BAN_DAU_MS)
         tay.post(nhip)
     }
 
     override fun onStop() {
         tay.removeCallbacks(nhip)
+        tay.removeCallbacks(hoiDuPhong)
+        hoiKhiCoBanDau = false
         ngheTrangThai?.remove()
         ngheNhatKy?.remove()
         ngheHoiAi?.remove()
         ngheDanDo?.remove()
         khoiViec?.goNghe()
         ngheSuDung?.remove()
+        ngheLenh?.remove()
         super.onStop()
     }
 
@@ -357,9 +406,13 @@ class BangFragment : Fragment() {
             khoaNut()
             veCanhBao(null)
             veDuongLenh()
+            b.theChinh.alpha = 1f
             return
         }
         val ct = requireContext()
+        // Tablet khong tra loi: moi con so trong the la cua lan cuoi no bao ve. Dai do o
+        // dau man da noi ra, nhung the van to va dam nhu so that thi mat van doc no truoc.
+        b.theChinh.alpha = if (khongDap()) ALPHA_SO_CU else 1f
 
         val (chu, mau, mauNhat) = when {
             // Viec nha xet truoc ca che do Ba: dang khoa vi viec nha thi moi thu
@@ -556,7 +609,99 @@ class BangFragment : Fragment() {
 
     // ----------------------------------------------------------------- lenh
 
-    private fun cho(phut: Int) = gui(Lenh.CHO, phut = phut)
+    /**
+     * Cho choi ngay. Hoi lai o hai canh ma bam xong se khong thay gi doi.
+     *
+     * Tablet dang khong tra loi: lenh nam cho, tablet co mang lai trong nua tieng thi
+     * van lam. Hay con lenh cho gio truoc chua toi tablet: tablet cong don phieu gio,
+     * nen bam them la cong them chu khong phai bam lai cho chac. Hai canh do la luc
+     * nguoi ta de bam lan hai nhat.
+     */
+    private fun cho(phut: Int) {
+        val choCu = lenhCho.filter { it.kieu == Lenh.CHO && !it.quaHan() }
+        val im = khongDap()
+        if (choCu.isEmpty() && !im) return gui(Lenh.CHO, phut = phut)
+
+        val con = getString(R.string.child_name)
+        val noi = buildString {
+            if (im) {
+                append("Tablet đang không trả lời. Lệnh này sẽ nằm chờ: tablet có mạng lại ")
+                append("trong vòng 30 phút thì $con vẫn được ${Dinh.phut(phut)}, quá 30 phút ")
+                append("thì tablet bỏ qua.")
+            }
+            if (choCu.isNotEmpty()) {
+                if (isNotEmpty()) append("\n\n")
+                val tong = phut + choCu.sumOf { it.phut ?: 0 }
+                append("Còn lệnh ${choCu.joinToString(", ") { Dinh.lenh(it) }} chưa tới tablet. ")
+                append("Gửi thêm thì các lệnh cộng dồn, $con được tất cả ${Dinh.phut(tong)}.")
+            }
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Vẫn cho chơi ${Dinh.phut(phut)}?")
+            .setMessage(noi)
+            .setPositiveButton("Vẫn gửi") { _, _ -> gui(Lenh.CHO, phut = phut) }
+            .setNegativeButton(R.string.huy, null)
+            .show()
+    }
+
+    /**
+     * Khoi "lenh dang cho tablet": moi lenh mot dong, kem nut rut lai.
+     *
+     * Chi ve lai khi danh sach dong doi. Ham nay chay moi giay tu [nhip], ma dung lai
+     * view moi giay thi nut dang bam do cung bi thay giua chung.
+     */
+    private fun veLenhCho() {
+        if (_b == null) return
+        val bayGio = System.currentTimeMillis()
+        val hien = lenhCho.filter { it.dangHien(bayGio) }
+        val ky = hien.joinToString("|") { "${it.id}:${it.quaHan(bayGio)}:${it.chuaLenMang}" }
+        if (ky == daVeLenhCho) return
+        daVeLenhCho = ky
+
+        val hop = b.hopLenhCho
+        hop.removeAllViews()
+        hop.visibility = if (hien.isEmpty()) View.GONE else View.VISIBLE
+        val ct = requireContext()
+        hien.forEach { l ->
+            val quaHan = l.quaHan(bayGio)
+            val luc = Dinh.gioPhut(l.tao)
+            val dong = LinearLayout(ct).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+            }
+            dong.addView(TextView(ct).apply {
+                text = when {
+                    quaHan -> "Quá 30 phút tablet chưa nhận: ${Dinh.lenh(l)}, gửi lúc $luc. " +
+                        "Tablet sẽ bỏ qua lệnh này."
+                    l.chuaLenMang -> "Chưa gửi lên được vì điện thoại mất mạng: ${Dinh.lenh(l)}. " +
+                        "Có mạng lại là tự gửi."
+                    else -> "Đang chờ tablet nhận: ${Dinh.lenh(l)}, gửi lúc $luc."
+                }
+                textSize = 14f
+                setLineSpacing(2f * resources.displayMetrics.density, 1f)
+                setTextColor(
+                    ContextCompat.getColor(ct, if (quaHan) R.color.alert else R.color.ink_soft)
+                )
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            })
+            dong.addView(
+                MaterialButton(ct, null, androidx.appcompat.R.attr.borderlessButtonStyle).apply {
+                    // Qua han thi tablet co lay cung bo, nut chi con la don dong nay di.
+                    text = if (quaHan) "Xoá" else "Rút lại"
+                    setOnClickListener {
+                        isEnabled = false
+                        Kho.rutLenh(ct, l.id) { kq ->
+                            if (kq is Kho.KetQua.Hong) {
+                                isEnabled = true
+                                Dinh.noi(ct, kq.viSao)
+                            }
+                        }
+                    }
+                }
+            )
+            hop.addView(dong)
+        }
+    }
 
     /**
      * Gui mot lenh, va cho ca man hinh biet la dang gui.
@@ -875,6 +1020,12 @@ class BangFragment : Fragment() {
          * song yeu, ma bao dong sai vai lan la lan bao dong that cung bi bo qua.
          */
         private const val CHO_PING_MS = 8_000L
+
+        /** Do dam cua the chinh khi so trong do la so cu. */
+        private const val ALPHA_SO_CU = 0.5f
+
+        /** Cho ban trang thai tu may chu toi da bay lau roi van hoi tablet. */
+        private const val CHO_BAN_DAU_MS = 5_000L
 
         /**
          * Hai lan hoi cach nhau it nhat bay nhieu.

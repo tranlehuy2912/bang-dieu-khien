@@ -180,6 +180,24 @@ class ViecNhaTest {
     }
 
     @Test
+    fun loi_so_phut_danh_dau_o_phut_con_loi_ten_thi_khong() {
+        // Hop sua to do dung o theo co nay. Truoc day moi loi deu gan vao o ten, nen go
+        // sai so phut ma o ten vien do kem dau cham than, trong nhu ten sai.
+        val kq = ViecNha.kiem(
+            listOf(
+                "Quét nhà" to "10",
+                "" to "10",
+                "Quét nhà" to "10",
+                "Tắm" to "500",
+                "Rửa chén" to "mười"
+            )
+        )
+        assertEquals(listOf(false, false, false, true, true), kq.oPhut)
+        assertNotNull(kq.loi[3])
+        assertNotNull(kq.loi[4])
+    }
+
+    @Test
     fun kiem_danh_sach_trong_hay_dai_qua() {
         val trong = ViecNha.kiem(listOf("" to ""))
         assertFalse(trong.dung)

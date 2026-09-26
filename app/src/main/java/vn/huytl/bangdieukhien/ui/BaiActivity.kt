@@ -687,6 +687,7 @@ class BaiActivity : AppCompatActivity() {
             // chi con nut Xoa, de danh sach o tab Bai gon lai.
             b.nutDuyet.visibility = View.GONE
             b.nutTuChoi.visibility = View.GONE
+            b.nutSoPhutKhac.visibility = View.GONE
             b.nutXoa.visibility = View.VISIBLE
             b.nutXoa.setOnClickListener { xoa(bai) }
             b.khungNut.visibility = if (bai.an) View.GONE else View.VISIBLE
@@ -700,8 +701,10 @@ class BaiActivity : AppCompatActivity() {
         val phut = bai.cham?.phutDeNghi?.takeIf { it > 0 } ?: 30
         b.nutDuyet.text = "${getString(R.string.bai_duyet)} ${Dinh.phut(phut)}"
         b.nutDuyet.setOnClickListener { duyet(bai, phut) }
-        // Giu lau la doi so phut khac, khoi phai mo them mot man nua cho viec
-        // chin lan muoi la bam thang.
+        // Doi so phut: nut chu ngay tren hang nut, de ai cung thay. Giu lau nut Duyet
+        // van mo cung hop do, lam loi tat cho nguoi da quen.
+        b.nutSoPhutKhac.visibility = View.VISIBLE
+        b.nutSoPhutKhac.setOnClickListener { hoiSoPhut(bai) }
         b.nutDuyet.setOnLongClickListener {
             hoiSoPhut(bai)
             true

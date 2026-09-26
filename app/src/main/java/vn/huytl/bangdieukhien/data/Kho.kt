@@ -220,6 +220,18 @@ object Kho {
             if (loi == null) khi(CaiDat.doc(snap))
         }
 
+    /**
+     * Nghe vo dan do cua ngay tren tablet. Xem [Duong.D_DAN_DO].
+     *
+     * null la khong co ban nao con hieu luc: con chua chup, hay ban cu da het han va
+     * tablet da xoa document.
+     */
+    fun ngheDanDo(context: Context, khi: (VoDaSoat?) -> Unit): ListenerRegistration? =
+        hop(context, Duong.D_DAN_DO)?.addSnapshotListener { snap, loi ->
+            if (loi != null) return@addSnapshotListener
+            khi(if (snap?.exists() == true) VoDaSoat.doc(snap.data) else null)
+        }
+
     fun ngheDanhSachApp(context: Context, khi: (List<AppTrenMay>) -> Unit): ListenerRegistration? =
         hop(context, Duong.D_DANH_SACH_APP)?.addSnapshotListener { snap, loi ->
             if (loi != null) return@addSnapshotListener

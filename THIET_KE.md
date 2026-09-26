@@ -84,6 +84,10 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │
 ├── hop/caidat                  ◄── chỉ TABLET ghi (bản sao cấu hình đang chạy)
 ├── hop/danhsachapp             ◄── chỉ TABLET ghi (app đang cài, để chọn từ xa)
+├── hop/dando                   ◄── chỉ TABLET ghi: vở dặn dò đang còn hiệu lực, cùng
+│                                   dạng với danDo trong bai/ kèm luc. Hết hiệu lực thì
+│                                   tablet xoá. Máy không đọc được (chuaDoc) thì tab Bảng
+│                                   hiện thẻ "Nhờ Claude đọc vở"
 │
 ├── lenh/{id}                   ◄── ĐIỆN THOẠI ghi, tablet đọc rồi xoá
 │     kieu   DUYET TUCHOI CHO BOT DUNG TIEP KHOA MOMAY DONGMAY XOAPIN CAIDAT NHAN
@@ -93,6 +97,8 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │            SUACHAM     sửa bản chấm của máy theo kết quả Claude chấm lại
 │            CHAMBAI     bản chấm đầu tiên do Claude chấm (tablet tắt AI, hay AI hỏng)
 │            TINCO       tin của cô giáo, không bị bỏ vì quá cũ
+│            DOCVO       kết quả Claude đọc tấm vở máy không đọc được, kèm chupLuc
+│                        để tablet chỉ ghi vào đúng tấm đó
 │     phut, baiId, chu, giaTri
 │     tao    epoch ms theo đồng hồ máy gửi. Tablet dùng trường này để xếp lệnh
 │            và bỏ lệnh quá nửa tiếng. taoLuc (server timestamp) chỉ Bảng điều
@@ -114,9 +120,11 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │     cham    kết quả AI chấm, nếu có
 │     khai    các câu con khai trước khi chụp, kèm đề:
 │             { tenNguon, bai, mon, onTap, cac[] }
-│     danDo   vở dặn dò con soát từ đầu buổi, khi lần nộp không chụp trang vở:
-│             { ngay, cacBai[], dongKhac[], fileId }. Ảnh trang vở cũng nằm cuối
-│             anh[] với khau DAN_DO. Claude chấm theo đúng ngày và danh sách này
+│     danDo   vở dặn dò của ngày, khi lần nộp không chụp trang vở: { ngay,
+│             cacBai[], dongKhac[], fileId, chuaDoc, nguon, chupLuc }. Ảnh trang vở
+│             cũng nằm cuối anh[] với khau DAN_DO. Claude chấm theo đúng ngày và danh
+│             sách này; chuaDoc là chỉ có ảnh, Claude đọc ảnh lúc chấm và tablet giữ
+│             lại lần đọc đầu tiên
 │     chamClaude  kết quả Claude chấm lại mà Ba Huy dán vào: { luc, cac[] }.
 │             Nằm cạnh cham, không ghi đè lên nó
 │

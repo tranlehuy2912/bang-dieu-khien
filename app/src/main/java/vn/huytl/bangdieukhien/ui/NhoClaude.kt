@@ -50,6 +50,9 @@ import java.util.Locale
  * nhung cau may nham. Bai chua co ban cham nao - tablet tat cham AI, hay AI hong luc
  * con nop - thi Claude CHAM LUON, va ket qua dan ve la ban cham dau tien: tablet tinh
  * phut theo no. Xem [chamMoi].
+ *
+ * Ngoai hai kieu cham con mot loi nho doc vo dan do, cho tam vo may tren tablet doc
+ * khong duoc. Xem [loiNhoDocVo].
  */
 object NhoClaude {
 
@@ -128,7 +131,9 @@ object NhoClaude {
     private fun loiNhoChamMoi(bai: Bai, ten: String): String = buildString {
         val khai = bai.khai
         val onTap = khai?.onTap == true
-        val soat = bai.voDaSoat
+        // Ban chi co anh thi khong phai danh sach: di duong anh vo, Claude doc tam anh
+        // tablet gan theo bai. Xem VoDaSoat.chuaDoc.
+        val soat = bai.voDaSoat?.daDoc
         val coAnhVo = bai.anh.any { it.laDanDo }
         val coVo = soat != null || coAnhVo
 
@@ -353,7 +358,13 @@ object NhoClaude {
      * tin vo dan do) thi khong hoi cho lech.
      */
     private fun StringBuilder.voDaSoat(v: VoDaSoat, coAnh: Boolean, ten: String) {
-        appendLine("Vở dặn dò hôm đó $ten đã chụp từ đầu buổi, máy đọc ra chữ và $ten đã soát lại:")
+        appendLine(
+            when (v.nguon) {
+                VoDaSoat.NGUON_CLAUDE -> "Vở dặn dò hôm đó $ten đã chụp từ đầu buổi, và đã được đọc ra chữ từ trước:"
+                VoDaSoat.NGUON_LUC_CHAM -> "Vở dặn dò hôm đó đã được đọc ra chữ ở lần chấm bài trước:"
+                else -> "Vở dặn dò hôm đó $ten đã chụp từ đầu buổi, máy đọc ra chữ và $ten đã soát lại:"
+            }
+        )
         appendLine("- Ngày ghi trên vở: ${v.ngay}.")
         appendLine(
             "- Bài cô giao: " +
@@ -454,7 +465,109 @@ object NhoClaude {
      * lai bam dan ma quen chep cau tra loi.
      */
     fun laLoiNho(chu: String?): Boolean =
-        chu != null && (chu.contains(DAU_LOI_NHO) || chu.contains(DAU_CHAM_MOI))
+        chu != null && (chu.contains(DAU_LOI_NHO) || chu.contains(DAU_CHAM_MOI) || chu.contains(DAU_DOC_VO))
+
+    // ------------------------------------------------------------ doc vo dan do
+
+    /** Dong mo dau cua loi nho doc vo dan do. */
+    private const val DAU_DOC_VO = "Nhờ bạn đọc giúp một trang vở dặn dò"
+
+    /**
+     * Loi nho Claude doc trang vo dan do ma may tren tablet doc khong duoc.
+     *
+     * Quy tac chep y cau lenh may doc dung (PromptCham.cauLenhDocDanDo ben tablet), de
+     * ban Claude doc va ban may doc cung mot kieu, va o tich bai tap cung mot nghia. Khac
+     * o cho chi hoi MOT buoi: may tra ve moi buoi tren trang cho con chon, con o day khong
+     * ai ngoi chon, nen Claude lay buoi gan ngay chup nhat ma khong sau ngay chup - y nhu
+     * cach man soat ben tablet chon san buoi.
+     *
+     * Ma "vo" trong khoi JSON la moc chup cua tam anh: dan nham ket qua cua tam vo khac
+     * thi tablet bo, xem VoDanDo.tuClaude ben do.
+     */
+    fun loiNhoDocVo(v: VoDaSoat, tenCon: String): String = buildString {
+        val ten = tenGoi(tenCon)
+        val chup = SimpleDateFormat("HH:mm 'ngày' dd/MM/yyyy", VN).format(Date(v.chupLuc.takeIf { it > 0 } ?: v.luc))
+        appendLine("$DAU_DOC_VO của $ten. Tôi là bố của $ten.")
+        appendLine(
+            "Ảnh đính kèm là trang vở dặn dò $ten chụp lúc $chup. Vở do chính $ten chép lại " +
+                "lời cô giáo dặn cuối mỗi buổi học."
+        )
+        appendLine()
+        appendLine(
+            "Trang thường chép liền nhiều buổi. Mỗi buổi mở đầu bằng một dòng ghi ngày, thường " +
+                "kèm chữ \"Dặn dò\", rồi vài dòng dặn dò bên dưới, mỗi dòng bắt đầu bằng tên môn. " +
+                "Chỉ đọc MỘT buổi: buổi có ngày gần ngày chụp nhất mà không sau ngày chụp. Không " +
+                "trộn dòng của buổi khác vào."
+        )
+        appendLine()
+        appendLine("Quy tắc:")
+        appendLine(
+            "1. \"ngay\": ngày ghi ở đầu buổi đó, đổi ra yyyy-MM-dd. Vở ghi kiểu nào cũng phải " +
+                "đọc được: \"15/9/2026\", \"Thứ hai, ngày 14 tháng 9\", hay tiếng Anh \"Monday, " +
+                "september 14th, 2026\". Thiếu năm thì lấy năm gần ngày chụp nhất. Không thấy ngày " +
+                "thì để null."
+        )
+        appendLine(
+            "2. \"chu\": chép nguyên văn cả dòng, giữ tên môn viết tắt đúng như vở: \"KHTN\", " +
+                "\"NV\", \"GDCD\", \"CN\", \"LS-ĐL\". Không viết lại cho hay hơn, không gộp hai " +
+                "dòng làm một, không tách một dòng làm hai."
+        )
+        appendLine(
+            "3. \"la_bai_tap\": true chỉ khi dòng đó bảo làm một bài rồi nộp lại được, ví dụ " +
+                "\"làm bài 2 trang 36\", \"làm luyện tập 3 trang 59\". Ôn bài, học thuộc, xem trước " +
+                "bài, tiết sau kiểm tra, mang sách vở, làm đúng nội quy thì luôn là false."
+        )
+        appendLine(
+            "4. Chữ nào nhìn không ra thì chép phần đọc được, không đoán. Cẩn thận với con số: " +
+                "4 với 9, 5 với 6 rất dễ nhầm."
+        )
+        appendLine()
+        appendLine(
+            "Trả lời bằng tiếng Việt: ghi ngày của buổi đó, rồi liệt kê từng dòng và dòng nào " +
+                "là bài tập. Cuối cùng in đúng một khối JSON theo mẫu dưới đây để tôi dán vào app:"
+        )
+        // Mau CO Y khong phai JSON hop le, cung ly do voi mau o [loiNhoChamLai].
+        append(
+            "{\"vo\":\"${v.chupLuc}\",\"ngay\":\"yyyy-MM-dd hoặc null\"," +
+                "\"cac_dong\":[{\"chu\":\"...\",\"la_bai_tap\":true hoặc false}]}"
+        )
+    }
+
+    /** Mot dong vo dan do Claude doc ra. */
+    data class DongVo(val chu: String, val laBaiTap: Boolean)
+
+    /**
+     * Ket qua Claude doc vo dan do.
+     *
+     * @param vo moc chup Claude chep lai tu loi nho. Rong la Claude khong ghi.
+     * @param ngay ngay ghi tren vo, null la Claude khong doc duoc.
+     */
+    data class KetQuaDocVo(val vo: String, val ngay: String?, val cacDong: List<DongVo>)
+
+    /**
+     * Doc khoi JSON "cac_dong" o cuoi cau tra loi Claude doc vo. Cach tim khoi y nhu
+     * [docKetQua].
+     *
+     * "la_bai_tap" phai la true hay false that, y nhu "dung" o ket qua cham. org.json doc
+     * de dai: gap mau "true hoặc false" trong loi nho no doc ra mot chuoi chu khong bao
+     * loi. Coi chuoi do la "khong phai bai tap" thi chinh cai mau thanh mot ket qua doc
+     * vo. Nen dong nao viet sai kieu thi bo, va mang co dong ma khong dong nao dung kieu
+     * thi coi nhu khong co ket qua. Mang rong that la Claude khong thay dan do nao.
+     */
+    fun docKetQuaDocVo(chu: String?): KetQuaDocVo? {
+        val o = timKhoi(chu, "cac_dong") ?: return null
+        val mang = o.optJSONArray("cac_dong") ?: return null
+        val cac = (0 until mang.length()).mapNotNull { i ->
+            val d = mang.optJSONObject(i) ?: return@mapNotNull null
+            val t = d.chuoi("chu")
+            val bai = d.opt("la_bai_tap") as? Boolean
+            if (t.isEmpty() || bai == null) return@mapNotNull null
+            DongVo(t, bai)
+        }
+        if (mang.length() > 0 && cac.isEmpty()) return null
+        val ngay = o.chuoi("ngay").takeIf { it.isNotEmpty() && it != "null" }
+        return KetQuaDocVo(o.chuoi("vo"), ngay, cac)
+    }
 
     /** Ket qua Claude cham, doc tu cau tra loi Ba Huy chep tu app Claude. */
     data class KetQuaDan(
@@ -492,14 +605,17 @@ object NhoClaude {
      * Tra null khi khong thay khoi nao doc duoc: bo nho tam dang giu thu khac, hay
      * Claude quen in khoi JSON.
      */
-    fun docKetQua(chu: String?): KetQuaDan? {
+    fun docKetQua(chu: String?): KetQuaDan? = timKhoi(chu, "ket_qua")?.let { docKhoi(it) }
+
+    /** Khoi JSON cuoi cung co mang [khoa] trong cau tra loi chep tu app Claude. Xem [docKetQua]. */
+    private fun timKhoi(chu: String?, khoa: String): JSONObject? {
         if (chu.isNullOrBlank()) return null
-        val moc = chu.lastIndexOf("\"ket_qua\"")
+        val moc = chu.lastIndexOf("\"$khoa\"")
         if (moc < 0) return null
         var dau = chu.lastIndexOf('{', moc)
         while (dau >= 0) {
             val o = khoiTu(chu, dau)
-            if (o?.optJSONArray("ket_qua") != null) return docKhoi(o)
+            if (o?.optJSONArray(khoa) != null) return o
             dau = chu.lastIndexOf('{', dau - 1)
         }
         return null

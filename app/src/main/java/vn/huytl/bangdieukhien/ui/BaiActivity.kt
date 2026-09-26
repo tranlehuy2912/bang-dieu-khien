@@ -297,7 +297,8 @@ class BaiActivity : AppCompatActivity() {
                 append("\n\nBài ôn không viết mực đỏ: ").append(khongDo.joinToString(", "))
                 append(". Tablet sẽ chưa cộng giờ, chờ bấm Duyệt.")
             }
-            val soat = bai.voDaSoat
+            // Ban chi co anh thi Claude doc anh vo nhu lan nop chup kem, xem VoDaSoat.chuaDoc.
+            val soat = bai.voDaSoat?.daDoc
             if (soat != null) append("\n\n").append(noiVoDaSoat(soat, ket))
             else if (bai.anh.any { it.laDanDo }) append("\n\n").append(noiDanDo(ket.danDo))
             append("\n\n")
@@ -344,10 +345,19 @@ class BaiActivity : AppCompatActivity() {
      *
      * Cho lech chi de Ba Huy doc: tablet van tinh goi theo danh sach con soat. Nen hop
      * thoai noi luon duong ra khi Claude noi dung: bam Huy, xem lai anh, roi tu duyet.
+     *
+     * Danh sach khong phai luc nao cung do con soat: may doc hong thi Claude doc qua the
+     * vo dan do o tab Bang, hay lan cham bai dau tien doc ra. Ghi dung ai doc, de Ba Huy
+     * biet danh sach nay da qua mat ai.
      */
     private fun noiVoDaSoat(v: VoDaSoat, ket: NhoClaude.KetQuaDan): String = buildString {
         val con = getString(R.string.child_name)
-        append("Vở dặn dò $con soát, ngày ").append(ngayGon(v.ngay)).append(": ")
+        val aiDoc = when (v.nguon) {
+            VoDaSoat.NGUON_CLAUDE -> "Claude đọc"
+            VoDaSoat.NGUON_LUC_CHAM -> "đọc lúc chấm bài trước"
+            else -> "$con soát"
+        }
+        append("Vở dặn dò $aiDoc, ngày ").append(ngayGon(v.ngay)).append(": ")
         val d = ket.danDo
         if (v.cacBai.isEmpty()) {
             append("cô không giao bài tập nào, nên không có gói 45 phút. Muốn cho gói thì ")
@@ -364,8 +374,8 @@ class BaiActivity : AppCompatActivity() {
             )
         }
         if (ket.voLech.isNotBlank()) {
-            append("\n\nClaude thấy vở lệch với danh sách $con soát: ").append(ket.voLech.trim())
-            append("\nTablet vẫn tính theo danh sách $con soát. Thấy Claude nói đúng thì bấm ")
+            append("\n\nClaude thấy vở lệch với danh sách này: ").append(ket.voLech.trim())
+            append("\nTablet vẫn tính theo danh sách này. Thấy Claude nói đúng thì bấm ")
             append("Huỷ, xem lại ảnh vở rồi tự duyệt.")
         }
     }
@@ -409,7 +419,7 @@ class BaiActivity : AppCompatActivity() {
                     it.trongDanDo?.let { t -> put("trongDanDo", t) }
                 }
             })
-            val soat = bai.voDaSoat
+            val soat = bai.voDaSoat?.daDoc
             put("coAnhDanDo", soat != null || bai.anh.any { it.laDanDo })
             if (soat != null) {
                 // Ngay va danh sach bai la cua ban con soat, Claude chi noi con lam het

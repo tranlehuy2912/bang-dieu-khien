@@ -237,6 +237,30 @@
                 android:textSize="14sp" />
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Vo dan do may tren tablet doc khong duoc, con gui anh sang. Cham vao de nho
+             Claude doc, hay dan ket qua Claude doc ve. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/theVoDanDo"
+            style="@style/The"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/wait_soft"
+            app:strokeColor="@color/wait">
+
+            <TextView
+                android:id="@+id/chuVoDanDo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="3dp"
+                android:padding="16dp"
+                android:textColor="#7A5200"
+                android:textSize="14sp" />
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Nut nhanh. Ba so hay dung nhat mot hang, viec dieu khien phien mot hang. -->
         <TextView
             style="@style/Chu.Tieu"

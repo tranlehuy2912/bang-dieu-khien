@@ -249,20 +249,33 @@ data class KhaiBai(
 }
 
 /**
- * Vo dan do con da soat tu dau buoi, tablet chep vao bai luc nop. Xem [Duong.F_DAN_DO].
+ * Vo dan do cua ngay, tablet chep vao bai luc nop va vao hop/dando. Xem [Duong.F_DAN_DO].
  *
  * Co cai nay thi Claude khong phai tu doc trang vo: ngay va cac bai co giao da co san,
  * may doc va con da soat lai. [fileId] la anh trang vo de Claude doi chieu, rong la
  * tablet chua gui duoc anh.
+ *
+ * [chuaDoc] la ngoai le: chi co anh, may doc khong duoc. Luc do [cacBai] rong nhung chua
+ * biet co giao gi, nen khong duoc dung nhu mot danh sach - xem [daDoc].
  */
 data class VoDaSoat(
-    /** Ngay ghi tren vo, dang yyyy-MM-dd. */
+    /** Ngay ghi tren vo, dang yyyy-MM-dd. Ban chi co anh thi la ngay chup. */
     val ngay: String,
     /** Cac dong con tich la bai tap. Rong la hom do co khong giao bai tap nao. */
     val cacBai: List<String>,
     val dongKhac: List<String> = emptyList(),
-    val fileId: String = ""
+    val fileId: String = "",
+    val chuaDoc: Boolean = false,
+    /** Ai doc ra danh sach: CON, CLAUDE hay LUCCHAM, y het VoDanDo ben tablet. */
+    val nguon: String = NGUON_CON,
+    /** Luc chup tam anh trang vo, de lenh DOCVO ghi vao dung tam do. */
+    val chupLuc: Long = 0L,
+    /** Luc tablet luu ban nay. Chi co o hop/dando. */
+    val luc: Long = 0L
 ) {
+    /** Ban nay dung duoc nhu mot danh sach bai: da co chu, khong phai chi co anh. */
+    val daDoc: VoDaSoat? get() = takeUnless { chuaDoc }
+
     companion object {
         /** null la bai khong dung ban soat nao, hay ban ghi thieu ngay. */
         fun doc(m: Map<*, *>?): VoDaSoat? {
@@ -274,9 +287,17 @@ data class VoDaSoat(
                 ngay = ngay,
                 cacBai = ds("cacBai"),
                 dongKhac = ds("dongKhac"),
-                fileId = (m?.get(Duong.F_FILE_ID) as? String)?.trim().orEmpty()
+                fileId = (m?.get(Duong.F_FILE_ID) as? String)?.trim().orEmpty(),
+                chuaDoc = m?.get("chuaDoc") as? Boolean ?: false,
+                nguon = (m?.get("nguon") as? String)?.trim()?.takeIf { it.isNotEmpty() } ?: NGUON_CON,
+                chupLuc = (m?.get("chupLuc") as? Number)?.toLong() ?: 0L,
+                luc = (m?.get(Duong.F_LUC) as? Number)?.toLong() ?: 0L
             )
         }
+
+        const val NGUON_CON = "CON"
+        const val NGUON_CLAUDE = "CLAUDE"
+        const val NGUON_LUC_CHAM = "LUCCHAM"
     }
 }
 

@@ -286,6 +286,10 @@ class BangFragment : Fragment() {
     override fun onDestroyView() {
         khoiViec?.bo()
         khoiViec = null
+        // View moi dung lai thi khoi lenh dang cho con trong, phai ve lai tu dau. Giu
+        // chu ky cu thi [veLenhCho] thay danh sach khong doi va bo qua: doi tab qua lai
+        // luc co lenh dang cho la mat dong do va nut Rut lai.
+        daVeLenhCho = ""
         _b = null
         super.onDestroyView()
     }

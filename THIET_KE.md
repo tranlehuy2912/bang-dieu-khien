@@ -5,7 +5,7 @@ App thứ ba trong nhà:
 | App | Máy | Việc |
 |---|---|---|
 | **Nộp bài** (`nop-bai`) | tablet Lê Hòa | chụp bài, khoá máy, canh giờ chơi |
-| **Cho giờ chơi** (`cho-gio-choi`) | điện thoại bà nội | cho cháu chơi N phút, và giao việc nhà |
+| **Việc nhà của Lê Hòa** (`cho-gio-choi`) | điện thoại bà nội | giao việc nhà. Trước 26/09/2026 app tên Cho giờ chơi, có sáu nút cho giờ |
 | **Bảng điều khiển** (`bang-dieu-khien`) | điện thoại Ba Huy | duyệt bài, xem, chỉnh, giao việc nhà; thay phần lệnh Telegram |
 
 ## Vì sao không đi bằng Telegram
@@ -240,6 +240,11 @@ Hai lớp, và lớp thật nằm ở luật:
 Một lượt mỗi ngày thì đếm ở cả hai đầu: máy bà đếm để tắt nút đi cho bà khỏi bấm
 vào khoảng không, tablet đếm vì đó mới là chỗ thật sự từ chối được — máy bà cài
 lại app là số đếm bên đó về không.
+
+Từ 26/09/2026 app bà không còn sáu nút cho giờ, nên phía máy bà không đếm lượt nữa.
+Luật vẫn để cửa `lenh/` kiểu `CHO` cho máy bà, và tablet vẫn đếm một lượt mỗi ngày,
+phòng khi máy bà còn chạy bản cũ. Muốn đóng hẳn đường đó thì bỏ khối
+`match /lenh/{lenhId}` của máy bà trong `firestore.rules`, rồi dán lại luật.
 
 ## Telegram còn lại gì
 

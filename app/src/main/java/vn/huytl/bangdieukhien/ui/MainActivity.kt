@@ -14,7 +14,8 @@ import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.databinding.ActivityMainBinding
 
 /**
- * Khung cua app: bon the o thanh duoi, moi the mot man.
+ * Khung cua app: ba the o thanh duoi, moi the mot man. The Nhan bo ngay 27/9/2026,
+ * Le Hoa nhan tin voi ba bang Telegram that.
  *
  * Chua ghep doi thi day thang sang [GhepDoiActivity] - khong co ma nha thi moi
  * man hinh deu rong, hien ra chi lam Ba Huy tuong app hong.
@@ -53,7 +54,7 @@ class MainActivity : AppCompatActivity() {
      *
      * Tu Android 15 app ve tran ca man hinh va cac thuoc tinh statusBarColor,
      * navigationBarColor trong theme khong con tac dung. Khong chua cho thi ten
-     * "Le Hoa" o dau man nam duoi dong ho va pin, con thanh bon the o day thi bi
+     * "Le Hoa" o dau man nam duoi dong ho va pin, con thanh the o day thi bi
      * thanh dieu huong de len.
      *
      * Chua o hai cho khac nhau chu khong chua ca man: le duoi dat vao chinh thanh
@@ -78,7 +79,7 @@ class MainActivity : AppCompatActivity() {
      *
      * Kem theo setMaxLifecycle chu khong chi hide(): the bi an ma van o muc STARTED
      * thi onStop khong chay, ma cac the nay go lang nghe Firestore trong onStop. Bo
-     * dong do la ca bon the cung nghe mot luc, va cai gia phai tra nam o hoa don
+     * dong do la moi the cung nghe mot luc, va cai gia phai tra nam o hoa don
      * Firestore chu khong hien ra tren man hinh nao.
      */
     private fun moThe(id: Int) {

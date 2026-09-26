@@ -43,13 +43,6 @@ object Nha {
         sp(context).edit().putString(K_TEN_CON, ten).commit()
     }
 
-    /** Tin nhan cuoi cung da doc, de biet co tin moi hay khong. */
-    fun tinDaDocLuc(context: Context): Long = sp(context).getLong(K_TIN_DA_DOC, 0L)
-
-    fun datTinDaDocLuc(context: Context, luc: Long) {
-        sp(context).edit().putLong(K_TIN_DA_DOC, luc).apply()
-    }
-
     fun xoaHet(context: Context) {
         sp(context).edit().clear().commit()
     }
@@ -60,5 +53,4 @@ object Nha {
     private const val K_NHA = "ma_nha"
     private const val K_TOKEN = "bot_token"
     private const val K_TEN_CON = "ten_con"
-    private const val K_TIN_DA_DOC = "tin_da_doc"
 }

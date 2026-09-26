@@ -13,7 +13,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BangDieuKhien">
 
-        <!-- adjustResize de ban phim khong che mat o go chu o the Nhan. -->
+        <!-- adjustResize de ban phim khong che mat o go chu, vi du o sua danh sach viec
+             nha. Truoc 27/9/2026 con cho o go tin o the Nhan. -->
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"

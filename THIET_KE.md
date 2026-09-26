@@ -281,8 +281,17 @@ mở thẳng khung chat giữa tài khoản đó và tài khoản của Ba Huy, 
 `tg://openmessage?user_id=` với chat id cài lúc đặt bot. Tin không đi qua bot hay
 Firestore nữa.
 
-Telegram mở được lúc nào là theo các danh sách app, như mọi app khác. Ba Huy để nó
-trong "Dùng mọi lúc" thì Lê Hòa nhắn được cả giờ ngủ, giờ học, lúc làm việc nhà.
+Telegram mở được lúc nào là theo các danh sách app, như mọi app khác. Nằm trong "Dùng
+mọi lúc" thì Lê Hòa nhắn được cả giờ ngủ, giờ học, lúc làm việc nhà. Lần đầu chạy bản
+có danh sách này, tablet tự thêm Telegram (nếu đã cài) vào đó; Ba Huy bỏ ra thì tablet
+không thêm lại.
+
+Màn chặn giờ học và việc nhà che kín màn hình, mà lúc đó Android không cho dịch vụ trợ
+năng thấy cửa sổ bên dưới. Nên màn chặn chỉ nhường cho Telegram khi Telegram mở ra lúc
+màn chặn đang tạm ẩn, tức là mở từ nút "Nhắn cho ba Huy" trong app Nộp bài. Đã nhường
+thì giữ qua lúc tắt màn hình, màn khoá, thanh thông báo. Bấm thẳng vào thông báo
+Telegram lúc màn chặn đang che thì màn chặn vẫn che: bấm vào màn chặn để vào Nộp bài rồi
+bấm nút.
 
 Tablet đọc thông báo của Telegram, chỉ mã khung chat và số tin, để nút ở màn chính
 ghi "Ba Huy nhắn 3 tin mới".

@@ -92,6 +92,13 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │                                   dạng với danDo trong bai/ kèm luc. Hết hiệu lực thì
 │                                   tablet xoá. Máy không đọc được (chuaDoc) thì tab Bảng
 │                                   hiện thẻ "Nhờ Claude đọc vở"
+├── hop/sudung                  ◄── chỉ TABLET ghi, và chỉ khi nhận PING: sổ dùng app
+│     doan[]    { goi, tu, den }: các khoảng Lê Hòa cầm máy, epoch ms theo giờ tablet
+│     app[]     { goi, ten }: tên đọc được của từng app có trong doan
+│     giuNgay   tablet giữ mấy ngày (7). Mỗi lần ghi đè cả bản, chỉ còn chừng ấy ngày
+│     dangGhi   dịch vụ canh app có chạy không; tắt thì sổ trống mà không phải vì
+│               Lê Hòa không dùng máy
+│     capNhatLuc
 │
 ├── lenh/{id}                   ◄── ĐIỆN THOẠI ghi, tablet đọc rồi xoá
 │     kieu   DUYET TUCHOI CHO BOT DUNG TIEP KHOA MOMAY DONGMAY XOAPIN CAIDAT NHAN
@@ -99,6 +106,7 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │                        khiển bản mới không gửi nữa: nó bấm Gửi lại như máy bà
 │            CHOGOAPP    tắt quản trị thiết bị để gỡ app
 │            PING        hỏi tablet ngay, tablet đẩy một bản trạng thái đầy đủ
+│                        và sổ dùng app
 │            SUACHAM     sửa bản chấm của máy theo kết quả Claude chấm lại
 │            CHAMBAI     bản chấm đầu tiên do Claude chấm (tablet tắt AI, hay AI hỏng)
 │            TINCO       tin của cô giáo, không bị bỏ vì quá cũ
@@ -180,6 +188,18 @@ Ba chỗ vá, tất cả nằm ở phía tablet:
 Cộng thêm việc bỏ hẳn hai mốc đồng hồ ghi mỗi 20 giây (chống chỉnh giờ giờ tính
 bằng độ lệch giữa hai đồng hồ kể từ lúc bấm Bắt đầu, không cần ghi gì), con số
 mới đúng là vài chục lượt một ngày.
+
+### Sổ dùng app chỉ đi khi có người hỏi
+
+Sổ "dùng app gì, lúc nào" trên tablet đổi vài phút một lần suốt lúc Lê Hòa cầm
+máy. Đẩy theo từng lần đổi thì quay lại đúng cảnh vài trăm lượt ghi một ngày ở
+trên. Nên tablet không nghe sổ này: nó chỉ ghi `hop/sudung` khi nhận `PING`, tức
+là lúc Ba Huy mở app. Khoảng đang mở dở được tính đến lúc ghi, nên số không trễ.
+
+Mỗi lần ghi là ghi đè cả bản, và bản đó chỉ có 7 ngày gần nhất. Ngày thứ tám rơi
+khỏi Firestore ở lần PING kế tiếp, giống như nó rơi khỏi tablet ở lần ghi sổ kế
+tiếp; không cần ai đi xoá. Tablet hỏng hẳn thì bản cuối cùng nằm lại, như mọi
+document khác của nhà.
 
 ### Cấu hình đi một chiều
 

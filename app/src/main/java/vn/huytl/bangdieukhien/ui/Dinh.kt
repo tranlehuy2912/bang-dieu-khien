@@ -31,6 +31,29 @@ object Dinh {
         else -> "${p / 60} tiếng ${p % 60} phút"
     }
 
+    /** Do dai tinh bang ms: "dưới 1 phút", "45 phút", "1 tiếng 15 phút". */
+    fun doDai(ms: Long): String =
+        if (ms < 60_000L) "dưới 1 phút" else phut((ms / 60_000L).toInt())
+
+    /** "hôm nay", "hôm qua", "thứ tư 23/09": ngay [lui] ngay truoc hom nay. */
+    fun tenNgay(lui: Int): String = when (lui) {
+        0 -> "hôm nay"
+        1 -> "hôm qua"
+        else -> {
+            val c = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, -lui) }
+            val thu = when (c.get(Calendar.DAY_OF_WEEK)) {
+                Calendar.MONDAY -> "thứ hai"
+                Calendar.TUESDAY -> "thứ ba"
+                Calendar.WEDNESDAY -> "thứ tư"
+                Calendar.THURSDAY -> "thứ năm"
+                Calendar.FRIDAY -> "thứ sáu"
+                Calendar.SATURDAY -> "thứ bảy"
+                else -> "chủ nhật"
+            }
+            "$thu ${SimpleDateFormat("dd/MM", VN).format(c.time)}"
+        }
+    }
+
     /** Phut tu dau ngay thanh "21:30". */
     fun gio(phutTrongNgay: Int): String =
         "%02d:%02d".format(phutTrongNgay / 60, phutTrongNgay % 60)

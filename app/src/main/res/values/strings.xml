@@ -51,6 +51,14 @@
     <string name="bang_khong_dap_lan_nao">Tablet không trả lời, và chưa lần nào báo về kể từ khi nối máy.</string>
     <string name="bang_hoi_hong">Không hỏi được tablet: %1$s</string>
 
+    <!-- So dung app. Tablet chi gui so nay khi may nay go PING, nen chua co so thi
+         gan nhu luon la tablet con ban app cu. -->
+    <string name="bang_dung_app">Dùng app hôm nay</string>
+    <string name="su_dung_title">Dùng app gì, lúc nào</string>
+    <string name="su_dung_dang_lay">Đang lấy sổ dùng app…</string>
+    <string name="su_dung_chua_gui">Tablet chưa gửi sổ dùng app. Tablet cần bản app Nộp bài mới; cập nhật xong thì mở lại app này.</string>
+    <string name="su_dung_xem">Chạm để xem từng khoảng giờ và các ngày trước</string>
+
     <!-- Bai tap -->
     <string name="bai_trong">Chưa có bài nào được nộp.</string>
     <string name="bai_cho">Đang chờ duyệt</string>

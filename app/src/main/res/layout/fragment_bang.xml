@@ -462,6 +462,66 @@
                 android:text="@string/bang_chua_co_gi" />
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Dung app gi hom nay. The chi tom tat; cham vao la sang trang co tung khoang
+             gio cua bay ngay gan nhat. -->
+        <TextView
+            style="@style/Chu.Tieu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/bang_dung_app" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/theSuDung"
+            style="@style/The"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/suDungTong"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/ink"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:text="@string/su_dung_dang_lay" />
+
+                <TextView
+                    android:id="@+id/suDungApp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:lineSpacingExtra="3dp"
+                    android:textColor="@color/ink_soft"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+
+                <vn.huytl.bangdieukhien.ui.DaiNgay
+                    android:id="@+id/suDungDai"
+                    android:layout_width="match_parent"
+                    android:layout_height="12dp"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/su_dung_xem"
+                    android:textColor="@color/brand"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Cau con hoi app AI hom nay. Tach khoi nhat ky: nhat ky la chuyen cong
              dong mo, con day la chu con go, can doc tung cau. -->
         <TextView

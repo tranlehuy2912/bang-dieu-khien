@@ -34,6 +34,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.SuDungActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.XemAnhActivity"
             android:exported="false"
             android:theme="@style/Theme.BangDieuKhien.Anh" />

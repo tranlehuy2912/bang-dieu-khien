@@ -307,6 +307,18 @@ object Kho {
                 khi((snap?.get(Duong.F_DONG) as? List<*>).orEmpty().filterIsInstance<String>())
             }
 
+    /**
+     * Nghe so dung app tablet day sang. Xem [Duong.D_SU_DUNG].
+     *
+     * null la chua co document: tablet con ban cu chua biet day so nay, hay chua nhan
+     * PING nao tu luc cap nhat.
+     */
+    fun ngheSuDung(context: Context, khi: (SoSuDung?) -> Unit): ListenerRegistration? =
+        hop(context, Duong.D_SU_DUNG)?.addSnapshotListener { snap, loi ->
+            if (loi != null) return@addSnapshotListener
+            khi(SoSuDung.doc(snap))
+        }
+
     // ------------------------------------------------------------------- ghi
 
     /**
@@ -413,13 +425,26 @@ object Kho {
     }
 
     /**
+     * Luc may nay go [Lenh.PING] gan nhat, theo dong ho may nay. 0 la chua go lan nao
+     * tu khi mo app.
+     *
+     * Moi PING la mot lan tablet ghi ca ban trang thai lan so dung app. Man nao cung
+     * muon so moi thi nhin day truoc: tab Bang vua hoi xong thi man khac khoi hoi lai.
+     */
+    @Volatile
+    var pingLuc = 0L
+        private set
+
+    /**
      * Hoi tablet con song khong, va trang thai that bay gio la gi.
      *
      * Khong cho cau tra loi o day: tablet dap bang cach day mot ban trang thai moi,
      * va listener dang mo san se nhan duoc. Xem [Lenh.PING].
      */
-    fun guiPing(context: Context, xong: (KetQua) -> Unit = {}) =
+    fun guiPing(context: Context, xong: (KetQua) -> Unit = {}) {
+        pingLuc = System.currentTimeMillis()
         guiLenh(context, Lenh.PING, xong = xong)
+    }
 
     /** Nhan mot cau cho con. Tablet hien thanh thong bao co tieng. */
     fun guiTin(context: Context, chu: String, xong: (KetQua) -> Unit = {}) {

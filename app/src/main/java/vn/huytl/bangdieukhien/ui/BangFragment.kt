@@ -2,6 +2,7 @@ package vn.huytl.bangdieukhien.ui
 
 import android.content.ClipboardManager
 import android.content.DialogInterface
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -27,6 +28,7 @@ import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.Lenh
 import vn.huytl.bangdieukhien.data.Nguoi
 import vn.huytl.bangdieukhien.data.Nha
+import vn.huytl.bangdieukhien.data.SoSuDung
 import vn.huytl.bangdieukhien.data.TrangThai
 import vn.huytl.bangdieukhien.data.VoDaSoat
 import vn.huytl.bangdieukhien.databinding.FragmentBangBinding
@@ -51,6 +53,11 @@ class BangFragment : Fragment() {
     private var ngheNhatKy: ListenerRegistration? = null
     private var ngheHoiAi: ListenerRegistration? = null
     private var ngheDanDo: ListenerRegistration? = null
+    private var ngheSuDung: ListenerRegistration? = null
+
+    /** So dung app tablet gui sang, null la chua co. Xem [veSuDung]. */
+    private var soSuDung: SoSuDung? = null
+    private var daNhanSuDung = false
 
     /** Vo dan do cua ngay tren tablet, null la khong co ban nao con hieu luc. */
     private var voDanDo: VoDaSoat? = null
@@ -136,6 +143,9 @@ class BangFragment : Fragment() {
         b.theBaiCho.setOnClickListener { (activity as? MainActivity)?.sangTheBai() }
         b.theVoDanDo.setOnClickListener { hoiDocVo() }
         khoiViec = KhoiViecNha(requireContext(), b)
+        b.theSuDung.setOnClickListener {
+            startActivity(Intent(requireContext(), SuDungActivity::class.java))
+        }
     }
 
     override fun onStart() {
@@ -170,6 +180,12 @@ class BangFragment : Fragment() {
             veVoDanDo()
         }
         khoiViec?.batNghe()
+        ngheSuDung = Kho.ngheSuDung(ct) { so ->
+            if (_b == null) return@ngheSuDung
+            soSuDung = so
+            daNhanSuDung = true
+            veSuDung()
+        }
         hoiTablet()
         tay.post(nhip)
     }
@@ -181,6 +197,7 @@ class BangFragment : Fragment() {
         ngheHoiAi?.remove()
         ngheDanDo?.remove()
         khoiViec?.goNghe()
+        ngheSuDung?.remove()
         super.onStop()
     }
 
@@ -282,6 +299,51 @@ class BangFragment : Fragment() {
         traLoiDaHien = tra.traLoiLuc
         if (System.currentTimeMillis() - tra.traLoiLuc > 60_000L) return
         Dinh.noi(requireContext(), tra.traLoi)
+    }
+
+    // ------------------------------------------------------------ dung app
+
+    /**
+     * The "Dung app hom nay": tong thoi gian, ba app lau nhat, va dai gio cua hom nay.
+     *
+     * Tablet chi gui so nay khi nhan PING, tuc la luc tab nay vua mo. Nen ban hien dau
+     * tien la ban cua lan hoi truoc, vai giay sau moi den ban moi.
+     */
+    private fun veSuDung() {
+        val s = soSuDung
+        val dau = SoSuDung.dauNgay(0)
+        val cuoi = SoSuDung.dauNgay(-1)
+        val cac = s?.theoApp(dau, cuoi).orEmpty()
+        b.suDungTong.text = when {
+            s == null ->
+                getString(if (daNhanSuDung) R.string.su_dung_chua_gui else R.string.su_dung_dang_lay)
+            cac.isNotEmpty() ->
+                "${getString(R.string.child_name)} dùng máy ${Dinh.doDai(s.tongMs(dau, cuoi))}"
+            // Ban cuoi tablet gui tu hom qua tro ve truoc: "chua ghi duoc app nao" luc
+            // nay la noi sai, vi so hom nay chua ai gui sang.
+            s.capNhatLuc > 0L && s.capNhatLuc < dau ->
+                "Hôm nay tablet chưa gửi sổ. Lần gửi cuối lúc ${Dinh.lucNgan(s.capNhatLuc)}."
+            !s.dangGhi -> "Dịch vụ canh app trên tablet đang tắt nên máy không ghi được app nào."
+            else -> "Hôm nay chưa ghi được app nào."
+        }
+
+        val coSo = s != null && cac.isNotEmpty()
+        b.suDungApp.visibility = if (coSo) View.VISIBLE else View.GONE
+        b.suDungDai.visibility = if (coSo) View.VISIBLE else View.GONE
+        if (s == null || cac.isEmpty()) return
+
+        b.suDungApp.text = buildString {
+            append(cac.take(3).joinToString(" · ") { "${it.ten} ${Dinh.doDai(it.tongMs)}" })
+            if (cac.size > 3) append(" · ${cac.size - 3} app khác")
+        }
+        val ct = requireContext()
+        b.suDungDai.dat(
+            dauNgay = dau,
+            cac = s.cuaNgay(dau, cuoi).map { it.tu to it.den },
+            mauVach = ContextCompat.getColor(ct, R.color.brand),
+            mauNen = ContextCompat.getColor(ct, R.color.line),
+            mauGio = ContextCompat.getColor(ct, R.color.surface)
+        )
     }
 
     // ------------------------------------------------------------------- ve
@@ -819,8 +881,11 @@ class BangFragment : Fragment() {
          * Doi qua tab Bai tap roi quay lai cung goi onStart, ma moi lan hoi la mot
          * document trong hang lenh cua tablet. Nua phut la du ngan de so lieu khong
          * bao gio cu, du dai de nghich thanh tab khong sinh ra mot tram lenh.
+         *
+         * Man dung app cung giu khoang nay, tinh tu lan hoi cua bat ky man nao, xem
+         * [SuDungActivity].
          */
-        private const val GIAN_HOI_MS = 30_000L
+        internal const val GIAN_HOI_MS = 30_000L
 
         /**
          * Tin cua co dai nhat bao nhieu ky tu.

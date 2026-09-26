@@ -113,8 +113,8 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 ├── hop/danhsachviec            ◄── BẢNG ĐIỀU KHIỂN ghi, máy bà đọc
 │     viec[]    { ten, phut }, tối đa TOI_DA_VIEC (5) việc
 │     luc, ai   lúc lưu, ai lưu
-│               Máy bà được tạo document này một lần khi chưa có, bằng danh sách
-│               đang nằm trong máy bà (bản app trước cho sửa danh sách ở đó)
+│               Chưa có document này thì hai máy dùng chung danh sách mặc định viết
+│               sẵn trong app
 │
 ├── hop/viecnha                 ◄── MÁY BÀ NỘI và BẢNG ĐIỀU KHIỂN ghi, bằng transaction;
 │                                   tablet xoá khi đợt đã khép
@@ -220,18 +220,17 @@ việc Ba Huy vừa báo xong. Nên giờ:
   tablet nhớ mã đợt vừa khép. Thẻ "tablet bỏ qua" và lệnh `CONGVIECNHA` của Bảng điều
   khiển bản trước thôi dùng.
 
-Danh sách việc để chọn nằm ở `hop/danhsachviec`, Ba Huy sửa trên Bảng điều khiển. Máy
-bà cài bản mới thì gửi danh sách đang có trong máy lên một lần, nếu Firestore chưa có
-danh sách nào. Bảng điều khiển không tự ghi danh sách mặc định lên, vì như vậy sẽ chặn
-mất lần gửi đó.
+Danh sách việc để chọn nằm ở `hop/danhsachviec`, Ba Huy sửa trên Bảng điều khiển, máy
+bà chỉ đọc. Chưa lưu lần nào thì hai máy dùng chung một danh sách mặc định viết sẵn
+trong app, nên vẫn hiện giống nhau.
 
 ### Máy bà nội bị chặn ở đâu
 
 Hai lớp, và lớp thật nằm ở luật:
 
 1. `firestore.rules` chỉ cho `uidsPhu` đọc và ghi `hop/viecnha`, đọc
-   `hop/danhsachviec` và tạo nó khi chưa có, đọc `hop/trangthai`. Mọi thứ khác từ
-   chối, kể cả tạo document trong `lenh/`.
+   `hop/danhsachviec`, đọc `hop/trangthai`. Mọi thứ khác từ chối, kể cả tạo document
+   trong `lenh/`.
 2. `ThiHanhLenh` bên tablet bỏ qua mọi lệnh không phải `CHO` khi `ai == banoi`.
    Lớp này chặn nhầm tay là chính — luật thì sửa bằng tay trong console Firebase ở
    một chỗ không ai nhìn thấy, còn dòng kiểm tra kia đi theo bản app.

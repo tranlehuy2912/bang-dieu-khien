@@ -106,14 +106,10 @@ service cloud.firestore {
       }
 
       // Danh sach viec de chon khi giao. Bang dieu khien sua, qua cua chung o duoi
-      // cung; may ba doc.
-      //
-      // Cho may ba TAO mot lan: ban app truoc giu danh sach trong may ba, Ba Huy sua
-      // ngay tren do. Ban moi mo ra ma Firestore chua co danh sach thi gui danh sach
-      // do len cho khoi mat. Chi create, khong update: co danh sach roi thi may ba
-      // khong ghi de duoc, va danh sach Ba Huy luu giu nguyen.
+      // cung; may ba chi doc. Chua co danh sach thi hai may dung chung danh sach mac
+      // dinh viet san trong app.
       match /hop/danhsachviec {
-        allow read, create: if laNguoiPhu(nhaId);
+        allow read: if laNguoiPhu(nhaId);
       }
 
       // Doc trang thai cong.

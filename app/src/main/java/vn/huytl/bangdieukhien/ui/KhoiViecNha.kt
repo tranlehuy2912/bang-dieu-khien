@@ -262,8 +262,8 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
     }
 
     /**
-     * Danh sach de chon. Cat o [Duong.TOI_DA_VIEC] cho giong may ba: may ba ban cu
-     * co the da gui len mot danh sach dai hon, tu luc chua co tran nay.
+     * Danh sach de chon. Cat o [Duong.TOI_DA_VIEC] cho giong may ba, phong khi
+     * document tren Firestore dai hon tran do.
      */
     private fun danhSach(): List<ViecNha.Viec> =
         (danhSachChung ?: ViecNha.MAC_DINH).take(Duong.TOI_DA_VIEC)

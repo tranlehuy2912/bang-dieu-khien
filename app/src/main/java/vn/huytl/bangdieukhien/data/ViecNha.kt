@@ -58,11 +58,11 @@ object ViecNha {
     }
 
     /**
-     * Danh sach khi hop/danhsachviec chua co. Giong het MAC_DINH ben may ba.
+     * Danh sach khi hop/danhsachviec chua co. Giong het MAC_DINH ben may ba, nen luc
+     * chua co danh sach chung thi hai may van hien cung mot danh sach.
      *
-     * May nay khong tu ghi danh sach nay len: may ba cai ban moi se gui danh sach
-     * dang nam trong may ba len, ma ghi truoc thi nhung viec Ba Huy tung sua tren may
-     * ba mat het. Chi ghi khi Ba Huy bam luu o hop sua danh sach.
+     * May nay khong tu ghi danh sach nay len, chi ghi khi Ba Huy bam Luu o hop sua
+     * danh sach: khong co gi phai ghi khi hai may da giong nhau.
      */
     val MAC_DINH = listOf(
         Viec("Quét nhà lau nhà", 10),

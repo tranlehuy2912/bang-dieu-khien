@@ -76,7 +76,7 @@ thêm `uidsPhu` — danh sách quyền hẹp cho máy bà nội, chỉ cho giờ
 Không dán thì máy bà bấm gì cũng bị từ chối.
 
 Ngày 26/09/2026 luật đổi hai chỗ. Thêm cửa `hop/danhsachviec`: máy bà đọc được
-danh sách việc chung, và tạo nó một lần khi chưa có. Bỏ cửa `lenh/` của máy bà: app bà
+danh sách việc chung. Bỏ cửa `lenh/` của máy bà: app bà
 không còn nút cho giờ, và máy bà không tạo được lệnh nào nữa. Chưa dán bản này thì máy
 bà vẫn giao việc được, chỉ là dùng danh sách trong máy bà thay cho danh sách Ba Huy
 sửa trên Bảng điều khiển. Dán cho cả hai dự án, thật và thử.

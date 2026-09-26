@@ -90,8 +90,8 @@ service cloud.firestore {
 
       // ---------------------------------------------------- may ba noi
       //
-      // Ba cua duoi day mo rieng cho uidsPhu. Nguoi nha day du van di qua cua chung
-      // o duoi cung; Firestore cho qua khi CO MOT luat nao do cho phep, nen ba cai
+      // Bon cua duoi day mo rieng cho uidsPhu. Nguoi nha day du van di qua cua chung
+      // o duoi cung; Firestore cho qua khi CO MOT luat nao do cho phep, nen bon cai
       // nay chi noi them chu khong bot cua ai.
 
       // Cho gio, va chi cho gio.
@@ -111,10 +111,22 @@ service cloud.firestore {
           && request.resource.data.phut <= 60;
       }
 
-      // Viec nha: ba ghi de ca ban moi lan bam, va doc lai duoc de may ba cai lai
-      // app van biet dot viec dang do.
+      // Viec nha. May ba va Bang dieu khien cung ghi, moi lan bam la mot transaction
+      // doc ban tren may chu roi moi ghi, nen may ba phai doc duoc. Bang dieu khien
+      // la nguoi nha day du, di qua cua chung o duoi cung.
       match /hop/viecnha {
         allow read, write: if laNguoiPhu(nhaId);
+      }
+
+      // Danh sach viec de chon khi giao. Bang dieu khien sua, qua cua chung o duoi
+      // cung; may ba doc.
+      //
+      // Cho may ba TAO mot lan: ban app truoc giu danh sach trong may ba, Ba Huy sua
+      // ngay tren do. Ban moi mo ra ma Firestore chua co danh sach thi gui danh sach
+      // do len cho khoi mat. Chi create, khong update: co danh sach roi thi may ba
+      // khong ghi de duoc, va danh sach Ba Huy luu giu nguyen.
+      match /hop/danhsachviec {
+        allow read, create: if laNguoiPhu(nhaId);
       }
 
       // Doc trang thai cong.

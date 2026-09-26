@@ -75,6 +75,11 @@ trong console, và dán bản cũ đè lên là mở lại đúng cái vừa ch�
 thêm `uidsPhu` — danh sách quyền hẹp cho máy bà nội, chỉ cho giờ và giao việc nhà.
 Không dán thì máy bà bấm gì cũng bị từ chối.
 
+Ngày 26/09/2026 luật thêm cửa `hop/danhsachviec`: máy bà đọc được danh sách việc
+chung, và tạo nó một lần khi chưa có. Chưa dán bản này thì máy bà vẫn giao việc được,
+chỉ là dùng danh sách trong máy bà thay cho danh sách Ba Huy sửa trên Bảng điều khiển.
+Dán cho cả hai dự án, thật và thử.
+
 ## 6. Một dự án riêng để thử
 
 > **Đã làm xong ngày 16/09/2026.** Dự án thử tên `homework-gate-thu` đã tạo, đã bật

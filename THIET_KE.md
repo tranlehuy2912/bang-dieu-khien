@@ -6,7 +6,7 @@ App thứ ba trong nhà:
 |---|---|---|
 | **Nộp bài** (`nop-bai`) | tablet Lê Hòa | chụp bài, khoá máy, canh giờ chơi |
 | **Cho giờ chơi** (`cho-gio-choi`) | điện thoại bà nội | cho cháu chơi N phút, và giao việc nhà |
-| **Bảng điều khiển** (`bang-dieu-khien`) | điện thoại Ba Huy | duyệt bài, xem, chỉnh — thay phần lệnh Telegram |
+| **Bảng điều khiển** (`bang-dieu-khien`) | điện thoại Ba Huy | duyệt bài, xem, chỉnh, giao việc nhà; thay phần lệnh Telegram |
 
 ## Vì sao không đi bằng Telegram
 
@@ -58,6 +58,9 @@ một đợt việc đã khép. Tên
 trường đầy đủ nằm ở `Duong.kt` (ba bản giống nhau); sơ đồ dưới đây mà lệch với
 file đó thì `Duong.kt` đúng.
 
+Từ ngày 26/09/2026 `hop/viecnha` có hai bên ghi: máy bà nội và Bảng điều khiển. Mỗi
+lần bấm là một transaction, xem mục "Việc nhà là trạng thái, cho giờ là sự kiện".
+
 ```
 nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhepHetHan }
 │                               uids    = người nhà đầy đủ (tablet, điện thoại Ba Huy)
@@ -92,7 +95,8 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │
 ├── lenh/{id}                   ◄── ĐIỆN THOẠI ghi, tablet đọc rồi xoá
 │     kieu   DUYET TUCHOI CHO BOT DUNG TIEP KHOA MOMAY DONGMAY XOAPIN CAIDAT NHAN
-│            CONGVIECNHA — cộng bù một đợt việc nhà tablet đã bỏ lỡ
+│            CONGVIECNHA — cộng bù một đợt việc nhà tablet đã bỏ lỡ. Bảng điều
+│                        khiển bản mới không gửi nữa: nó bấm Gửi lại như máy bà
 │            CHOGOAPP    tắt quản trị thiết bị để gỡ app
 │            PING        hỏi tablet ngay, tablet đẩy một bản trạng thái đầy đủ
 │            SUACHAM     sửa bản chấm của máy theo kết quả Claude chấm lại
@@ -106,10 +110,19 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │            khiển ghi, tablet không đọc
 │     ai     bahuy | banoi — máy bà chỉ tạo được lệnh CHO, luật chặn tận gốc
 │
-├── hop/viecnha                 ◄── MÁY BÀ NỘI ghi, tablet xoá khi đợt đã khép
-│     maPhien   đổi mã nghĩa là bà giao đợt mới, không phải sửa đợt đang chạy
-│     luc       lúc bà bấm, để tablet bỏ lệnh cũ quá nửa tiếng
+├── hop/danhsachviec            ◄── BẢNG ĐIỀU KHIỂN ghi, máy bà đọc
+│     viec[]    { ten, phut }, tối đa TOI_DA_VIEC (5) việc
+│     luc, ai   lúc lưu, ai lưu
+│               Máy bà được tạo document này một lần khi chưa có, bằng danh sách
+│               đang nằm trong máy bà (bản app trước cho sửa danh sách ở đó)
+│
+├── hop/viecnha                 ◄── MÁY BÀ NỘI và BẢNG ĐIỀU KHIỂN ghi, bằng transaction;
+│                                   tablet xoá khi đợt đã khép
+│     maPhien   8 chữ số hex. Đổi mã là giao đợt mới, không phải sửa đợt đang chạy
+│     luc       lúc bấm lần cuối, để tablet bỏ đợt nó chưa thấy mà đã quá nửa tiếng
 │     viec[]    { ten, phut, xong }
+│     ai        người giao đợt này, bahuy | banoi. Thiếu là banoi (máy bà bản cũ).
+│               Chỉ để tablet gọi đúng người, không mở quyền gì
 │               Đợt khép lại (xong hết, hoặc bà bỏ hết) thì tablet xoá document,
 │               nếu maPhien vẫn là đợt đó. Máy bà coi document biến mất là tablet
 │               đã nhận.
@@ -190,13 +203,36 @@ Hai thứ bà bấm đi hai đường khác nhau, và khác vì bản chất kh�
 Đó cũng là lý do không nhét việc nhà vào hàng `lenh/`: cái vòng "làm xong rồi xoá"
 sẽ ăn mất một bản trạng thái đang còn hiệu lực.
 
+Từ 26/09/2026 Ba Huy cũng giao và bấm xong được trên Bảng điều khiển, nên hai điện
+thoại cùng ghi `hop/viecnha`. Bản trước, máy bà giữ đợt việc trong máy rồi ghi đè cả
+bản mỗi lần bấm, và chỉ nhìn Firestore để biết document còn hay mất. Hai máy cùng ghi
+kiểu đó thì máy bà không thấy việc Ba Huy giao, và cái bấm tiếp theo của bà xoá mất
+việc Ba Huy vừa báo xong. Nên giờ:
+
+- cả hai máy vẽ màn hình theo document trên Firestore, không giữ bản riêng;
+- mỗi lần bấm là một transaction: đọc bản trên máy chủ, kiểm `maPhien` còn đúng đợt
+  đang nhìn, sửa đúng việc vừa bấm rồi mới ghi. Hai máy bấm cùng lúc thì Firestore
+  bắt một bên làm lại trên bản mới. Đổi lại, lúc bấm phải có mạng;
+- đang có đợt thì không giao đợt mới được, transaction từ chối. Không thì một máy
+  giao đè lên đợt máy kia vừa giao mà không ai hay;
+- đợt xong hết mà tablet chưa nhận thì hai máy đều có nút Gửi lại, chỉ ghi lại
+  `luc`. Tablet nhận theo đường thường. Gửi lại hai lần cũng không cộng hai lần, vì
+  tablet nhớ mã đợt vừa khép. Thẻ "tablet bỏ qua" và lệnh `CONGVIECNHA` của Bảng điều
+  khiển bản trước thôi dùng.
+
+Danh sách việc để chọn nằm ở `hop/danhsachviec`, Ba Huy sửa trên Bảng điều khiển. Máy
+bà cài bản mới thì gửi danh sách đang có trong máy lên một lần, nếu Firestore chưa có
+danh sách nào. Bảng điều khiển không tự ghi danh sách mặc định lên, vì như vậy sẽ chặn
+mất lần gửi đó.
+
 ### Máy bà nội bị chặn ở đâu
 
 Hai lớp, và lớp thật nằm ở luật:
 
 1. `firestore.rules` chỉ cho `uidsPhu` tạo document trong `lenh/` khi `kieu == CHO`,
-   `ai == banoi` và `phut` trong khoảng 1–60; cho ghi `hop/viecnha`; cho đọc
-   `hop/trangthai`. Mọi thứ khác từ chối.
+   `ai == banoi` và `phut` trong khoảng 1–60; cho đọc và ghi `hop/viecnha`; cho đọc
+   `hop/trangthai`; cho đọc `hop/danhsachviec` và tạo nó khi chưa có. Mọi thứ khác
+   từ chối.
 2. `ThiHanhLenh` bên tablet bỏ qua mọi lệnh không phải `CHO` khi `ai == banoi`.
    Lớp này chặn nhầm tay là chính — luật thì sửa bằng tay trong console Firebase ở
    một chỗ không ai nhìn thấy, còn dòng kiểm tra kia đi theo bản app.

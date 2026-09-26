@@ -212,31 +212,6 @@
                 android:textStyle="bold" />
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Ba bao xong viec ma tablet luc do dang tat, nen no da bo qua. Cho nay la
-             duong cuu duy nhat: ba khong con nut de gui lai, con tablet thi khong tu
-             cong gio cho mot dot qua nua tieng. -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/theViecKet"
-            style="@style/The"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:visibility="gone"
-            app:cardBackgroundColor="@color/alert_soft"
-            app:strokeColor="@color/alert">
-
-            <TextView
-                android:id="@+id/chuViecKet"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:lineSpacingExtra="3dp"
-                android:padding="16dp"
-                android:textColor="@color/alert"
-                android:textSize="14sp" />
-        </com.google.android.material.card.MaterialCardView>
-
         <!-- Vo dan do may tren tablet doc khong duoc, con gui anh sang. Cham vao de nho
              Claude doc, hay dan ket qua Claude doc ve. -->
         <com.google.android.material.card.MaterialCardView
@@ -384,6 +359,83 @@
             android:lineSpacingExtra="2dp"
             android:textSize="14sp"
             android:visibility="gone" />
+
+        <!-- Viec nha. Chung mot document voi may ba noi: ba giao hay bam xong ben do
+             thi the nay doi theo ngay, va nguoc lai.
+
+             Nhan va the nam o day khi chua co dot nao, vi giao viec la viec thinh
+             thoang. Dang co dot viec thi KhoiViecNha day ca hai len ngay duoi the bai
+             cho va the vo dan do: luc do tablet dang khoa, va cai can bam la nut Xong.
+
+             Thay luon cho the "tablet bo qua" truoc day: dot xong het ma tablet chua
+             nhan thi the nay noi ra va co nut Gui lai. -->
+        <TextView
+            android:id="@+id/nhanViecNha"
+            style="@style/Chu.Tieu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/viec_tieu_de" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/theViecNha"
+            style="@style/The"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingTop="14dp"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:id="@+id/chuViecNha"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:lineSpacingExtra="2dp"
+                    android:textColor="@color/ink_soft"
+                    android:textSize="14sp" />
+
+                <LinearLayout
+                    android:id="@+id/hopViecNha"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:orientation="vertical" />
+
+                <!-- Giao, hay Gui lai khi dot xong het ma tablet chua nhan. -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/nutGiaoViec"
+                    style="@style/Nut.Nhanh"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/nutBoHetViec"
+                    style="@style/Nut.Phien"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/viec_bo_het"
+                    android:textColor="@color/alert"
+                    android:visibility="gone"
+                    app:strokeColor="@color/alert" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/nutSuaViec"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:text="@string/viec_sua" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Nhat ky hom nay. -->
         <TextView

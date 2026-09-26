@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 
@@ -273,15 +274,22 @@ object Kho {
             }
 
     /**
-     * Nghe dot viec nha ba noi giao.
+     * Nghe dot viec nha dang giao. null la khong co dot nao.
      *
-     * Document nay chi may ba ghi, va tablet xoa di khi da khep dot lai. Con nam do
-     * nghia la chua ai nhan.
+     * May nay va may ba cung ghi document nay, tablet xoa di khi da khep dot lai. Dot
+     * xong het ma con nam do nghia la tablet chua nhan.
      */
-    fun ngheViecNha(context: Context, khi: (ViecNhaCho?) -> Unit): ListenerRegistration? =
+    fun ngheViecNha(context: Context, khi: (ViecNha.Dot?) -> Unit): ListenerRegistration? =
         hop(context, Duong.D_VIEC_NHA)?.addSnapshotListener { snap, loi ->
             if (loi != null) return@addSnapshotListener
-            khi(ViecNhaCho.doc(snap))
+            khi(ViecNha.docDot(snap?.data))
+        }
+
+    /** Nghe danh sach viec chung. null la chua co danh sach nao tren Firestore. */
+    fun ngheDanhSachViec(context: Context, khi: (List<ViecNha.Viec>?) -> Unit): ListenerRegistration? =
+        hop(context, Duong.D_DANH_SACH_VIEC)?.addSnapshotListener { snap, loi ->
+            if (loi != null) return@addSnapshotListener
+            khi(ViecNha.docDanhSach(snap?.get(Duong.F_VIEC) as? List<*>).takeIf { it.isNotEmpty() })
         }
 
     /** Nhat ky mot ngay, dang "yyyy-MM-dd". */
@@ -430,26 +438,114 @@ object Kho {
         }.addOnFailureListener { xong(KetQua.Hong(loiNguoiDoc(it))) }
     }
 
+    // -------------------------------------------------------------- viec nha
+
     /**
-     * Xoa dot viec nha sau khi may nay da thay tablet cong gio.
+     * Luu danh sach viec chung. May ba nghe document nay nen doi theo ngay.
      *
-     * XOA CO DIEU KIEN, y het ben tablet. hop/viecnha la mot duong dan co dinh: ba
-     * giao dot moi dung luc Ba Huy bam cong gio thi lenh xoa roi trung dot moi, va
-     * may ba thay document bien mat se tuong tablet da nhan - trong khi chua ai nhan
-     * ca, va ba thi khong con nut de gui lai.
+     * Ghi de ca ban: danh sach ngan di thi merge van de lai viec vua xoa.
      */
-    fun xoaViecNha(context: Context, maPhien: String, xong: (KetQua) -> Unit = {}) {
-        val h = hop(context, Duong.D_VIEC_NHA) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
-        h.firestore.runTransaction { tr ->
-            val nay = tr.get(h)
-            if (nay.exists() && nay.getString(Duong.F_MA_PHIEN) == maPhien) tr.delete(h)
-            null
-        }.addOnSuccessListener { xong(KetQua.Xong) }
+    fun datDanhSachViec(context: Context, cac: List<ViecNha.Viec>, xong: (KetQua) -> Unit) {
+        val h = hop(context, Duong.D_DANH_SACH_VIEC) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
+        h.set(
+            mapOf(
+                Duong.F_VIEC to ViecNha.banDanhSach(cac),
+                Duong.F_LUC to System.currentTimeMillis(),
+                Duong.F_AI to Nguoi.BA_HUY
+            )
+        )
+            .addOnSuccessListener { xong(KetQua.Xong) }
             .addOnFailureListener {
-                Log.w(TAG, "xoa viec nha hong", it)
+                Log.w(TAG, "luu danh sach viec hong", it)
                 xong(KetQua.Hong(loiNguoiDoc(it)))
             }
     }
+
+    /** Ba Huy giao mot dot moi tu danh sach da chon. */
+    fun giaoViec(context: Context, cac: List<ViecNha.Viec>, xong: (KetQua) -> Unit) =
+        doiViecNha(context, xong) { cu ->
+            // Man hinh nay dang la danh sach de chon, ma tren may chu da co dot khac:
+            // ba vua giao ben may ba. Ghi de la xoa dot cua ba ma khong ai hay.
+            if (cu != null && cu.cac.isNotEmpty()) throw LoiViec(DA_CO_DOT)
+            ViecNha.dotMoi(cac, Nguoi.BA_HUY, System.currentTimeMillis())
+        }
+
+    /** Bam xong mot viec. Da co nguoi bam xong roi thi thoi, khong ghi va khong bao loi. */
+    fun xongViec(context: Context, maPhien: String, ten: String, xong: (KetQua) -> Unit) =
+        doiViecNha(context, xong) { cu ->
+            val dot = cungDot(cu, maPhien)
+            if (dot.cac.none { it.ten == ten && !it.xong }) null
+            else dot.xong(ten, System.currentTimeMillis())
+        }
+
+    fun boViec(context: Context, maPhien: String, ten: String, xong: (KetQua) -> Unit) =
+        doiViecNha(context, xong) { cu ->
+            val dot = cungDot(cu, maPhien)
+            if (dot.cac.none { it.ten == ten }) null
+            else dot.bo(ten, System.currentTimeMillis())
+        }
+
+    fun boHetViec(context: Context, maPhien: String, xong: (KetQua) -> Unit) =
+        doiViecNha(context, xong) { cu ->
+            val dot = cungDot(cu, maPhien)
+            if (dot.cac.isEmpty()) null else dot.boHet(System.currentTimeMillis())
+        }
+
+    /**
+     * Gui lai mot dot da xong het ma tablet chua nhan: ghi lai moc luc.
+     *
+     * Thay cho lenh CONGVIECNHA ma the "tablet bo qua" o man Bang tung go. Ghi lai moc
+     * luc thi tablet cong theo duong thuong, va gui lai hai lan cung khong cong hai lan:
+     * tablet da khep dot nao thi nho ma dot do, gap lai la xoa. Document da mat hay da
+     * la dot khac thi thoi, khong co gi de gui.
+     */
+    fun guiLaiViec(context: Context, maPhien: String, xong: (KetQua) -> Unit) =
+        doiViecNha(context, xong) { cu ->
+            if (cu == null || cu.maPhien != maPhien) null
+            else cu.guiLai(System.currentTimeMillis())
+        }
+
+    /**
+     * Doi dot viec nha bang mot transaction.
+     *
+     * VI SAO TRANSACTION: may ba cung ghi vao day. Ghi de ca ban ma man hinh nay dang
+     * giu thi cai ba vua bam ben kia mat luon - viec ba vua bao xong quay ve chua xong,
+     * va tablet khoa lai vi no. Transaction doc ban tren may chu, [doi] sua dung viec
+     * vua bam tren ban do roi moi ghi. Hai may bam cung luc thi Firestore bat mot ben
+     * lam lai tren ban moi.
+     *
+     * DOI LAI, LUC BAM PHAI CO MANG: transaction khong xep hang cho co mang nhu lenh.
+     *
+     * [doi] nhan dot dang nam tren may chu, null la khong co dot nao. Tra ve null la
+     * khong can ghi gi; nem [LoiViec] la dung lai va bao cho Ba Huy.
+     */
+    private fun doiViecNha(
+        context: Context,
+        xong: (KetQua) -> Unit,
+        doi: (ViecNha.Dot?) -> ViecNha.Dot?
+    ) {
+        val h = hop(context, Duong.D_VIEC_NHA) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
+        h.firestore.runTransaction { tr ->
+            val moi = doi(ViecNha.docDot(tr.get(h).data))
+            if (moi != null) tr.set(h, ViecNha.banGhi(moi))
+            null
+        }
+            .addOnSuccessListener { xong(KetQua.Xong) }
+            .addOnFailureListener {
+                Log.w(TAG, "doi viec nha hong", it)
+                val loiViec = it as? LoiViec ?: it.cause as? LoiViec
+                xong(KetQua.Hong(loiViec?.message ?: loiGiaoDich(it)))
+            }
+    }
+
+    /** Dot tren may chu phai dung la dot dang hien tren man hinh, khong thi dung lai. */
+    private fun cungDot(cu: ViecNha.Dot?, maPhien: String): ViecNha.Dot {
+        if (cu == null || cu.maPhien != maPhien) throw LoiViec(DOT_DA_DOI)
+        return cu
+    }
+
+    /** Loi do chinh ben nay dung transaction lai, kem cau noi cho Ba Huy. */
+    private class LoiViec(chu: String) : Exception(chu)
 
     // ---------------------------------------------------------------- rieng tu
 
@@ -479,6 +575,24 @@ object Kho {
             else -> "Firestore báo: $chu"
         }
     }
+
+    /**
+     * Cau bao hong cho mot lan bam viec nha.
+     *
+     * Khac [loiNguoiDoc] o cau mat mang: transaction khong tu gui lai khi co mang,
+     * nen noi "lenh se tu gui lai" la noi sai.
+     */
+    private fun loiGiaoDich(loi: Exception): String {
+        val matMang = (loi as? FirebaseFirestoreException)?.code ==
+            FirebaseFirestoreException.Code.UNAVAILABLE ||
+            loi.message.orEmpty().contains("offline", true)
+        return if (matMang) "Mất mạng nên chưa gửi được. Có mạng rồi bấm lại."
+        else loiNguoiDoc(loi)
+    }
+
+    private const val DA_CO_DOT = "Bà vừa giao một đợt việc khác. Xem lại phần Việc nhà."
+
+    private const val DOT_DA_DOI = "Đợt việc vừa đổi trên máy khác. Xem lại rồi bấm lại."
 
     private const val THIEU_FIREBASE =
         "Bản app này chưa nối Firebase (thiếu google-services.json lúc build)."

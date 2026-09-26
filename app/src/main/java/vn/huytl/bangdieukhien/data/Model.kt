@@ -12,50 +12,6 @@ import java.util.Calendar
  * loi chay tot. Doc tay thi thieu truong la ra gia tri mac dinh, nhin thay ngay.
  */
 
-/**
- * Mot dot viec nha ba noi giao, doc tu hop/viecnha.
- *
- * Document nay chi may ba ghi. May nay doc de lam mot viec duy nhat: chia ra thay
- * khi tablet chac chan se tu choi - dot da xong het ma go tu lau hon [Duong.QUA_CU_MS],
- * nghia la luc ba bam xong thi tablet dang tat. Xem the trong BangFragment.
- */
-data class ViecNhaCho(
-    val maPhien: String,
-    /** Luc ba bam lan gan nhat. Ghi lai moi lan ba cham vao, khong phai luc giao. */
-    val luc: Long,
-    val cac: List<Viec>
-) {
-    data class Viec(val ten: String, val phut: Int, val xong: Boolean)
-
-    val xongHet: Boolean get() = cac.isNotEmpty() && cac.all { it.xong }
-    val tongPhut: Int get() = cac.sumOf { it.phut }
-    val ke: String get() = cac.joinToString(", ") { it.ten }
-
-    /** Tablet chac chan da bo qua dot nay, va ba thi khong con biet de bam lai. */
-    val tabletDaBoQua: Boolean
-        get() = xongHet && luc > 0L && System.currentTimeMillis() - luc > Duong.QUA_CU_MS
-
-    companion object {
-        fun doc(d: DocumentSnapshot?): ViecNhaCho? {
-            if (d == null || !d.exists()) return null
-            val ma = d.getString(Duong.F_MA_PHIEN).orEmpty()
-            if (ma.isBlank()) return null
-            val cac = (d.get(Duong.F_VIEC) as? List<*>).orEmpty()
-                .filterIsInstance<Map<*, *>>()
-                .mapNotNull { o ->
-                    val ten = (o[Duong.F_TEN] as? String)?.trim()?.takeIf { it.isNotEmpty() }
-                        ?: return@mapNotNull null
-                    Viec(
-                        ten = ten,
-                        phut = (o[Duong.F_PHUT] as? Number)?.toInt() ?: 0,
-                        xong = o[Duong.F_XONG] == true
-                    )
-                }
-            return ViecNhaCho(ma, d.getLong(Duong.F_LUC) ?: 0L, cac)
-        }
-    }
-}
-
 /** Trang thai tablet, doc tu hop/trangthai. */
 data class TrangThai(
     val cong: String = Cong.KHOA,
@@ -70,7 +26,7 @@ data class TrangThai(
     val conLaiMs: Long = 0L,
     /** Ca phien dai bao nhieu ms, de ve thanh chay. Dung yen suot phien. */
     val tongPhienMs: Long = 0L,
-    /** Viec nha ba noi giao ma Le Hoa chua lam xong. Con viec thi tablet dang khoa. */
+    /** Viec nha Le Hoa chua lam xong, theo tablet. Con viec thi tablet dang khoa. */
     val viecNha: List<String> = emptyList(),
     val phutDaDuyet: Int = 0,
     val phutConLai: Int = 0,

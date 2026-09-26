@@ -108,7 +108,7 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │     tao    epoch ms theo đồng hồ máy gửi. Tablet dùng trường này để xếp lệnh
 │            và bỏ lệnh quá nửa tiếng. taoLuc (server timestamp) chỉ Bảng điều
 │            khiển ghi, tablet không đọc
-│     ai     bahuy | banoi — máy bà chỉ tạo được lệnh CHO, luật chặn tận gốc
+│     ai     bahuy | banoi. Từ 26/09/2026 luật không cho máy bà tạo lệnh nào
 │
 ├── hop/danhsachviec            ◄── BẢNG ĐIỀU KHIỂN ghi, máy bà đọc
 │     viec[]    { ten, phut }, tối đa TOI_DA_VIEC (5) việc
@@ -190,7 +190,7 @@ cảnh hai bên đè nhau.
 
 ### Việc nhà là trạng thái, cho giờ là sự kiện
 
-Hai thứ bà bấm đi hai đường khác nhau, và khác vì bản chất khác:
+Cho giờ và việc nhà đi hai đường khác nhau, và khác vì bản chất khác:
 
 - **cho giờ** là một sự kiện — một document trong `lenh/`, tablet làm xong thì xoá
   đi. Đọc hai lần là cộng giờ hai lần, nên phải xoá.
@@ -229,22 +229,18 @@ mất lần gửi đó.
 
 Hai lớp, và lớp thật nằm ở luật:
 
-1. `firestore.rules` chỉ cho `uidsPhu` tạo document trong `lenh/` khi `kieu == CHO`,
-   `ai == banoi` và `phut` trong khoảng 1–60; cho đọc và ghi `hop/viecnha`; cho đọc
-   `hop/trangthai`; cho đọc `hop/danhsachviec` và tạo nó khi chưa có. Mọi thứ khác
-   từ chối.
+1. `firestore.rules` chỉ cho `uidsPhu` đọc và ghi `hop/viecnha`, đọc
+   `hop/danhsachviec` và tạo nó khi chưa có, đọc `hop/trangthai`. Mọi thứ khác từ
+   chối, kể cả tạo document trong `lenh/`.
 2. `ThiHanhLenh` bên tablet bỏ qua mọi lệnh không phải `CHO` khi `ai == banoi`.
    Lớp này chặn nhầm tay là chính — luật thì sửa bằng tay trong console Firebase ở
    một chỗ không ai nhìn thấy, còn dòng kiểm tra kia đi theo bản app.
 
-Một lượt mỗi ngày thì đếm ở cả hai đầu: máy bà đếm để tắt nút đi cho bà khỏi bấm
-vào khoảng không, tablet đếm vì đó mới là chỗ thật sự từ chối được — máy bà cài
-lại app là số đếm bên đó về không.
-
-Từ 26/09/2026 app bà không còn sáu nút cho giờ, nên phía máy bà không đếm lượt nữa.
-Luật vẫn để cửa `lenh/` kiểu `CHO` cho máy bà, và tablet vẫn đếm một lượt mỗi ngày,
-phòng khi máy bà còn chạy bản cũ. Muốn đóng hẳn đường đó thì bỏ khối
-`match /lenh/{lenhId}` của máy bà trong `firestore.rules`, rồi dán lại luật.
+Trước 26/09/2026 máy bà có sáu nút cho giờ, mỗi ngày một lượt, và luật cho máy bà
+tạo lệnh `CHO` từ 1 đến 60 phút. Ngày đó app bà bỏ sáu nút, luật đóng cửa `lenh/`
+của máy bà. Máy bà còn chạy bản cũ thì bấm nút giờ sẽ bị Firestore từ chối. Phần đếm
+một lượt mỗi ngày bên tablet (`LuotBaNoi`) vẫn còn trong code nhưng không còn lệnh nào
+của máy bà tới được đó.
 
 ## Telegram còn lại gì
 

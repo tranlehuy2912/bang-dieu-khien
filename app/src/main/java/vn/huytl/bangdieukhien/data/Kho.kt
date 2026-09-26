@@ -188,8 +188,8 @@ object Kho {
                         System.currentTimeMillis() < han
                     if (dung) {
                         // May ba noi vao danh sach phu: luat ben Firestore chi cho
-                        // danh sach do go lenh cho gio. Xem uidsPhu trong
-                        // firestore.rules.
+                        // danh sach do giao viec nha, khong go duoc lenh nao. Xem
+                        // uidsPhu trong firestore.rules.
                         val phu = xin.getString(Duong.F_AI) == Nguoi.BA_NOI
                         d.update(
                             if (phu) Duong.F_UIDS_PHU else Duong.F_UIDS,

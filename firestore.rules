@@ -21,8 +21,8 @@ service cloud.firestore {
     //
     // Tach hai danh sach vi hai muc quyen khac han. Ai o trong uids thi go duoc moi
     // lenh, ke ca KHOA may hay tat quan tri thiet bi de go app. Ai o trong uidsPhu
-    // thi chi cho gio va giao viec nha - chan o day chu khong trong vao viec app ben
-    // may ba khong hien nhung nut kia ra.
+    // thi chi giao viec nha - chan o day chu khong trong vao viec app ben may ba
+    // khong hien nhung nut kia ra.
     //
     // Dung data.get(..., []) chu khong phai data.uidsPhu: nhung cai nha lap tu truoc
     // khong co truong do, ma cham thang vao mot truong khong ton tai thi ca bieu thuc
@@ -90,26 +90,13 @@ service cloud.firestore {
 
       // ---------------------------------------------------- may ba noi
       //
-      // Bon cua duoi day mo rieng cho uidsPhu. Nguoi nha day du van di qua cua chung
-      // o duoi cung; Firestore cho qua khi CO MOT luat nao do cho phep, nen bon cai
+      // Ba cua duoi day mo rieng cho uidsPhu. Nguoi nha day du van di qua cua chung
+      // o duoi cung; Firestore cho qua khi CO MOT luat nao do cho phep, nen ba cai
       // nay chi noi them chu khong bot cua ai.
-
-      // Cho gio, va chi cho gio.
       //
-      // Chan ca so phut ngay tai day. Khong phai vi so ba go - ba bam nut co san,
-      // khong go so - ma vi day la cho duy nhat noi duoc cau "may ba khong cap qua
-      // mot tieng" bang thu ma khong ai sua bang cach cai ban app khac.
-      //
-      // Chi allow create: lenh dat xuong roi la cua tablet, khong ai sua hay xoa
-      // duoc nua. Tablet xoa sau khi lam xong, va no la nguoi nha day du.
-      match /lenh/{lenhId} {
-        allow create: if laNguoiPhu(nhaId)
-          && request.resource.data.kieu == 'CHO'
-          && request.resource.data.ai == 'banoi'
-          && request.resource.data.phut is int
-          && request.resource.data.phut > 0
-          && request.resource.data.phut <= 60;
-      }
+      // KHONG CON CUA lenh/ CHO MAY BA. Truoc 26/9/2026 may ba tao duoc lenh CHO, 1
+      // den 60 phut, cho sau nut cho gio. App ba bo sau nut do, va cua nay dong theo:
+      // may ba khong tao duoc lenh nao nua, ke ca ban app cu con cai tren may.
 
       // Viec nha. May ba va Bang dieu khien cung ghi, moi lan bam la mot transaction
       // doc ban tren may chu roi moi ghi, nen may ba phai doc duoc. Bang dieu khien
@@ -131,8 +118,8 @@ service cloud.firestore {
 
       // Doc trang thai cong.
       //
-      // Chi doc, khong ghi. Nho cho nay ma may ba thay duoc chau da lam xong viec
-      // chua va con may phut - duong hop thu Telegram cu khong bao gio lam duoc.
+      // Chi doc, khong ghi. Ban app ba truoc 26/9/2026 doc cho nay de biet tablet noi
+      // gi sau lenh cho gio. Ban moi khong con doc.
       match /hop/trangthai {
         allow read: if laNguoiPhu(nhaId);
       }

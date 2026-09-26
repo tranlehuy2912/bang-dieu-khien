@@ -275,17 +275,6 @@ object Kho {
                 khi(if (snap != null && snap.exists()) Bai.doc(snap) else null)
             }
 
-    fun ngheChat(context: Context, soLuong: Long, khi: (List<TinChat>) -> Unit): ListenerRegistration? =
-        nha(context)?.collection(Duong.CHAT)
-            ?.orderBy(Duong.F_LUC, Query.Direction.DESCENDING)
-            ?.limit(soLuong)
-            ?.addSnapshotListener { snap, loi ->
-                if (loi != null) return@addSnapshotListener
-                // Doc ve moi nhat truoc de gioi han lay dung phan cuoi, roi lat lai
-                // cho dung thu tu doc tren man hinh.
-                khi(snap?.documents.orEmpty().map { TinChat.doc(it) }.reversed())
-            }
-
     /**
      * Nghe dot viec nha dang giao. null la khong co dot nao.
      *
@@ -511,23 +500,6 @@ object Kho {
     fun guiPing(context: Context, xong: (KetQua) -> Unit = {}) {
         pingLuc = System.currentTimeMillis()
         guiLenh(context, Lenh.PING, xong = xong)
-    }
-
-    /** Nhan mot cau cho con. Tablet hien thanh thong bao co tieng. */
-    fun guiTin(context: Context, chu: String, xong: (KetQua) -> Unit = {}) {
-        val n = nha(context) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
-        n.collection(Duong.CHAT).add(
-            mapOf(
-                Duong.F_TU to TinChat.BA,
-                Duong.F_CHU to chu,
-                Duong.F_LUC to System.currentTimeMillis(),
-                Duong.F_DA_DOC to false
-            )
-        ).addOnSuccessListener {
-            // Gui lenh NHAN de tablet keu len ngay, khong doi lan doc tiep theo.
-            guiLenh(context, Lenh.NHAN, chu = chu)
-            xong(KetQua.Xong)
-        }.addOnFailureListener { xong(KetQua.Hong(loiNguoiDoc(it))) }
     }
 
     // -------------------------------------------------------------- viec nha

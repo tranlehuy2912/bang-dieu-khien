@@ -52,9 +52,8 @@ nền nào.
 
 Một quy tắc giữ cho mọi thứ không rối: **mỗi document chỉ một bên được ghi.**
 
-Ngoại lệ có chủ ý: `chat/` hai bên cùng ghi, hai trường `chamClaude` và
-`anKhoiDanhSach` trong `bai/` do Bảng điều khiển ghi, và tablet xoá `hop/viecnha` khi
-một đợt việc đã khép. Tên
+Ngoại lệ có chủ ý: hai trường `chamClaude` và `anKhoiDanhSach` trong `bai/` do Bảng
+điều khiển ghi, và tablet xoá `hop/viecnha` khi một đợt việc đã khép. Tên
 trường đầy đủ nằm ở `Duong.kt` (ba bản giống nhau); sơ đồ dưới đây mà lệch với
 file đó thì `Duong.kt` đúng.
 
@@ -110,7 +109,9 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │                                   tablet chưa lấy, tab Bảng hiện ra kèm nút Rút lại
 │                                   (xoá document trước khi tablet lấy). Quá 30 phút thì
 │                                   ghi là tablet sẽ bỏ qua
-│     kieu   DUYET TUCHOI CHO BOT DUNG TIEP KHOA MOMAY DONGMAY XOAPIN CAIDAT NHAN
+│     kieu   DUYET TUCHOI CHO BOT DUNG TIEP KHOA MOMAY DONGMAY XOAPIN CAIDAT
+│            NHAN        bỏ từ 27/09/2026 cùng khung chat trong app; tablet mới trả
+│                        lời "Không hiểu lệnh NHAN"
 │            CONGVIECNHA — cộng bù một đợt việc nhà tablet đã bỏ lỡ. Bảng điều
 │                        khiển bản mới không gửi nữa: nó bấm Gửi lại như máy bà
 │            CHOGOAPP    tắt quản trị thiết bị để gỡ app
@@ -169,11 +170,12 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │                               sổ cái, để cài lại app thì kéo về được (keoSoVe)
 │
 ├── nhatky/{yyyy-MM-dd}         ◄── chỉ TABLET ghi, gộp cả ngày vào một document
-├── hoiai/{yyyy-MM-dd}          ◄── chỉ TABLET ghi
-└── chat/{id}                   hai bên cùng ghi, mỗi tin một document. Từ 27/09/2026
-                                chỉ còn cho màn chat cũ dự phòng, xem "Lê Hòa nhắn tin
-                                bằng Telegram thật"
+└── hoiai/{yyyy-MM-dd}          ◄── chỉ TABLET ghi
 ```
+
+Trước 27/09/2026 còn `chat/{id}`, hai bên cùng ghi, mỗi tin một document. Khung chat
+trong app đã bỏ, không ai ghi hay đọc nữa; các document cũ vẫn nằm đó, xem "Lê Hòa nhắn
+tin bằng Telegram thật".
 
 ### Đồng hồ đếm ngược không tốn lượt ghi
 
@@ -277,14 +279,18 @@ của máy bà tới được đó.
 Từ 27/09/2026 Lê Hòa có tài khoản Telegram riêng trên tablet. Nút "Nhắn cho ba Huy"
 mở thẳng khung chat giữa tài khoản đó và tài khoản của Ba Huy, bằng link
 `tg://openmessage?user_id=` với chat id cài lúc đặt bot. Tin không đi qua bot hay
-Firestore nữa, nên không hiện ở tab Chat của app này.
+Firestore nữa.
 
 Telegram mở được lúc nào là theo các danh sách app, như mọi app khác. Ba Huy để nó
 trong "Dùng mọi lúc" thì Lê Hòa nhắn được cả giờ ngủ, giờ học, lúc làm việc nhà.
 
 Tablet đọc thông báo của Telegram, chỉ mã khung chat và số tin, để nút ở màn chính
-ghi "Ba Huy nhắn 3 tin mới". Màn chat cũ trong app và tab Chat ở đây còn giữ ít lâu
-làm đường dự phòng: bấm giữ nút là vào màn cũ.
+ghi "Ba Huy nhắn 3 tin mới".
+
+Cùng ngày, Ba Huy bảo bỏ hẳn đường nhắn cũ: khung chat trong app Nộp bài, tab Nhắn ở
+app này, lệnh `NHAN`, và chuyện bot chuyển chữ thường cho Lê Hòa. Ba gõ chữ thường
+hay gửi ảnh cho bot thì bot trả lời là tin không tới Lê Hòa, nhắn thẳng trên Telegram.
+Tin cũ vẫn nằm trong `chat/` và trong bộ nhớ riêng của app trên tablet, không ai xoá.
 
 ## Telegram còn lại gì
 

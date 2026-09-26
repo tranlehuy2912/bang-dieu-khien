@@ -419,30 +419,6 @@ data class Bai(
     }
 }
 
-/** Mot tin nhan giua hai cha con. */
-data class TinChat(
-    val id: String,
-    val tu: String,
-    val chu: String,
-    val luc: Long,
-    val daDoc: Boolean
-) {
-    val cuaCon: Boolean get() = tu == CON
-
-    companion object {
-        const val BA = "BA"
-        const val CON = "CON"
-
-        fun doc(d: DocumentSnapshot) = TinChat(
-            id = d.id,
-            tu = d.getString(Duong.F_TU) ?: CON,
-            chu = d.getString(Duong.F_CHU).orEmpty(),
-            luc = d.getLong(Duong.F_LUC) ?: 0L,
-            daDoc = d.getBoolean(Duong.F_DA_DOC) ?: false
-        )
-    }
-}
-
 /** Cau hinh dang chay tren tablet, doc tu hop/caidat. Dien thoai khong ghi vao day. */
 data class CaiDat(
     val phutMacDinh: Int = 60,

@@ -103,7 +103,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun taoThe(id: Int): Fragment = when (id) {
         R.id.tab_bai -> BaiFragment()
-        R.id.tab_chat -> ChatFragment()
         R.id.tab_caidat -> CaiDatFragment()
         else -> BangFragment()
     }

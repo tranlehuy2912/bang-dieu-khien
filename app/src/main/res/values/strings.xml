@@ -9,7 +9,6 @@
     <!-- Thanh duoi -->
     <string name="tab_bang">Bảng</string>
     <string name="tab_bai">Bài tập</string>
-    <string name="tab_chat">Nhắn</string>
     <string name="tab_caidat">Cài đặt</string>
 
     <!-- Ghep doi -->
@@ -73,11 +72,6 @@
     <string name="bai_xoa_khoi_danh_sach">Xoá khỏi danh sách</string>
     <string name="bai_da_xoa_het">Không còn bài nào trong danh sách.</string>
     <string name="bai_hoan_tac">Hoàn tác</string>
-
-    <!-- Nhan tin -->
-    <string name="chat_go">Nhắn cho Lê Hòa…</string>
-    <string name="chat_gui">Gửi</string>
-    <string name="chat_trong">Chưa có tin nhắn nào.</string>
 
     <!-- Chung -->
     <string name="huy">Huỷ</string>

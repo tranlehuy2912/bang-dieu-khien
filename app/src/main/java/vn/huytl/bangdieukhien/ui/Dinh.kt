@@ -95,7 +95,6 @@ object Dinh {
         Lenh.CHO_GO_APP -> "cho gỡ app"
         Lenh.XOA_PIN -> "xoá mã PIN"
         Lenh.CAI_DAT -> "đổi cài đặt"
-        Lenh.NHAN -> "gửi lời nhắn"
         Lenh.CONG_VIEC_NHA -> "cộng giờ việc nhà"
         Lenh.SUA_CHAM -> "sửa bản chấm theo Claude"
         Lenh.CHAM_BAI -> "chấm bài theo Claude"

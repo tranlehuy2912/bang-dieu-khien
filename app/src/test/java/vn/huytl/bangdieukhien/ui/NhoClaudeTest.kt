@@ -211,6 +211,21 @@ class NhoClaudeTest {
     }
 
     @Test
+    fun goi_y_khong_mo_dau_bang_chu_con() {
+        // Goi y hien thang tren man cua con: Ba Huy muon "Sửa ...", khong phai "Con sửa ...".
+        val chamLai = Bai(
+            id = "b9", luc = 0L, trangThai = Bai.DUYET, soPhut = 0, anh = emptyList(),
+            cham = KetQuaCham(cac = listOf(CauCham(ma = "2.28", de = "Đề", ketQua = "A"))),
+            messageId = 0L
+        )
+        listOf(chamLai, baiChuaCham(khai)).forEach { bai ->
+            val chu = NhoClaude.loiNho(bai, "Lê Hòa")
+            assertFalse(chu.contains("gọi con là \"con\""))
+            assertTrue(chu.contains("không mở đầu bằng \"Con\""))
+        }
+    }
+
+    @Test
     fun doc_them_so_dong_mau_muc_de_va_dang() {
         val ket = NhoClaude.docKetQua(
             """{"bai":"b77","ket_qua":[""" +

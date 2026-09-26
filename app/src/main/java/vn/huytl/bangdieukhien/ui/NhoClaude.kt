@@ -210,8 +210,8 @@ object NhoClaude {
         appendLine("Trả lời bằng tiếng Việt, gồm:")
         appendLine("1. Một bảng: mã câu, con viết, đáp án đúng, con đúng hay sai.")
         appendLine(
-            "2. Với mỗi câu con làm sai: một câu gợi ý để con tự sửa, gọi con là \"con\", " +
-                "không đưa đáp án."
+            "2. Với mỗi câu con làm sai: một câu gợi ý để con tự sửa, không đưa đáp án. " +
+                CACH_VIET_GOI_Y
         )
         appendLine("3. Số câu con làm đúng.")
         if (soat != null) {
@@ -303,8 +303,8 @@ object NhoClaude {
                 "chấm đúng nhưng nhận xét chỉ sai chỗ."
         )
         appendLine(
-            "3. Với mỗi câu con làm sai: một câu gợi ý để con tự sửa, gọi con là \"con\", " +
-                "không đưa đáp án."
+            "3. Với mỗi câu con làm sai: một câu gợi ý để con tự sửa, không đưa đáp án. " +
+                CACH_VIET_GOI_Y
         )
         appendLine("4. Số câu con làm đúng thật.")
         appendLine(
@@ -421,6 +421,17 @@ object NhoClaude {
     private const val DANG_BAI = "\"dang\" là một trong: TRAC_NGHIEM (chỉ khoanh, ghi Đúng/Sai, " +
         "nối cột, điền một từ), CAU_NHO (câu nhỏ có trình bày lời giải), BAI_RIENG (bài " +
         "đứng riêng), VIET_DAI (đoạn văn, bài văn), KHONG_TINH (học thuộc, luyện chữ, chép bài)."
+
+    /**
+     * Cach viet goi y cho cau sai, dung chung cho hai kieu nho.
+     *
+     * Goi y hien thang tren man cua con. Truoc ngay 26/9/2026 loi nho dan Claude goi con
+     * la "con", nen man do hien "Con sửa ...". Ba Huy muon no chi ghi "Sửa ...", cho nao
+     * can goi thi goi ten, y nhu cac cau khac tren tablet.
+     */
+    private const val CACH_VIET_GOI_Y = "Câu gợi ý hiện thẳng trên tablet cho con đọc: " +
+        "mở đầu bằng việc cần làm, ví dụ \"Sửa dấu ở dòng 2.\", không mở đầu bằng \"Con\". " +
+        "Cần nhắc tới con thì gọi bằng tên."
 
     /** Dong mo dau cua loi nho cham lai, de nhan ra bo nho tam dang giu loi nho chu khong phai tra loi. */
     private const val DAU_LOI_NHO = "Nhờ bạn chấm lại bài tập về nhà"

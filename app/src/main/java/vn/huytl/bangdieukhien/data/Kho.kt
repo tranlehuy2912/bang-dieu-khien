@@ -342,6 +342,29 @@ object Kho {
     }
 
     /**
+     * Xoa cac bai khoi danh sach o tab Bai, hay dua lai vao.
+     *
+     * Khong xoa document, chi dat co [Bai.F_AN]. Trang Bai da cham tren tablet doc chung
+     * document nay: xoa that thi con mat ban cham cua lan nop do, trong khi Ba Huy chi
+     * muon danh sach ben nay gon lai. Giu document thi van con duong hien lai.
+     *
+     * Ghi mot lo cho ca danh sach: bam "Xoa het" la mot lan ghi, va danh sach ben kia
+     * doi mot lan chu khong nhay tung dong.
+     */
+    fun anBai(context: Context, ids: List<String>, an: Boolean, xong: (KetQua) -> Unit = {}) {
+        val n = nha(context) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
+        if (ids.isEmpty()) return xong(KetQua.Xong)
+        val lo = n.firestore.batch()
+        ids.forEach { lo.update(n.collection(Duong.BAI).document(it), Bai.F_AN, an) }
+        lo.commit()
+            .addOnSuccessListener { xong(KetQua.Xong) }
+            .addOnFailureListener {
+                Log.w(TAG, "an bai hong", it)
+                xong(KetQua.Hong(loiNguoiDoc(it)))
+            }
+    }
+
+    /**
      * Dat mot lenh vao hang doi cua tablet.
      *
      * Tablet nghe hang nay, lam xong thi xoa document di. Khong sua trang thai o

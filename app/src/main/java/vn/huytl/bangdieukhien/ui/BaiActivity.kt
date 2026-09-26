@@ -84,10 +84,28 @@ class BaiActivity : AppCompatActivity() {
         b.thanhTren.title = Dinh.lucNgan(bai.luc)
         b.than.removeAllViews()
 
+        veViSaoHetCho(bai)
         veBanCham(bai)
         veNutClaude(bai)
         veAnh(bai)
         veNut(bai)
+    }
+
+    /**
+     * Mot dong noi vi sao bai khong con nut duyet, o hai canh Ba Huy khong tu bam gi.
+     *
+     * Thieu dong nay thi bai qua ngay trong nhu hong: hom qua con hai nut, hom nay mat
+     * ca hai ma khong ai noi gi.
+     */
+    private fun veViSaoHetCho(bai: Bai) {
+        val noi = when {
+            bai.quaNgay() -> "Bài nộp hôm trước. Sang ngày mới tablet tự bỏ bài chưa duyệt " +
+                "khỏi hàng chờ, nên bài này không duyệt được nữa. Muốn cho giờ thì bấm " +
+                "Cho chơi ngay ở tab Bảng."
+            bai.trangThai == Bai.HUY -> "${Nha.tenCon(this)} đã huỷ lần nộp này để chụp lại."
+            else -> return
+        }
+        b.than.addView(theChu(noi))
     }
 
     // ----------------------------------------------------------- nho Claude
@@ -304,8 +322,8 @@ class BaiActivity : AppCompatActivity() {
             append("\n\n")
             append(
                 if (bai.dangCho) "Tablet tính phút theo luật rồi báo trên Telegram."
-                else "Bài này đã xử lý rồi nên tablet không cộng giờ nữa. Kết quả chỉ được " +
-                    "ghi lại để ${getString(R.string.child_name)} xem câu nào sai."
+                else "Bài này không còn chờ duyệt nên tablet không cộng giờ nữa. Kết quả chỉ " +
+                    "được ghi lại để ${getString(R.string.child_name)} xem câu nào sai."
             )
         }
         MaterialAlertDialogBuilder(this)
@@ -665,11 +683,19 @@ class BaiActivity : AppCompatActivity() {
     private fun veNut(bai: Bai) {
         if (!bai.dangCho) {
             // Bai da xu ly roi thi giau ca hai nut di. De lai mot nut "Duyệt" mo
-            // duoc cho bai da duyet la co ngay bam hai lan thanh hai phien.
-            b.khungNut.visibility = View.GONE
+            // duoc cho bai da duyet la co ngay bam hai lan thanh hai phien. Cho do
+            // chi con nut Xoa, de danh sach o tab Bai gon lai.
+            b.nutDuyet.visibility = View.GONE
+            b.nutTuChoi.visibility = View.GONE
+            b.nutXoa.visibility = View.VISIBLE
+            b.nutXoa.setOnClickListener { xoa(bai) }
+            b.khungNut.visibility = if (bai.an) View.GONE else View.VISIBLE
             return
         }
         b.khungNut.visibility = View.VISIBLE
+        b.nutDuyet.visibility = View.VISIBLE
+        b.nutTuChoi.visibility = View.VISIBLE
+        b.nutXoa.visibility = View.GONE
 
         val phut = bai.cham?.phutDeNghi?.takeIf { it > 0 } ?: 30
         b.nutDuyet.text = "${getString(R.string.bai_duyet)} ${Dinh.phut(phut)}"
@@ -681,6 +707,16 @@ class BaiActivity : AppCompatActivity() {
             true
         }
         b.nutTuChoi.setOnClickListener { hoiTuChoi(bai) }
+    }
+
+    /** An bai khoi danh sach o tab Bai roi dong man nay. Xem [Kho.anBai]. */
+    private fun xoa(bai: Bai) {
+        val ct = applicationContext
+        Kho.anBai(ct, listOf(bai.id), true) { kq ->
+            if (kq is Kho.KetQua.Hong) Dinh.noi(ct, kq.viSao)
+        }
+        Dinh.noi(ct, "Đã xoá khỏi danh sách. Nút Hiện lại nằm ở cuối danh sách bài.")
+        finish()
     }
 
     private fun duyet(bai: Bai, phut: Int) {

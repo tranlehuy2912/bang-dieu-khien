@@ -58,7 +58,13 @@
     <string name="bai_tu_choi">Không duyệt</string>
     <string name="bai_duyet">Duyệt</string>
     <string name="bai_tu_choi_nut">Không duyệt</string>
+    <string name="bai_qua_ngay">Quá ngày</string>
+    <string name="bai_huy">%1$s đã huỷ</string>
     <string name="bai_ai_chua_cham">AI chưa chấm bài này.</string>
+    <string name="bai_xoa">Xoá</string>
+    <string name="bai_xoa_khoi_danh_sach">Xoá khỏi danh sách</string>
+    <string name="bai_da_xoa_het">Không còn bài nào trong danh sách.</string>
+    <string name="bai_hoan_tac">Hoàn tác</string>
 
     <!-- Nhan tin -->
     <string name="chat_go">Nhắn cho Lê Hòa…</string>

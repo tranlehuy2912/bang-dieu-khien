@@ -52,8 +52,9 @@ nền nào.
 
 Một quy tắc giữ cho mọi thứ không rối: **mỗi document chỉ một bên được ghi.**
 
-Ngoại lệ có chủ ý: `chat/` hai bên cùng ghi, trường `chamClaude` trong `bai/` do
-Bảng điều khiển ghi, và tablet xoá `hop/viecnha` khi một đợt việc đã khép. Tên
+Ngoại lệ có chủ ý: `chat/` hai bên cùng ghi, hai trường `chamClaude` và
+`anKhoiDanhSach` trong `bai/` do Bảng điều khiển ghi, và tablet xoá `hop/viecnha` khi
+một đợt việc đã khép. Tên
 trường đầy đủ nằm ở `Duong.kt` (ba bản giống nhau); sơ đồ dưới đây mà lệch với
 file đó thì `Duong.kt` đúng.
 
@@ -113,8 +114,12 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │               nếu maPhien vẫn là đợt đó. Máy bà coi document biến mất là tablet
 │               đã nhận.
 │
-├── bai/{baiId}                 ◄── TABLET ghi, riêng chamClaude do Bảng điều khiển ghi
-│     luc, trangThai CHO|DUYET|TUCHOI, soPhut, messageId
+├── bai/{baiId}                 ◄── TABLET ghi, riêng chamClaude và anKhoiDanhSach do
+│                                   Bảng điều khiển ghi
+│     luc, trangThai CHO|DUYET|TUCHOI|HUY, soPhut, messageId
+│             HUY là con tự huỷ để chụp lại. Sang ngày mới tablet bỏ bài chưa duyệt
+│             khỏi hàng chờ mà không đổi trangThai, nên bài nộp hôm trước còn ghi CHO
+│             là bài đã hết chờ; Bảng điều khiển hiện nó là "Quá ngày"
 │     anh[]   { fileId, khau: DAN_DO|DE_BAI|BAI_GIAI }
 │             (Bảng điều khiển đọc được cả DANDO|DEBAI|BAIGIAI)
 │     cham    kết quả AI chấm, nếu có
@@ -127,6 +132,8 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │             lại lần đọc đầu tiên
 │     chamClaude  kết quả Claude chấm lại mà Ba Huy dán vào: { luc, cac[] }.
 │             Nằm cạnh cham, không ghi đè lên nó
+│     anKhoiDanhSach  true khi Ba Huy bấm Xoá ở tab Bài. Chỉ ẩn khỏi danh sách
+│             bên điện thoại; document vẫn còn vì trang Bài đã chấm trên tablet đọc nó
 │
 ├── socai/{cauId}_{luc}         ◄── chỉ TABLET ghi, mỗi lần chấm một câu là một document
 │                               sổ cái, để cài lại app thì kéo về được (keoSoVe)

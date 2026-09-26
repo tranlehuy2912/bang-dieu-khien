@@ -1,6 +1,7 @@
 package vn.huytl.bangdieukhien.data
 
 import com.google.firebase.firestore.DocumentSnapshot
+import java.util.Calendar
 
 /**
  * Cac the du lieu doc ve tu Firestore.
@@ -323,14 +324,52 @@ data class Bai(
     /** Vo dan do con soat ma lan nop nay dung thay cho trang vo. Xem [VoDaSoat]. */
     val voDaSoat: VoDaSoat? = null,
     val claude: KetQuaClaude? = null,
-    val khai: KhaiBai? = null
+    val khai: KhaiBai? = null,
+    /** Ba Huy da bam Xoa o tab Bai. Xem [F_AN]. */
+    val an: Boolean = false
 ) {
-    val dangCho: Boolean get() = trangThai == CHO
+    /** Con nam trong hang cho cua tablet, tuc la bam Duyet hay Khong duyet con co tac dung. */
+    val dangCho: Boolean get() = trangThai == CHO && !quaNgay()
+
+    /** Da xong viec, khong con gi de bam. Chi bai xong moi co nut Xoa. */
+    val xong: Boolean get() = !dangCho
+
+    /**
+     * Van ghi CHO nhung nop tu hom truoc.
+     *
+     * Sang ngay moi tablet bo moi bai chua duyet khoi hang cho, de con khong choi bang
+     * bai tap hom qua (GateStore.donDepBaiCho ben nop-bai, chia ngay theo lich y nhu
+     * [cungNgay]). Tablet khong bao viec do len Firestore, nen document van ghi CHO. Truoc
+     * day bai 20:29 ngay 24/9/2026 hien hai nut duyet ca may ngay sau: bam Khong duyet thi
+     * tablet dap "Khong co bai nao dang cho" va bai van nam nguyen do.
+     *
+     * luc bang 0 la document thieu gio nop, khong biet la ngay nao nen coi nhu con cho.
+     */
+    fun quaNgay(bayGio: Long = System.currentTimeMillis()): Boolean =
+        trangThai == CHO && luc > 0L && !cungNgay(luc, bayGio)
 
     companion object {
         const val CHO = "CHO"
         const val DUYET = "DUYET"
         const val TU_CHOI = "TUCHOI"
+
+        /** Con tu huy de chup lai. Tablet ghi tu luc HomeActivity.huyYeuCau bao sang day. */
+        const val HUY = "HUY"
+
+        /**
+         * Co an bai khoi danh sach, Ba Huy bam Xoa thi dat. Xem [Kho.anBai].
+         *
+         * Khong nam trong [Duong] vi chi app nay doc va ghi, tablet khong dung toi.
+         */
+        const val F_AN = "anKhoiDanhSach"
+
+        /** Hai moc co cung mot ngay theo lich cua may nay khong. */
+        fun cungNgay(a: Long, b: Long): Boolean {
+            val ca = Calendar.getInstance().apply { timeInMillis = a }
+            val cb = Calendar.getInstance().apply { timeInMillis = b }
+            return ca.get(Calendar.YEAR) == cb.get(Calendar.YEAR) &&
+                ca.get(Calendar.DAY_OF_YEAR) == cb.get(Calendar.DAY_OF_YEAR)
+        }
 
         fun doc(d: DocumentSnapshot): Bai {
             val anh = (d.get(Duong.F_ANH) as? List<*>).orEmpty().mapNotNull { m ->
@@ -348,7 +387,8 @@ data class Bai(
                 messageId = d.getLong(Duong.F_MESSAGE_ID) ?: 0L,
                 voDaSoat = VoDaSoat.doc(d.get(Duong.F_DAN_DO) as? Map<*, *>),
                 claude = docClaude(d.get(Duong.F_CHAM_CLAUDE) as? Map<*, *>),
-                khai = docKhai(d.get(Duong.F_KHAI) as? Map<*, *>)
+                khai = docKhai(d.get(Duong.F_KHAI) as? Map<*, *>),
+                an = d.getBoolean(F_AN) ?: false
             )
         }
 

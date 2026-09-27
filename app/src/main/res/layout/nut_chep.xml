@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Nut chep ca ban cham, o goc phai dong ten mon cua the. Xem BaiActivity.dauThe.
+
+  Icon chu khong ghi chu (Ba Huy chon 27/9/2026). Nhan giu hien chu "Chép bản chấm".
+-->
+<com.google.android.material.button.MaterialButton xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.Material3.Button.IconButton"
+    android:layout_width="48dp"
+    android:layout_height="48dp"
+    android:contentDescription="Chép bản chấm"
+    android:tooltipText="Chép bản chấm"
+    app:icon="@drawable/ic_chep"
+    app:iconSize="22dp"
+    app:iconTint="@color/ink_soft" />

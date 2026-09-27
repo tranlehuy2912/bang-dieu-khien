@@ -1,9 +1,6 @@
 package vn.huytl.bangdieukhien.ui
 
 import android.app.TimePickerDialog
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
@@ -210,10 +207,7 @@ class CaiDatFragment : Fragment() {
     private fun chepMaNha() {
         val ma = Nha.maNha(requireContext())
         if (ma.isBlank()) return
-        val bang = requireContext()
-            .getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        bang.setPrimaryClip(ClipData.newPlainText("Mã nhà", ma))
-        Dinh.noi(requireContext(), "Đã chép mã nhà.")
+        Dinh.chep(requireContext(), "Mã nhà", ma, "Đã chép mã nhà.")
     }
 
     /** May muc thuoc ve chinh dien thoai nay, khong gui di dau ca. */

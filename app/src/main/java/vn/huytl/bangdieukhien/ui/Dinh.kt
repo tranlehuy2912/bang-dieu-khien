@@ -1,5 +1,7 @@
 package vn.huytl.bangdieukhien.ui
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
 import vn.huytl.bangdieukhien.data.Lenh
@@ -111,6 +113,13 @@ object Dinh {
 
     fun noi(context: Context, chu: String) =
         Toast.makeText(context, chu, Toast.LENGTH_SHORT).show()
+
+    /** Chep [chu] vao bo nho tam, roi noi [bao] cho nguoi bam biet la da chep. */
+    fun chep(context: Context, nhan: String, chu: CharSequence, bao: String) {
+        val bang = context.getSystemService(ClipboardManager::class.java) ?: return
+        bang.setPrimaryClip(ClipData.newPlainText(nhan, chu))
+        noi(context, bao)
+    }
 
     /**
      * Vi sao mot ngay so dung app trong. Chung cho the o tab Nhat ky va man xem tung ngay, de

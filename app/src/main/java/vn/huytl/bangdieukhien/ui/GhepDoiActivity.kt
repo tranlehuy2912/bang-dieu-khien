@@ -44,6 +44,12 @@ class GhepDoiActivity : AppCompatActivity() {
 
         b.oMaNha.setText(Nha.maNha(this))
         b.oToken.setText(Nha.token(this))
+        // Nhan giu dong tinh hinh la chep, de dan loi cho Claude Code khi ghep hong.
+        b.chuTinhHinh.setOnLongClickListener {
+            val chu = b.chuTinhHinh.text?.toString().orEmpty()
+            if (chu.isNotBlank()) Dinh.chep(this, "Báo lỗi", chu, "Đã chép.")
+            chu.isNotBlank()
+        }
 
         if (!Kho.san(this)) {
             hien(getString(R.string.chua_noi_firebase), hong = true)

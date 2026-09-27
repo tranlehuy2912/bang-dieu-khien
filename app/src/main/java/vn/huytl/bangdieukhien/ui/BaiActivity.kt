@@ -539,7 +539,7 @@ class BaiActivity : AppCompatActivity() {
             setPadding(16.dp().toInt(), 16.dp().toInt(), 16.dp().toInt(), 16.dp().toInt())
         }
 
-        trong.addView(chu(cham.mon.ifBlank { "Bài đã nộp" }, 18f, bold = true))
+        trong.addView(dauThe(cham.mon.ifBlank { "Bài đã nộp" }, bai))
         if (cham.tomTat.isNotBlank()) {
             trong.addView(chu(cham.tomTat, 15f, mau = R.color.ink_soft).apply {
                 (layoutParams as LinearLayout.LayoutParams).topMargin = 6.dp().toInt()
@@ -630,7 +630,7 @@ class BaiActivity : AppCompatActivity() {
             orientation = LinearLayout.VERTICAL
             setPadding(16.dp().toInt(), 16.dp().toInt(), 16.dp().toInt(), 16.dp().toInt())
         }
-        trong.addView(chu(bai.khai?.mon?.takeIf { it.isNotBlank() } ?: "Bài đã nộp", 18f, bold = true))
+        trong.addView(dauThe(bai.khai?.mon?.takeIf { it.isNotBlank() } ?: "Bài đã nộp", bai))
         val dungCl = cl.cac.count { it.chac && it.dung }
         trong.addView(
             chu(
@@ -672,6 +672,42 @@ class BaiActivity : AppCompatActivity() {
         }
         the.addView(trong)
         b.than.addView(the)
+    }
+
+    /**
+     * Dong dau the ban cham: ten mon, va icon chep ca ban cham o goc phai. Chu chep ra xem
+     * [ChuBanCham].
+     *
+     * Icon nam o dau the chu khong o day: mot icon dung rieng o day the thi ton ca mot hang,
+     * ma chep la viec phu, hai nut duyet o day man hinh moi la viec chinh.
+     */
+    private fun dauThe(tieuDe: String, bai: Bai): View {
+        // Hang cao du 48dp cho nut, le am dat vao HANG chu khong vao nut: dong ten mon van
+        // nam dung cho cu, icon 22dp o giua nut thang mep phai voi chu trong the. Le am dat
+        // vao nut thi nut tran ra ngoai hang, ma Android khong chuyen cu cham o phan tran
+        // do: vung bam con chung 35 x 24dp.
+        val hang = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = -(12.dp().toInt())
+                bottomMargin = -(12.dp().toInt())
+                marginEnd = -(13.dp().toInt())
+            }
+        }
+        hang.addView(chu(tieuDe, 18f, bold = true).apply {
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        })
+        val nut = layoutInflater.inflate(R.layout.nut_chep, hang, false)
+        nut.layoutParams = LinearLayout.LayoutParams(48.dp().toInt(), 48.dp().toInt())
+        nut.setOnClickListener {
+            Dinh.chep(this, "Bản chấm", ChuBanCham.cua(bai, Nha.tenCon(this)), "Đã chép bản chấm.")
+        }
+        hang.addView(nut)
+        return hang
     }
 
     // ------------------------------------------------------------------ anh

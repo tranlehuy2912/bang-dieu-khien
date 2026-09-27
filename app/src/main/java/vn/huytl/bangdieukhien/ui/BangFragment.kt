@@ -172,6 +172,18 @@ class BangFragment : Fragment() {
         b.theViecCho.setOnClickListener { (activity as? MainActivity)?.sangTheViecNha() }
         b.theBaiCho.setOnClickListener { (activity as? MainActivity)?.sangTheBai() }
         b.theVoDanDo.setOnClickListener { hoiDocVo() }
+        // Nhan giu the canh bao hay dong bao hong la chep ca doan, de dan cho Claude Code
+        // luc go loi: cau bao hong co khi mang nguyen van loi cua Firestore.
+        b.chuCanhBao.setOnLongClickListener { chepChu(b.chuCanhBao, "Đã chép dòng cảnh báo.") }
+        // Dong nay co luc la cau "Đang gửi lệnh…" chu khong phai loi, nen bao chung chung.
+        b.chuGui.setOnLongClickListener { chepChu(b.chuGui, "Đã chép.") }
+    }
+
+    private fun chepChu(o: TextView, bao: String): Boolean {
+        val chu = o.text?.toString().orEmpty()
+        if (chu.isBlank()) return false
+        Dinh.chep(requireContext(), "Báo lỗi", chu, bao)
+        return true
     }
 
     override fun onStart() {

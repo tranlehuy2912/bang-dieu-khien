@@ -698,9 +698,16 @@ class BaiActivity : AppCompatActivity() {
         b.nutTuChoi.visibility = View.VISIBLE
         b.nutXoa.visibility = View.GONE
 
-        val phut = bai.cham?.phutDeNghi?.takeIf { it > 0 } ?: 30
-        b.nutDuyet.text = "${getString(R.string.bai_duyet)} ${Dinh.phut(phut)}"
-        b.nutDuyet.setOnClickListener { duyet(bai, phut) }
+        // Khong con so phut mac dinh (27/9/2026): bai da cham thi nut Duyet mang dung
+        // so phut may tinh, chua cham thi nut Duyet mo hop chon so phut.
+        val phut = bai.cham?.phutDeNghi?.takeIf { it > 0 }
+        if (phut != null) {
+            b.nutDuyet.text = "${getString(R.string.bai_duyet)} ${Dinh.phut(phut)}"
+            b.nutDuyet.setOnClickListener { duyet(bai, phut) }
+        } else {
+            b.nutDuyet.text = getString(R.string.bai_duyet)
+            b.nutDuyet.setOnClickListener { hoiSoPhut(bai) }
+        }
         // Doi so phut: nut chu ngay tren hang nut, de ai cung thay. Giu lau nut Duyet
         // van mo cung hop do, lam loi tat cho nguoi da quen.
         b.nutSoPhutKhac.visibility = View.VISIBLE

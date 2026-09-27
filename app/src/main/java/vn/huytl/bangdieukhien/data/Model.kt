@@ -421,7 +421,6 @@ data class Bai(
 
 /** Cau hinh dang chay tren tablet, doc tu hop/caidat. Dien thoai khong ghi vao day. */
 data class CaiDat(
-    val phutMacDinh: Int = 60,
     val gioNgu: Int = 22 * 60,
     val gioDay: Int = 6 * 60,
     val tranPhutMoiNgay: Int = 120,
@@ -440,7 +439,6 @@ data class CaiDat(
             if (d == null || !d.exists()) return null
             @Suppress("UNCHECKED_CAST")
             return CaiDat(
-                phutMacDinh = (d.getLong("phutMacDinh") ?: 60L).toInt(),
                 gioNgu = (d.getLong("gioNgu") ?: (22 * 60L)).toInt(),
                 gioDay = (d.getLong("gioDay") ?: (6 * 60L)).toInt(),
                 tranPhutMoiNgay = (d.getLong("tranPhutMoiNgay") ?: 120L).toInt(),

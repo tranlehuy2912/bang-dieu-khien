@@ -449,19 +449,28 @@ object Kho {
      * do. Mo lai tab Bang thi ban dau tien den tu bo nho, va dong "Đang chờ tablet nhận"
      * hien sai mot luc cho toi khi ban tu may chu ve. Nen ban tu bo nho chi lay lenh
      * chinh may nay chua gui len duoc, phan con lai doi ban tu may chu.
+     *
+     * Chi ban DAU TIEN la dang ngo. Da co mot ban tu may chu roi ma dien thoai mat mang
+     * giua chung thi ban tu bo nho sau do dung la nhung gi may chu vua bao, nen tin het.
+     * Truoc day ca ban nay cung bi loc, lenh CHO vua len may chu ma tablet chua lay bien
+     * khoi man, va ba bam cho gio lan hai ma khong bi hoi lai.
      */
-    fun ngheLenhCho(context: Context, khi: (List<LenhCho>) -> Unit): ListenerRegistration? =
-        nha(context)?.collection(Duong.LENH)
+    fun ngheLenhCho(context: Context, khi: (List<LenhCho>) -> Unit): ListenerRegistration? {
+        var daCoTuMayChu = false
+        return nha(context)?.collection(Duong.LENH)
             ?.addSnapshotListener(MetadataChanges.INCLUDE) { snap, loi ->
                 if (loi != null || snap == null) return@addSnapshotListener
                 val tuBoNho = snap.metadata.isFromCache
+                if (!tuBoNho) daCoTuMayChu = true
+                val tinHet = !tuBoNho || daCoTuMayChu
                 khi(
                     snap.documents
-                        .filter { !tuBoNho || it.metadata.hasPendingWrites() }
+                        .filter { tinHet || it.metadata.hasPendingWrites() }
                         .mapNotNull { LenhCho.doc(it) }
                         .sortedBy { it.tao }
                 )
             }
+    }
 
     /**
      * Rut mot lenh tablet chua lay: xoa document do khoi hang.

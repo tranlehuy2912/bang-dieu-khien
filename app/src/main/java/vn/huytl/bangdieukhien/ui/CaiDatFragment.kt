@@ -92,11 +92,6 @@ class CaiDatFragment : Fragment() {
 
         b.than.addView(tieu("Giờ chơi"))
         b.than.addView(nhom(
-            muc("Mỗi lần duyệt", Dinh.phut(c.phutMacDinh), "Số phút bấm một cái là xong") {
-                hoiSo("Mỗi lần duyệt bao nhiêu phút", c.phutMacDinh, 5, 180) {
-                    guiCaiDat("phutMacDinh", it)
-                }
-            },
             muc("Tối đa mỗi ngày", Dinh.phut(c.tranPhutMoiNgay), "Duyệt bài không vượt quá số này") {
                 hoiSo("Tối đa phút mỗi ngày", c.tranPhutMoiNgay, 15, 480) {
                     guiCaiDat("tranPhutMoiNgay", it)
@@ -156,9 +151,9 @@ class CaiDatFragment : Fragment() {
      * Hoi lai truoc khi doi cach cham, vi hai cach khac nhau o nhung cho de quen.
      *
      * Tat AI thi bai nop nam cho, khong ai cham cho den khi Ba Huy dan ket qua Claude.
-     * Vo dan do van nhu luc bat: con chup mot lan dau buoi, may doc cho con soat, va
-     * Claude cham theo dung danh sach do, nen tron goi 45 phut van tinh. Con chua soat
-     * vo thi lan nop chup trang vo kem, va Claude tu doc anh.
+     * Vo dan do van nhu luc bat: con chup mot lan o man vo dan do, may doc cho con soat,
+     * va Claude cham theo dung danh sach do, nen tron goi 45 phut van tinh. May doc vo
+     * hong thi tablet gan tam anh vo vao bai, va Claude tu doc anh.
      */
     private fun hoiChamBangAi(dangBat: Boolean) {
         val con = getString(R.string.child_name)

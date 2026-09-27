@@ -84,10 +84,10 @@
     <!-- Chua co hop/danhsachviec: hai may cung dung danh sach mac dinh viet san. -->
     <string name="viec_chon_mac_dinh">Đang dùng danh sách mặc định, máy bà nội cũng dùng danh sách này. Bấm Sửa danh sách rồi Lưu để đổi cho cả hai máy.</string>
     <string name="viec_giao_nut">Giao %1$d việc (%2$d phút)</string>
-    <string name="viec_dang_lam">%1$s giao đợt này. Lê Hòa làm xong việc nào thì bấm Xong việc đó.</string>
+    <string name="viec_dang_lam">%1$s giao đợt này. %2$s làm xong việc nào thì bấm Xong việc đó.</string>
     <!-- %1$s la luc bam gan nhat, ke ca lan bam Gui lai, khong phai luc xong viec. -->
     <string name="viec_cho_nhan">Đã xong hết, đang chờ tablet nhận để cộng %2$d phút. Lần bấm gần nhất lúc %1$s.</string>
-    <string name="viec_bi_bo_qua">Đã xong hết nhưng tablet chưa nhận, nên chưa cộng %2$d phút. Lần bấm gần nhất lúc %1$s, đã quá nửa tiếng nên tablet sẽ bỏ qua. Bấm Gửi lại.</string>
+    <string name="viec_bi_bo_qua">Đã xong hết nhưng tablet chưa nhận, nên chưa cộng %2$d phút. Lần bấm gần nhất lúc %1$s, đã quá %3$s nên tablet sẽ bỏ qua. Bấm Gửi lại.</string>
     <string name="viec_chon_nut">Chọn</string>
     <string name="viec_bo_chon">Bỏ chọn</string>
     <string name="viec_xong">Xong</string>

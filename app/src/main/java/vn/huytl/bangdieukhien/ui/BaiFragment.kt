@@ -73,6 +73,9 @@ class BaiFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        // Ba adapter song theo fragment, con danh sach thi chet theo view. Khong go ra
+        // thi moi lan doi tab lai de lai mot danh sach cu (ca anh nho) treo tren adapter.
+        _b?.danhSach?.adapter = null
         _b = null
         super.onDestroyView()
     }

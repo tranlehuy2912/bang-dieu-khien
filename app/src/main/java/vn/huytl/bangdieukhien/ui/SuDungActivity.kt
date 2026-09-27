@@ -176,15 +176,8 @@ class SuDungActivity : AppCompatActivity() {
      * hay gap hon: tablet chua gui so tu dau ngay nay (Ba Huy chua mo app, hay tablet
      * khong tra loi), va dich vu canh app tren tablet dang tat.
      */
-    private fun viSaoTrong(s: SoSuDung, dau: Long, ten: String): String = when {
-        s.capNhatLuc > 0L && s.capNhatLuc < dau ->
-            "Chưa có số liệu $ten: lần cuối tablet gửi sổ là lúc ${Dinh.lucNgan(s.capNhatLuc)}."
-        // Dich vu tat luc gui chi giai thich duoc ngay hom do, khong giai thich duoc
-        // vi sao thu hai tuan truoc khong co dong nao.
-        lui == 0 && !s.dangGhi ->
-            "Dịch vụ canh app trên tablet đang TẮT nên máy không ghi được gì, mà cũng không chặn gì."
-        else -> "Không ghi được app nào $ten."
-    }
+    private fun viSaoTrong(s: SoSuDung, dau: Long, ten: String): String =
+        Dinh.viSaoTrong(s, dau, laHomNay = lui == 0, ten = ten)
 
     /** Hang o chon ngay, hom nay dung dau. */
     private fun veHangNgay(soNgay: Int) {

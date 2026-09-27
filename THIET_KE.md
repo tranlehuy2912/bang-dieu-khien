@@ -112,7 +112,7 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │     kieu   DUYET TUCHOI CHO BOT DUNG TIEP KHOA MOMAY DONGMAY XOAPIN CAIDAT
 │            NHAN        bỏ từ 27/09/2026 cùng khung chat trong app; tablet mới trả
 │                        lời "Không hiểu lệnh NHAN"
-│            CONGVIECNHA — cộng bù một đợt việc nhà tablet đã bỏ lỡ. Bảng điều
+│            CONGVIECNHA cộng bù một đợt việc nhà tablet đã bỏ lỡ. Bảng điều
 │                        khiển bản mới không gửi nữa: nó bấm Gửi lại như máy bà
 │            CHOGOAPP    tắt quản trị thiết bị để gỡ app
 │            PING        hỏi tablet ngay, tablet đẩy một bản trạng thái đầy đủ

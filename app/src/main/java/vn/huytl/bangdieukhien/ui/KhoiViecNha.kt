@@ -15,6 +15,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.firestore.ListenerRegistration
 import vn.huytl.bangdieukhien.R
 import vn.huytl.bangdieukhien.data.Duong
+import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.Nguoi
 import vn.huytl.bangdieukhien.data.ViecNha
@@ -197,9 +198,12 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
         veChu(
             when {
                 loi.isNotEmpty() -> loi
-                boQua -> ct.getString(R.string.viec_bi_bo_qua, Dinh.lucNgan(d.luc), d.tongPhut)
+                boQua -> ct.getString(
+                    R.string.viec_bi_bo_qua, Dinh.lucNgan(d.luc), d.tongPhut,
+                    Dinh.phut((Duong.QUA_CU_MS / 60_000L).toInt())
+                )
                 choNhan -> ct.getString(R.string.viec_cho_nhan, Dinh.lucNgan(d.luc), d.tongPhut)
-                else -> ct.getString(R.string.viec_dang_lam, nguoi)
+                else -> ct.getString(R.string.viec_dang_lam, nguoi, Nha.tenCon(ct))
             },
             canhBao = loi.isNotEmpty() || boQua
         )

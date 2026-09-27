@@ -108,4 +108,20 @@ object Dinh {
 
     fun noi(context: Context, chu: String) =
         Toast.makeText(context, chu, Toast.LENGTH_SHORT).show()
+
+    /**
+     * Vi sao mot ngay so dung app trong. Chung cho the o tab Bang va man xem tung ngay, de
+     * hai cho noi cung mot cau cho cung mot canh.
+     *
+     * Ban cuoi tablet gui tu truoc ngay do: "chua ghi duoc app nao" luc nay la noi sai, vi
+     * so ngay do chua ai gui sang. Dich vu tat thi chi giai thich duoc hom nay, khong giai
+     * thich duoc vi sao thu Hai tuan truoc khong co dong nao.
+     */
+    fun viSaoTrong(s: vn.huytl.bangdieukhien.data.SoSuDung, dau: Long, laHomNay: Boolean, ten: String): String = when {
+        s.capNhatLuc > 0L && s.capNhatLuc < dau ->
+            "Chưa có số liệu $ten: lần cuối tablet gửi sổ lúc ${lucNgan(s.capNhatLuc)}."
+        laHomNay && !s.dangGhi ->
+            "Dịch vụ canh app trên tablet đang tắt nên máy không ghi được app nào, cũng không chặn app nào."
+        else -> "Chưa ghi được app nào $ten."
+    }
 }

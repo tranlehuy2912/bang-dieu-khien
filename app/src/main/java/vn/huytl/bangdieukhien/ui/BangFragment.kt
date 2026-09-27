@@ -27,6 +27,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.launch
 import vn.huytl.bangdieukhien.R
 import vn.huytl.bangdieukhien.data.Cong
+import vn.huytl.bangdieukhien.data.Duong
 import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.Lenh
 import vn.huytl.bangdieukhien.data.LenhCho
@@ -101,6 +102,12 @@ class BangFragment : Fragment() {
     private var capNhatTruocKhiHoi = 0L
     private var daDap = false
     private var loiHoi = ""
+
+    /**
+     * Lenh hoi da len may chu chua. Mat mang thi add() khong hong ma cung khong xong, lenh
+     * nam trong may nay. Luc do dung noi "tablet khong tra loi": ben im la dien thoai.
+     */
+    private var pingDaLen = false
 
     /** Da ve man hinh o trang thai "khong dap" chua, de khong ve lai moi giay. */
     private var daBaoKhongDap = false
@@ -314,8 +321,10 @@ class BangFragment : Fragment() {
         capNhatTruocKhiHoi = moiNhat?.capNhatLuc ?: 0L
         daDap = false
         loiHoi = ""
+        pingDaLen = false
         daBaoKhongDap = false
         Kho.guiPing(requireContext()) { kq ->
+            if (kq is Kho.KetQua.Xong) pingDaLen = true
             if (_b == null) return@guiPing
             // Hong ngay tu luc gui - may nay mat mang, hay chua ghep nha. Noi ra
             // chu khong de man hinh cho mot cau tra loi khong bao gio den.
@@ -334,6 +343,9 @@ class BangFragment : Fragment() {
      */
     private fun khongDap(bayGio: Long = System.currentTimeMillis()): Boolean =
         hoiLuc > 0L && !daDap && (loiHoi.isNotEmpty() || bayGio - hoiLuc > CHO_PING_MS)
+
+    /** Khong dap vi chinh dien thoai nay chua gui duoc cau hoi len may chu. */
+    private fun dienThoaiMatMang(): Boolean = khongDap() && loiHoi.isEmpty() && !pingDaLen
 
     /**
      * Hien cau tablet noi lai sau khi lam lenh.
@@ -373,12 +385,7 @@ class BangFragment : Fragment() {
                 getString(if (daNhanSuDung) R.string.su_dung_chua_gui else R.string.su_dung_dang_lay)
             cac.isNotEmpty() ->
                 "${getString(R.string.child_name)} dùng máy ${Dinh.doDai(s.tongMs(dau, cuoi))}"
-            // Ban cuoi tablet gui tu hom qua tro ve truoc: "chua ghi duoc app nao" luc
-            // nay la noi sai, vi so hom nay chua ai gui sang.
-            s.capNhatLuc > 0L && s.capNhatLuc < dau ->
-                "Hôm nay tablet chưa gửi sổ. Lần gửi cuối lúc ${Dinh.lucNgan(s.capNhatLuc)}."
-            !s.dangGhi -> "Dịch vụ canh app trên tablet đang tắt nên máy không ghi được app nào."
-            else -> "Hôm nay chưa ghi được app nào."
+            else -> Dinh.viSaoTrong(s, dau, laHomNay = true, ten = "hôm nay")
         }
 
         val coSo = s != null && cac.isNotEmpty()
@@ -498,6 +505,7 @@ class BangFragment : Fragment() {
                 val luc = tt?.capNhatLuc ?: 0L
                 add(
                     if (loiHoi.isNotEmpty()) getString(R.string.bang_hoi_hong, loiHoi)
+                    else if (dienThoaiMatMang()) "Điện thoại này chưa gửi được câu hỏi tới tablet. Kiểm tra mạng của điện thoại."
                     else if (luc <= 0L) getString(R.string.bang_khong_dap_lan_nao)
                     else getString(R.string.bang_khong_dap, Dinh.gioPhut(luc))
                 )
@@ -628,9 +636,13 @@ class BangFragment : Fragment() {
 
         val con = getString(R.string.child_name)
         val noi = buildString {
-            if (im) {
+            if (im && dienThoaiMatMang()) {
+                append("Điện thoại này đang không gửi được lệnh (mất mạng?). Lệnh sẽ nằm chờ ")
+                append("trên máy này, có mạng lại mới tới tablet.")
+            } else if (im) {
                 append("Tablet đang không trả lời. Lệnh này sẽ nằm chờ: tablet có mạng lại ")
-                append("trong vòng 30 phút thì $con vẫn được ${Dinh.phut(phut)}, quá 30 phút ")
+                val han = Dinh.phut((Duong.QUA_CU_MS / 60_000L).toInt())
+                append("trong vòng $han thì $con vẫn được ${Dinh.phut(phut)}, quá $han ")
                 append("thì tablet bỏ qua.")
             }
             if (choCu.isNotEmpty()) {
@@ -675,7 +687,7 @@ class BangFragment : Fragment() {
             }
             dong.addView(TextView(ct).apply {
                 text = when {
-                    quaHan -> "Quá 30 phút tablet chưa nhận: ${Dinh.lenh(l)}, gửi lúc $luc. " +
+                    quaHan -> "Quá ${Dinh.phut((Duong.QUA_CU_MS / 60_000L).toInt())} tablet chưa nhận: ${Dinh.lenh(l)}, gửi lúc $luc. " +
                         "Tablet sẽ bỏ qua lệnh này."
                     l.chuaLenMang -> "Chưa gửi lên được vì điện thoại mất mạng: ${Dinh.lenh(l)}. " +
                         "Có mạng lại là tự gửi."
@@ -714,7 +726,12 @@ class BangFragment : Fragment() {
      * nguoi bam thi tuong minh vua bam hut mot cai.
      */
     private fun gui(kieu: String, phut: Int? = null, chu: String? = null, giaTri: Any? = null) {
-        if (dangGuiLenh) return
+        if (dangGuiLenh) {
+            // Hop "Gui cho tablet" cua the vo dan do khong nam trong cac nut bi khoa, nen
+            // bam duoc luc lenh truoc chua len may chu. Noi ra, dung lang le bo lenh.
+            context?.let { Dinh.noi(it, "Lệnh trước chưa gửi xong, đợi một chút rồi bấm lại.") }
+            return
+        }
         dangGuiLenh = true
         loiGui = ""
         veDuongLenh()

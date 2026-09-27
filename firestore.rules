@@ -90,9 +90,10 @@ service cloud.firestore {
 
       // ---------------------------------------------------- may ba noi
       //
-      // Ba cua duoi day mo rieng cho uidsPhu. Nguoi nha day du van di qua cua chung
-      // o duoi cung; Firestore cho qua khi CO MOT luat nao do cho phep, nen ba cai
-      // nay chi noi them chu khong bot cua ai.
+      // Hai cua duoi day mo rieng cho uidsPhu. Nguoi nha day du van di qua cua chung
+      // o duoi cung; Firestore cho qua khi CO MOT luat nao do cho phep, nen hai cai
+      // nay chi noi them chu khong bot cua ai. Cua doc hop/trangthai bo ngay 27/9/2026:
+      // app ba khong con doc cho do tu khi bo nut cho gio (26/9/2026).
       //
       // KHONG CON CUA lenh/ CHO MAY BA. Truoc 26/9/2026 may ba tao duoc lenh CHO, 1
       // den 60 phut, cho sau nut cho gio. App ba bo sau nut do, va cua nay dong theo:
@@ -109,14 +110,6 @@ service cloud.firestore {
       // cung; may ba chi doc. Chua co danh sach thi hai may dung chung danh sach mac
       // dinh viet san trong app.
       match /hop/danhsachviec {
-        allow read: if laNguoiPhu(nhaId);
-      }
-
-      // Doc trang thai cong.
-      //
-      // Chi doc, khong ghi. Ban app ba truoc 26/9/2026 doc cho nay de biet tablet noi
-      // gi sau lenh cho gio. Ban moi khong con doc.
-      match /hop/trangthai {
         allow read: if laNguoiPhu(nhaId);
       }
 

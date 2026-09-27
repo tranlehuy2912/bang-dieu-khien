@@ -41,7 +41,14 @@ class BaiActivity : AppCompatActivity() {
 
     private lateinit var b: ActivityBaiBinding
     private var nghe: ListenerRegistration? = null
+    private var ngheVo: ListenerRegistration? = null
     private var bai: Bai? = null
+
+    /** Bai dung nhu tren Firestore, chua ghep vo da doc. Xem [kemVoDaDoc]. */
+    private var baiGoc: Bai? = null
+
+    /** Vo dan do dang con hieu luc tren tablet (hop/dando). */
+    private var voHienTai: VoDaSoat? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,14 +63,42 @@ class BaiActivity : AppCompatActivity() {
             return
         }
         nghe = Kho.ngheMotBai(this, id) { moi ->
-            bai = moi
-            if (moi == null) finish() else ve(moi)
+            baiGoc = moi
+            val ghep = moi?.let { kemVoDaDoc(it) }
+            bai = ghep
+            if (ghep == null) finish() else ve(ghep)
+        }
+        ngheVo = Kho.ngheDanDo(this) { v ->
+            voHienTai = v
+            val goc = baiGoc ?: return@ngheDanDo
+            val ghep = kemVoDaDoc(goc)
+            if (ghep != bai) {
+                bai = ghep
+                ve(ghep)
+            }
         }
     }
 
     override fun onDestroy() {
         nghe?.remove()
+        ngheVo?.remove()
         super.onDestroy()
+    }
+
+    /**
+     * Bai nop luc vo con chi co anh, ma tu do chinh tam anh ay da duoc doc ra chu (Claude
+     * doc, hay lan cham truoc doc): dung ban da doc, y nhu tablet (VoChoCham.voChoBai ben
+     * do). Khong thi loi nho bat Claude doc lai trang vo, lan doc do co the ra danh sach
+     * khac, ma tablet thi cham theo danh sach cua minh.
+     *
+     * Tablet ban moi tu chep ban da doc vao bai. Cho nay do cho luc tablet chua kip chep,
+     * hay la tablet ban cu.
+     */
+    private fun kemVoDaDoc(b: Bai): Bai {
+        val cua = b.voDaSoat ?: return b
+        if (!cua.chuaDoc || cua.chupLuc == 0L) return b
+        val hien = voHienTai?.takeIf { !it.chuaDoc && it.chupLuc == cua.chupLuc } ?: return b
+        return b.copy(voDaSoat = hien)
     }
 
     /**

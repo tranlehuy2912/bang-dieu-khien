@@ -265,10 +265,10 @@ trong app, nên vẫn hiện giống nhau.
 Hai lớp, và lớp thật nằm ở luật:
 
 1. `firestore.rules` chỉ cho `uidsPhu` đọc và ghi `hop/viecnha`, đọc
-   `hop/danhsachviec`, đọc `hop/trangthai`. Mọi thứ khác từ chối, kể cả tạo document
-   trong `lenh/`.
-2. `ThiHanhLenh` bên tablet bỏ qua mọi lệnh không phải `CHO` khi `ai == banoi`.
-   Lớp này chặn nhầm tay là chính — luật thì sửa bằng tay trong console Firebase ở
+   `hop/danhsachviec`. Mọi thứ khác từ chối, kể cả tạo document trong `lenh/` và đọc
+   `hop/trangthai` (bỏ ngày 27/09/2026, app bà không còn đọc chỗ đó).
+2. `ThiHanhLenh` bên tablet bỏ qua mọi lệnh khi `ai == banoi`.
+   Lớp này chặn nhầm tay là chính: luật thì sửa bằng tay trong console Firebase ở
    một chỗ không ai nhìn thấy, còn dòng kiểm tra kia đi theo bản app.
 
 Trước 26/09/2026 máy bà có sáu nút cho giờ, mỗi ngày một lượt, và luật cho máy bà

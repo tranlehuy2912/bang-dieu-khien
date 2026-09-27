@@ -46,10 +46,10 @@ import java.util.Locale
  * chi tiet bai bam "Dán kết quả của Claude", va [docKetQua] doc khoi do ra. Ma bai
  * trong khoi chan viec dan nham ket qua sang bai khac.
  *
- * HAI KIEU NHO. Bai da co ban cham cua may thi Claude CHAM LAI: ket qua dan ve chi sua
- * nhung cau may nham. Bai chua co ban cham nao - tablet tat cham AI, hay AI hong luc
- * con nop - thi Claude CHAM LUON, va ket qua dan ve la ban cham dau tien: tablet tinh
- * phut theo no. Xem [chamMoi].
+ * HAI KIEU NHO. Bai may da cham va da xu xong thi Claude CHAM LAI: ket qua dan ve chi
+ * sua nhung cau may nham. Bai chua co ban cham nao - tablet tat cham AI, hay AI hong luc
+ * con nop - hay may cham roi ma bai van cho duyet, thi Claude CHAM LUON, va tablet tinh
+ * phut theo ban cua Claude. Xem [chamMoi].
  *
  * Ngoai hai kieu cham con mot loi nho doc vo dan do, cho tam vo may tren tablet doc
  * khong duoc. Xem [loiNhoDocVo].
@@ -84,13 +84,19 @@ object NhoClaude {
     }
 
     /**
-     * Bai nay chua co ban cham nao cua may, nen Claude cham luon chu khong cham lai.
+     * Claude cham ca bai va tablet tinh phut theo ban cua Claude, chu khong chi sua cau may
+     * nham.
      *
-     * Luc do ket qua dan ve di bang lenh [vn.huytl.bangdieukhien.data.Lenh.CHAM_BAI]:
-     * tablet chay ban cua Claude qua dung cac buoc nhu mot ban AI cham - gia moi cau,
-     * tran ngay, moi cau chi tra gio mot lan, tin Telegram.
+     * Hai canh: bai chua co ban cham nao cua may, hay may da cham ma bai van cho duyet (may
+     * doc khong ro, bao sai het, tu duyet khong duoc). Canh sau truoc ngay 27/9/2026 di
+     * duong cham lai: tablet cong gio cho cau may cham nham, ma bai van nam "Dang cho
+     * duyet" voi nut Duyet, nhin nhu chua duyet va de bam them lan nua.
+     *
+     * Ket qua dan ve di bang lenh [vn.huytl.bangdieukhien.data.Lenh.CHAM_BAI]: tablet chay
+     * ban cua Claude qua dung cac buoc nhu mot ban AI cham - gia moi cau, tran ngay, moi cau
+     * chi tra gio mot lan, tin Telegram - roi tu duyet va dong bai.
      */
-    fun chamMoi(bai: Bai): Boolean = bai.cham?.cac.isNullOrEmpty()
+    fun chamMoi(bai: Bai): Boolean = bai.cham?.cac.isNullOrEmpty() || bai.dangCho
 
     /**
      * Loi nho Claude cham, viet nhu Ba Huy tu go.
@@ -130,17 +136,23 @@ object NhoClaude {
      */
     private fun loiNhoChamMoi(bai: Bai, ten: String): String = buildString {
         val khai = bai.khai
-        val onTap = khai?.onTap == true
         // Ban chi co anh thi khong phai danh sach: di duong anh vo, Claude doc tam anh
         // tablet gan theo bai. Xem VoDaSoat.chuaDoc.
         val soat = bai.voDaSoat?.daDoc
         val coAnhVo = bai.anh.any { it.laDanDo }
         val coVo = soat != null || coAnhVo
 
+        val mayDaCham = !bai.cham?.cac.isNullOrEmpty()
+
         appendLine("$DAU_CHAM_MOI của $ten. Tôi là bố của $ten.")
         appendLine(
-            "Hôm nay máy trên tablet không tự chấm, bạn là người chấm duy nhất bài này. " +
-                "Số phút chơi của $ten tính theo kết quả bạn chấm."
+            if (mayDaCham) {
+                "Máy trên tablet đã chấm bài này nhưng chưa duyệt. Nhờ bạn chấm lại từ đầu, " +
+                    "không dựa vào máy: số phút chơi của $ten tính theo kết quả bạn chấm."
+            } else {
+                "Hôm nay máy trên tablet không tự chấm, bạn là người chấm duy nhất bài này. " +
+                    "Số phút chơi của $ten tính theo kết quả bạn chấm."
+            }
         )
         appendLine()
 
@@ -159,7 +171,6 @@ object NhoClaude {
             if (loaiAnh.size == 1) "Ảnh đính kèm là ${loaiAnh[0]}."
             else "Ảnh đính kèm gồm ${loaiAnh.dropLast(1).joinToString(", ")} và ${loaiAnh.last()}."
         )
-        if (onTap) appendLine("Lần này $ten ôn lại bài cũ. Nhà quy định bài ôn phải viết bằng mực đỏ.")
         appendLine()
 
         cachCham(chamMoi = true, ten = ten)
@@ -179,6 +190,20 @@ object NhoClaude {
             appendLine(
                 "Ảnh có câu $ten làm mà không có trong danh sách thì thêm một mục cho câu " +
                     "đó: mã theo cách sách đánh số, chép đề vào \"de\", và ghi \"dang\"."
+            )
+        } else if (mayDaCham) {
+            // Chep ma va de may nhan ra, khong chep ket luan cua may. Giu ma thi ket qua khop
+            // voi cau may da ghi, xem [theoMay].
+            appendLine("${dauCau(ten)} không khai trước là làm câu nào. Máy đã nhận ra các câu dưới đây trong ảnh:")
+            bai.cham?.cac.orEmpty().forEachIndexed { i, c ->
+                append(i + 1).append(". Câu ").append(c.ma.ifBlank { "chưa rõ mã" }).append(".")
+                if (c.de.isNotBlank()) append(" Đề: ").append(c.de.trim())
+                appendLine()
+            }
+            appendLine(
+                "Giữ nguyên mã câu như trên. Ảnh có câu $ten làm mà máy bỏ sót thì thêm một mục. " +
+                    "Mỗi câu chép đề vào \"de\" và ghi \"dang\". Câu nào ảnh không có đề thì để " +
+                    "\"de\" trống và \"dung\" là false, vì không có đề thì không biết đúng sai."
             )
         } else {
             appendLine("${dauCau(ten)} không khai trước là làm câu nào. Nhờ bạn tự nhận ra các câu trong ảnh.")
@@ -242,12 +267,6 @@ object NhoClaude {
                 "$ten viết, theo bạn đọc. \"so_dong\" là số dòng đếm ở bước 6. \"goi_y\" chỉ " +
                 "viết cho câu $ten làm sai: đúng câu gợi ý ở mục 2, tối đa 15 chữ."
         )
-        if (onTap) {
-            append(
-                " \"muc_do\" là true nếu bài làm của câu đó viết bằng mực đỏ, false nếu viết " +
-                    "mực khác hoặc không rõ màu."
-            )
-        }
         appendLine()
         val maMau = khai?.cac?.firstOrNull()?.ma ?: "1"
         // Mau CO Y khong phai JSON hop le, cung ly do voi mau o [loiNhoChamLai].
@@ -261,7 +280,6 @@ object NhoClaude {
         }
         append("\"ket_qua\":[{\"ma\":\"$maMau\",\"dung\":true hoặc false,")
         append("\"chac\":true hoặc false,\"con_viet\":\"...\",\"so_dong\":số dòng,\"goi_y\":\"...\"")
-        if (onTap) append(",\"muc_do\":true hoặc false")
         if (coVo) append(",\"trong_dan_do\":true hoặc false")
         if (khai == null) append(",\"de\":\"chép đề câu đó\",\"dang\":\"CAU_NHO\"")
         append("}]}")
@@ -674,13 +692,6 @@ object NhoClaude {
                 goiY = c.chuoi("goi_y"),
                 // So dong chi doi so phut, khong doi dung sai, nen doc de dai: "4" cung la 4.
                 soDong = c.optInt("so_dong", 0).coerceAtLeast(0),
-                // Khong noi mau muc thi la -1, khong phai "khong do": tablet noi rieng hai
-                // canh do voi Ba Huy. Xem CauCham.mucDo ben tablet.
-                mucDo = when (val m = c.opt("muc_do")) {
-                    is Boolean -> if (m) 1 else 0
-                    is Number -> if (m.toInt() == 1) 1 else 0
-                    else -> -1
-                },
                 de = c.chuoi("de"),
                 dang = c.chuoi("dang").uppercase(Locale.ROOT),
                 // Chi nhan true hay false that. Khong noi thi tablet tu quyet theo luat
@@ -745,6 +756,28 @@ object NhoClaude {
                 ?: return@map c
             daDung += k.ma
             c.copy(ma = k.ma, de = c.de.ifBlank { k.de }, dang = c.dang.ifBlank { k.dang })
+        })
+    }
+
+    /**
+     * Dua cau Claude cham ve dung ma va de cua cau may da cham, voi cau khong nam trong khai.
+     *
+     * So cai ben tablet giu cau ngoai sach theo de bai (SoCaiBai.khoaCua ben do), ma Claude
+     * chep de moi lan mot khac. Lay de cua Claude thi cau may cham sai van nam "can sua" tren
+     * man con, du Claude cham dung va tablet da tinh phut cho no. Cau trong khai thi da khop
+     * qua [theoKhai], cau may khong co thi giu nguyen.
+     */
+    fun theoMay(ket: KetQuaDan, bai: Bai): KetQuaDan {
+        val cuaMay = bai.cham?.cac.orEmpty().filter { it.ma.isNotBlank() && it.de.isNotBlank() }
+        if (cuaMay.isEmpty()) return ket
+        val khai = bai.khai?.cac.orEmpty().map { chuanMa(it.ma) }.toSet()
+        val daDung = mutableSetOf<Int>()
+        return ket.copy(cac = ket.cac.map { c ->
+            if (chuanMa(c.ma) in khai) return@map c
+            val i = cuaMay.indices.firstOrNull { chuanMa(cuaMay[it].ma) == chuanMa(c.ma) && it !in daDung }
+                ?: return@map c
+            daDung += i
+            c.copy(ma = cuaMay[i].ma.trim(), de = cuaMay[i].de)
         })
     }
 

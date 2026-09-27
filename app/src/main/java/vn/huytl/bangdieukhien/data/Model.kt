@@ -176,8 +176,6 @@ data class CauClaude(
     val goiY: String,
     /** So dong con viet cho cau nay. Tablet tinh phut theo so dong, xem LuatCongGio. */
     val soDong: Int = 0,
-    /** 1 la viet bang muc do, 0 la khong, -1 la khong noi. Chi can o lan on tap. */
-    val mucDo: Int = -1,
     /** De Claude chep tu anh, chi can khi con khong khai theo sach. */
     val de: String = "",
     /** Dang bai Claude xep, ten hang cua DangBai ben tablet. Chi can o cau ngoai sach. */
@@ -282,13 +280,22 @@ data class Bai(
     val claude: KetQuaClaude? = null,
     val khai: KhaiBai? = null,
     /** Ba Huy da bam Xoa o tab Bai. Xem [F_AN]. */
-    val an: Boolean = false
+    val an: Boolean = false,
+    /** Luc tablet se cong [soPhut] phut, voi bai cham xong trong gio ngu. 0 la khong giu. */
+    val congLuc: Long = 0L
 ) {
     /** Con nam trong hang cho cua tablet, tuc la bam Duyet hay Khong duyet con co tac dung. */
     val dangCho: Boolean get() = trangThai == CHO && !quaNgay()
 
     /** Da xong viec, khong con gi de bam. Chi bai xong moi co nut Xoa. */
     val xong: Boolean get() = !dangCho
+
+    /**
+     * Tablet cham xong trong gio ngu va dang giu [soPhut] phut, toi [congLuc] moi cong.
+     *
+     * Trang thai van la DUYET, vi bai da roi hang cho. Tablet cong xong thi xoa [congLuc].
+     */
+    val choCong: Boolean get() = trangThai == DUYET && congLuc > 0L
 
     /**
      * Van ghi CHO nhung nop tu hom truoc.
@@ -344,7 +351,8 @@ data class Bai(
                 voDaSoat = VoDaSoat.doc(d.get(Duong.F_DAN_DO) as? Map<*, *>),
                 claude = docClaude(d.get(Duong.F_CHAM_CLAUDE) as? Map<*, *>),
                 khai = docKhai(d.get(Duong.F_KHAI) as? Map<*, *>),
-                an = d.getBoolean(F_AN) ?: false
+                an = d.getBoolean(F_AN) ?: false,
+                congLuc = d.getLong(Duong.F_CONG_LUC) ?: 0L
             )
         }
 

@@ -251,6 +251,11 @@ class BaiFragment : Fragment() {
 
             val (chu, mau, nen) = when {
                 bai.dangCho -> Triple(getString(R.string.bai_cho), R.color.wait, R.color.wait_soft)
+                // Cham xong trong gio ngu: gio chua vao tay con, het gio ngu tablet moi cong.
+                bai.choCong -> Triple(
+                    "${Dinh.gioPhut(bai.congLuc)} cộng ${Dinh.phut(bai.soPhut)}",
+                    R.color.wait, R.color.wait_soft
+                )
                 bai.trangThai == Bai.DUYET -> Triple(
                     getString(R.string.bai_da_duyet) + " " + Dinh.phut(bai.soPhut),
                     R.color.ok, R.color.ok_soft

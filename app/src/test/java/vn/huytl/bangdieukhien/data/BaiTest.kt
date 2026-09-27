@@ -34,6 +34,15 @@ class BaiTest {
     }
 
     @Test
+    fun bai_cham_trong_gio_ngu_dang_giu_phut_cho_toi_luc_cong() {
+        val b = bai(Bai.DUYET, luc(27, 21, 40)).copy(soPhut = 12, congLuc = luc(28, 6, 0))
+        assertTrue(b.choCong)
+        assertTrue(b.xong)
+        assertFalse(b.copy(congLuc = 0L).choCong)
+        assertFalse(b.copy(trangThai = Bai.CHO).choCong)
+    }
+
+    @Test
     fun chi_bai_cho_moi_qua_ngay() {
         val bayGio = luc(26, 17, 33)
         assertFalse(bai(Bai.DUYET, luc(24, 20, 29)).quaNgay(bayGio))

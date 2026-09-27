@@ -127,13 +127,17 @@ class BaiActivity : AppCompatActivity() {
     }
 
     /**
-     * Mot dong noi vi sao bai khong con nut duyet, o hai canh Ba Huy khong tu bam gi.
+     * Mot dong noi vi sao bai khong con nut duyet, o nhung canh Ba Huy khong tu bam gi.
      *
      * Thieu dong nay thi bai qua ngay trong nhu hong: hom qua con hai nut, hom nay mat
-     * ca hai ma khong ai noi gi.
+     * ca hai ma khong ai noi gi. Bai cham xong trong gio ngu cung vay: nhan ghi da duyet,
+     * ma tablet chua cho con choi phut nao.
      */
     private fun veViSaoHetCho(bai: Bai) {
         val noi = when {
+            bai.choCong -> "Tablet chấm xong lúc đang giờ ngủ. Hết giờ ngủ lúc " +
+                "${Dinh.gioPhut(bai.congLuc)} tablet mới cộng ${Dinh.phut(bai.soPhut)} cho " +
+                "${Nha.tenCon(this)}."
             bai.quaNgay() -> "Bài nộp hôm trước. Sang ngày mới tablet tự bỏ bài chưa duyệt " +
                 "khỏi hàng chờ, nên bài này không duyệt được nữa. Muốn cho giờ thì bấm " +
                 "Cho chơi ngay ở tab Giờ chơi."
@@ -225,8 +229,9 @@ class BaiActivity : AppCompatActivity() {
                 .show()
             return
         }
-        // Doi ma va de ve dung cau con khai truoc moi phep so, ca duong cham lai lan cham luon.
-        val ket = NhoClaude.docKetQua(chu)?.let { NhoClaude.theoKhai(it, bai.khai) }
+        // Doi ma va de ve dung cau con khai, roi cau may da cham, truoc moi phep so: ca duong
+        // cham lai lan cham luon.
+        val ket = NhoClaude.docKetQua(chu)?.let { NhoClaude.theoMay(NhoClaude.theoKhai(it, bai.khai), bai) }
         if (ket == null) {
             MaterialAlertDialogBuilder(this)
                 .setTitle("Chưa thấy kết quả của Claude")
@@ -322,8 +327,8 @@ class BaiActivity : AppCompatActivity() {
      *
      * Khac duong cham lai o cho tablet tinh phut theo CA ban nay, khong chi nhung cau
      * khac may. Nen hop thoai ke ra nhung cho lam tablet chua tu cong gio, de Ba Huy
-     * biet truoc la se phai bam Duyet: cau Claude doc chua chac, bai on khong viet
-     * muc do. Cau con khai ma Claude bo sot thi tablet ghi la chua thay bai lam.
+     * biet truoc la se phai bam Duyet: cau Claude doc chua chac. Cau con khai ma Claude
+     * bo sot thi tablet ghi la chua thay bai lam.
      *
      * Lan nop co trang vo dan do thi ke ra Claude doc vo ra gi, vi 45 phut tron goi
      * dua vao dung ba thu do. Ba Huy nhin mot dong la biet Claude doc dung hay nham.
@@ -332,7 +337,6 @@ class BaiActivity : AppCompatActivity() {
     private fun hoiChamMoi(bai: Bai, ket: NhoClaude.KetQuaDan) {
         val dung = ket.cac.count { it.chac && it.dung }
         val khongChac = ket.cac.filter { !it.chac }.map { it.ma }
-        val khongDo = if (bai.khai?.onTap == true) ket.cac.filter { it.mucDo == 0 }.map { it.ma } else emptyList()
         val sot = bai.khai?.cac.orEmpty().map { it.ma }.filter { ma -> ket.cac.none { it.ma == ma } }
 
         val noi = buildString {
@@ -346,14 +350,15 @@ class BaiActivity : AppCompatActivity() {
                 append("\n\nClaude đọc chưa chắc: ").append(khongChac.joinToString(", "))
                 append(". Tablet sẽ chưa cộng giờ, chờ bấm Duyệt.")
             }
-            if (khongDo.isNotEmpty()) {
-                append("\n\nBài ôn không viết mực đỏ: ").append(khongDo.joinToString(", "))
-                append(". Tablet sẽ chưa cộng giờ, chờ bấm Duyệt.")
-            }
             // Ban chi co anh thi Claude doc anh vo nhu lan nop chup kem, xem VoDaSoat.chuaDoc.
             val soat = bai.voDaSoat?.daDoc
             if (soat != null) append("\n\n").append(noiVoDaSoat(soat, ket))
             else if (bai.anh.any { it.laDanDo }) append("\n\n").append(noiDanDo(ket.danDo))
+            // Bai may da cham ma chua duyet cung di duong nay, xem NhoClaude.chamMoi.
+            if (!bai.cham?.cac.isNullOrEmpty() && bai.dangCho) {
+                append("\n\nMáy đã chấm nhưng chưa duyệt bài này, nên tablet tính phút theo ")
+                append("bản của Claude thay cho bản của máy.")
+            }
             append("\n\n")
             append(
                 if (bai.dangCho) "Tablet tính phút theo luật rồi báo trên Telegram."
@@ -466,7 +471,6 @@ class BaiActivity : AppCompatActivity() {
                     put("conViet", it.conViet)
                     put("goiY", it.goiY)
                     put("soDong", it.soDong)
-                    put("mucDo", it.mucDo)
                     put("de", it.de)
                     put("dang", it.dang)
                     it.trongDanDo?.let { t -> put("trongDanDo", t) }
@@ -723,7 +727,6 @@ class BaiActivity : AppCompatActivity() {
             // Bai da xoa) thi la nut Khoi phuc.
             b.nutDuyet.visibility = View.GONE
             b.nutTuChoi.visibility = View.GONE
-            b.nutSoPhutKhac.visibility = View.GONE
             b.nutXoa.visibility = if (bai.an) View.GONE else View.VISIBLE
             b.nutXoa.setOnClickListener { xoa(bai) }
             b.nutKhoiPhuc.visibility = if (bai.an) View.VISIBLE else View.GONE
@@ -747,14 +750,8 @@ class BaiActivity : AppCompatActivity() {
             b.nutDuyet.text = getString(R.string.bai_duyet)
             b.nutDuyet.setOnClickListener { hoiSoPhut(bai) }
         }
-        // Doi so phut: nut chu ngay tren hang nut, de ai cung thay. Giu lau nut Duyet
-        // van mo cung hop do, lam loi tat cho nguoi da quen.
-        b.nutSoPhutKhac.visibility = View.VISIBLE
-        b.nutSoPhutKhac.setOnClickListener { hoiSoPhut(bai) }
-        b.nutDuyet.setOnLongClickListener {
-            hoiSoPhut(bai)
-            true
-        }
+        // Khong con cach doi so phut tren nut co so (27/9/2026, Ba Huy bo nut "Chọn số phút
+        // khác" va giu lau nut Duyet): so tren nut la so may hay Claude tinh theo luat.
         b.nutTuChoi.setOnClickListener { hoiTuChoi(bai) }
     }
 

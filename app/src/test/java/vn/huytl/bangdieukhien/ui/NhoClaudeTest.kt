@@ -193,6 +193,60 @@ class NhoClaudeTest {
         assertNull(NhoClaude.docKetQua(chu))
     }
 
+    // May cham roi ma bai van cho duyet: Claude cham luon, tablet tinh phut theo Claude.
+    private val cuaMay = KetQuaCham(
+        mon = "Toán",
+        cac = listOf(
+            CauCham(ma = "1", de = "Tính 2 + 3.", ketQua = "6", dung = false),
+            CauCham(ma = "2", de = "Tính 4 + 5.", ketQua = "9", dung = true, docRo = false)
+        )
+    )
+
+    @Test
+    fun may_cham_roi_ma_bai_con_cho_duyet_thi_claude_cham_luon() {
+        val homNay = baiChuaCham(null).copy(luc = System.currentTimeMillis(), cham = cuaMay)
+        assertTrue(NhoClaude.chamMoi(homNay))
+        // Da duyet, hay nop hom truoc (tablet da bo khoi hang cho): van cham lai nhu cu.
+        assertFalse(NhoClaude.chamMoi(homNay.copy(trangThai = Bai.DUYET)))
+        assertFalse(NhoClaude.chamMoi(homNay.copy(luc = 1_790_133_813_356L)))
+    }
+
+    @Test
+    fun loi_nho_cham_luon_bai_may_da_cham_noi_ro_va_chep_cau_cua_may() {
+        val bai = baiChuaCham(null).copy(luc = System.currentTimeMillis(), cham = cuaMay)
+        val chu = NhoClaude.loiNho(bai, "Lê Hòa")
+        assertTrue(chu.contains("đã chấm bài này nhưng chưa duyệt"))
+        assertTrue(chu.contains("1. Câu 1. Đề: Tính 2 + 3."))
+        assertTrue(chu.contains("Giữ nguyên mã câu như trên"))
+        // Hoi so dong nhu moi lan cham luon, va khong dua ket luan cua may cho Claude.
+        assertTrue(chu.contains("\"so_dong\""))
+        assertFalse(chu.contains("Máy chấm: sai"))
+        assertTrue(NhoClaude.laLoiNho(chu))
+        assertNull(NhoClaude.docKetQua(chu))
+    }
+
+    @Test
+    fun cau_ngoai_khai_lay_ma_va_de_cua_may() {
+        val bai = baiChuaCham(khai).copy(
+            luc = System.currentTimeMillis(),
+            cham = KetQuaCham(cac = cuaMay.cac + CauCham(ma = "2.28", de = "Đề của máy cho 2.28"))
+        )
+        val ket = NhoClaude.KetQuaDan(
+            "b77",
+            listOf(
+                CauClaude(ma = "Câu 1", dung = true, chac = true, conViet = "5", goiY = "", de = "Tinh 2+3"),
+                CauClaude(ma = "2.28", dung = true, chac = true, conViet = "A", goiY = ""),
+                CauClaude(ma = "7", dung = true, chac = true, conViet = "", goiY = "", de = "Câu máy bỏ sót")
+            )
+        )
+        val khop = NhoClaude.theoMay(ket, bai)
+        assertEquals(listOf("1", "2.28", "7"), khop.cac.map { it.ma })
+        assertEquals("Tính 2 + 3.", khop.cac[0].de)
+        // Cau trong khai da khop qua theoKhai, khong lay de cua may.
+        assertEquals("", khop.cac[1].de)
+        assertEquals("Câu máy bỏ sót", khop.cac[2].de)
+    }
+
     @Test
     fun loi_nho_cham_luon_khong_khai_thi_doi_claude_chep_de_va_xep_dang() {
         val chu = NhoClaude.loiNho(baiChuaCham(null), "Lê Hòa")
@@ -203,10 +257,11 @@ class NhoClaudeTest {
     }
 
     @Test
-    fun loi_nho_on_tap_hoi_mau_muc() {
+    fun loi_nho_on_tap_khong_con_hoi_mau_muc() {
+        // Ba Huy bo luat bai on phai viet but do ngay 27/9/2026.
         val chu = NhoClaude.loiNho(baiChuaCham(khai.copy(onTap = true)), "Lê Hòa")
-        assertTrue(chu.contains("bài ôn phải viết bằng mực đỏ"))
-        assertTrue(chu.contains("\"muc_do\":true hoặc false"))
+        assertFalse(chu.contains("mực đỏ"))
+        assertFalse(chu.contains("muc_do"))
         assertNull(NhoClaude.docKetQua(chu))
     }
 
@@ -279,24 +334,22 @@ class NhoClaudeTest {
     }
 
     @Test
-    fun doc_them_so_dong_mau_muc_de_va_dang() {
+    fun doc_them_so_dong_de_va_dang() {
+        // Claude ban cu co the con ghi "muc_do": bo qua, khong lam hong cau.
         val ket = NhoClaude.docKetQua(
             """{"bai":"b77","ket_qua":[""" +
                 """{"ma":"2.33a","dung":true,"chac":true,"con_viet":"40xy","so_dong":4,"muc_do":true},""" +
-                """{"ma":"3","dung":false,"con_viet":"","so_dong":"2","muc_do":false,"de":"Tính 2 + 3.","dang":"cau_nho"},""" +
-                """{"ma":"4","dung":true,"so_dong":-3,"muc_do":"đỏ"}]}"""
+                """{"ma":"3","dung":false,"con_viet":"","so_dong":"2","de":"Tính 2 + 3.","dang":"cau_nho"},""" +
+                """{"ma":"4","dung":true,"so_dong":-3}]}"""
         )!!
         val (a, b, c) = ket.cac
         assertEquals(4, a.soDong)
-        assertEquals(1, a.mucDo)
         assertEquals("", a.de)
         assertEquals(2, b.soDong)
-        assertEquals(0, b.mucDo)
         assertEquals("Tính 2 + 3.", b.de)
         assertEquals("CAU_NHO", b.dang)
-        // So am khong thanh so dong, va mau muc viet sai kieu la khong noi gi ve mau.
+        // So am khong thanh so dong.
         assertEquals(0, c.soDong)
-        assertEquals(-1, c.mucDo)
     }
 
     // ------------------------------------------------------------- vo dan do

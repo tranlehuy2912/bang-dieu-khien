@@ -431,6 +431,8 @@ data class CaiDat(
     /** App dung moi luc, ke ca gio ngu va gio di hoc. Tablet ban cu khong ghi truong nay. */
     val appMoiLuc: List<String> = emptyList(),
     val appChan: List<String> = emptyList(),
+    /** App mat mang khi tablet khoa. Tablet ban cu khong ghi truong nay. */
+    val appCatMang: List<String> = emptyList(),
     val appAi: List<String> = emptyList(),
     val gioiHanApp: Map<String, Int> = emptyMap()
 ) {
@@ -447,6 +449,7 @@ data class CaiDat(
                 appChoPhep = (d.get("appChoPhep") as? List<String>).orEmpty(),
                 appMoiLuc = (d.get("appMoiLuc") as? List<String>).orEmpty(),
                 appChan = (d.get("appChan") as? List<String>).orEmpty(),
+                appCatMang = (d.get("appCatMang") as? List<String>).orEmpty(),
                 appAi = (d.get("appAi") as? List<String>).orEmpty(),
                 gioiHanApp = (d.get("gioiHanApp") as? Map<String, Number>)
                     .orEmpty().mapValues { it.value.toInt() }

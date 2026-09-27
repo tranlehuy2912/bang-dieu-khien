@@ -127,6 +127,12 @@ class CaiDatFragment : Fragment() {
             muc("App chặn hẳn", "${c.appChan.size} app", "Không mở được kể cả trong giờ chơi") {
                 chonApp("App chặn hẳn", c.appChan) { guiCaiDat("appChan", it) }
             },
+            // Tablet cat mang cac app nay bang VPN luc bi khoa, ke ca khi app chay nen nhu
+            // cua so noi cua YouTube. Tablet ban cu tra loi "Khong co muc cai dat".
+            muc("Cắt mạng khi bị khoá", "${c.appCatMang.size} app",
+                "Mất mạng lúc hết giờ chơi, giờ ngủ, giờ học") {
+                chonApp("Cắt mạng khi bị khoá", c.appCatMang) { guiCaiDat("appCatMang", it) }
+            },
             muc("App AI ghi câu hỏi", "${c.appAi.size} app", "Ghi lại câu Lê Hòa hỏi AI") {
                 chonApp("App AI ghi câu hỏi", c.appAi) { guiCaiDat("appAi", it) }
             },

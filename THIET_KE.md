@@ -90,6 +90,9 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │                   ngủ và giờ đi học. Trước 27/09/2026 tên là "App luôn được dùng"
 │     appMoiLuc     app "Dùng mọi lúc": không khoá theo giờ nào, màn chặn giờ học và
 │                   việc nhà nhường cho nó. Danh sách cấm và giờ riêng vẫn áp dụng
+│     appCatMang    app mất mạng khi tablet khoá (hết giờ chơi, giờ ngủ, giờ học), kể
+│                   cả lúc chạy nền. Tablet cắt bằng VPN của chính nó, Ba Huy phải bấm
+│                   OK ở hộp thoại VPN trên tablet một lần. Thêm ngày 27/09/2026
 │     appChan, appAi, gioiHanApp, và các con số giờ
 ├── hop/danhsachapp             ◄── chỉ TABLET ghi (app đang cài, để chọn từ xa)
 ├── hop/dando                   ◄── chỉ TABLET ghi: vở dặn dò đang còn hiệu lực, cùng

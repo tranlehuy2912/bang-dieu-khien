@@ -10,9 +10,11 @@ import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.BaseAdapter
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.card.MaterialCardView
@@ -48,6 +50,10 @@ class CaiDatFragment : Fragment() {
     private var caiDat: CaiDat? = null
     private var dsApp: List<AppTrenMay> = emptyList()
 
+    /** Hop "Giờ riêng từng app" dang mo, va cach ve lai no khi tablet ghi so moi. */
+    private var hopGioRieng: AlertDialog? = null
+    private var veGioRieng: (() -> Unit)? = null
+
     override fun onCreateView(i: LayoutInflater, c: ViewGroup?, s: Bundle?): View {
         _b = FragmentCaiDatBinding.inflate(i, c, false)
         return b.root
@@ -75,12 +81,14 @@ class CaiDatFragment : Fragment() {
     override fun onDestroyView() {
         ngheXin?.remove()
         ngheXin = null
+        hopGioRieng?.dismiss()
         _b = null
         super.onDestroyView()
     }
 
     private fun ve() {
         if (_b == null) return
+        veGioRieng?.invoke()
         b.than.removeAllViews()
         val c = caiDat
 
@@ -123,6 +131,16 @@ class CaiDatFragment : Fragment() {
             // truong appMoiLuc nen dem ra 0 app.
             muc("Dùng mọi lúc", "${c.appMoiLuc.size} app", "Kể cả giờ ngủ, giờ học, lúc làm việc nhà") {
                 chonApp("Dùng mọi lúc", c.appMoiLuc) { guiCaiDat("appMoiLuc", it) }
+            },
+            // Hai muc duoi co tu 27/9/2026, cung thu tu voi Cai dat tren tablet. Truoc do
+            // may nay doc gioiHanApp ma khong hien o dau, con appNhac thi tablet chua gui.
+            muc("Giờ riêng từng app", "${c.gioiHanApp.size} app",
+                "Hết số phút là app khoá, kể cả trong giờ chơi") { moGioRieng() },
+            // Tablet ban cu khong biet muc nay thi tra loi "Khong co muc cai dat", va
+            // hop/caidat khong co truong appNhac nen dem ra 0 app.
+            muc("App được nghe nền", "${c.appNhac.size} app",
+                "Phát tiếng khi hết giờ chơi, trừ giờ ngủ, giờ học") {
+                chonApp("App được nghe nền", c.appNhac) { guiCaiDat("appNhac", it) }
             },
             muc("App chặn hẳn", "${c.appChan.size} app", "Không mở được kể cả trong giờ chơi") {
                 chonApp("App chặn hẳn", c.appChan) { guiCaiDat("appChan", it) }
@@ -342,6 +360,85 @@ class CaiDatFragment : Fragment() {
                 // roi khoi danh sach tren tablet ma khong ai hay.
                 val khongCo = dangChon.filter { goi -> dsApp.none { it.goi == goi } }
                 xong(dsApp.filterIndexed { i, _ -> da[i] }.map { it.goi } + khongCo)
+            }
+            .setNegativeButton(R.string.huy, null)
+            .show()
+    }
+
+    /**
+     * Hop dat so phut moi ngay cho tung app. Xem [GioRieng].
+     *
+     * Cham mot app la hoi so phut, chon xong la gui ngay, khong doi bam Xong: moi app
+     * mot con so rieng, khong co chuyen chon ca cum roi luu mot lan nhu cac danh sach
+     * app. Hop giu nguyen sau khi chon, va dong cua app do doi so khi tablet ghi lai
+     * hop/caidat. Tablet dang mat mang thi so cu nam nguyen, tab Bang bao lenh dang cho.
+     */
+    private fun moGioRieng() {
+        val c = caiDat ?: return
+        // Cham hai lan lien thi hop thu hai de len hop dau, va luc hop dau dong no xoa
+        // mat cach ve lai cua hop thu hai.
+        if (hopGioRieng?.isShowing == true) return
+        if (dsApp.isEmpty()) {
+            Dinh.noi(requireContext(), "Tablet chưa gửi danh sách app sang.")
+            return
+        }
+        val thuTu = GioRieng.thuTu(dsApp, c.gioiHanApp)
+        var cacDong = GioRieng.cacDong(thuTu, dsApp, c.gioiHanApp)
+
+        val bang = object : BaseAdapter() {
+            override fun getCount() = cacDong.size
+            override fun getItem(i: Int) = cacDong[i]
+            override fun getItemId(i: Int) = i.toLong()
+
+            override fun getView(i: Int, cu: View?, cha: ViewGroup): View {
+                val v = if (cu == null) {
+                    ItemMucBinding.inflate(layoutInflater, cha, false)
+                } else {
+                    ItemMucBinding.bind(cu)
+                }
+                val d = cacDong[i]
+                // Le ngang bang tieu de hop, khong phai bang le cua the o man Cai dat.
+                v.root.setPaddingRelative(24.dp(), v.root.paddingTop, 24.dp(), v.root.paddingBottom)
+                v.ten.text = d.ten
+                v.giaTri.text = if (d.phut > 0) Dinh.phut(d.phut) else ""
+                val cd = caiDat
+                if (d.phut > 0 && cd != null) {
+                    v.phu.visibility = View.VISIBLE
+                    v.phu.text = GioRieng.khiHetGio(d.goi, cd)
+                } else {
+                    v.phu.visibility = View.GONE
+                }
+                v.root.setOnClickListener { hoiGioRieng(d) }
+                return v.root
+            }
+        }
+
+        veGioRieng = {
+            caiDat?.let { cacDong = GioRieng.cacDong(thuTu, dsApp, it.gioiHanApp) }
+            bang.notifyDataSetChanged()
+        }
+        hopGioRieng = MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Giờ riêng từng app")
+            .setAdapter(bang, null)
+            .setPositiveButton("Đóng", null)
+            .setOnDismissListener {
+                hopGioRieng = null
+                veGioRieng = null
+            }
+            .show()
+    }
+
+    /** Hoi so phut moi ngay cho mot app, cung cac muc voi man tren tablet. */
+    private fun hoiGioRieng(d: GioRieng.Dong) {
+        val muc = GioRieng.cacMuc(d.phut)
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(d.ten)
+            .setSingleChoiceItems(
+                muc.map { GioRieng.tenMuc(it) }.toTypedArray(),
+                muc.indexOf(d.phut)
+            ) { hop, i ->
+                hop.dismiss()
+                if (muc[i] != d.phut) guiCaiDat("gioiHanApp", mapOf(d.goi to muc[i]))
             }
             .setNegativeButton(R.string.huy, null)
             .show()

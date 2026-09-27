@@ -93,7 +93,12 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │     appCatMang    app mất mạng khi tablet khoá (hết giờ chơi, giờ ngủ, giờ học), kể
 │                   cả lúc chạy nền. Tablet cắt bằng VPN của chính nó, Ba Huy phải bấm
 │                   OK ở hộp thoại VPN trên tablet một lần. Thêm ngày 27/09/2026
-│     appChan, appAi, gioiHanApp, và các con số giờ
+│     appNhac       app "được nghe nền": phát tiếng được khi hết giờ chơi, trừ giờ ngủ
+│                   và giờ học. Tablet ghi từ 27/09/2026, bản cũ hơn không có
+│     gioiHanApp    { goi: số phút mỗi ngày }, mục "Giờ riêng từng app". Lệnh CAIDAT
+│                   gioiHanApp chỉ đổi các app có trong map gửi đi, 0 là bỏ. Bảng
+│                   điều khiển sửa được từ 27/09/2026, mỗi lần một app
+│     appChan, appAi, và các con số giờ
 ├── hop/danhsachapp             ◄── chỉ TABLET ghi (app đang cài, để chọn từ xa)
 ├── hop/dando                   ◄── chỉ TABLET ghi: vở dặn dò đang còn hiệu lực, cùng
 │                                   dạng với danDo trong bai/ kèm luc. Hết hiệu lực thì

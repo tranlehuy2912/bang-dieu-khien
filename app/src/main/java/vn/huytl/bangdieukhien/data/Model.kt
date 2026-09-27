@@ -431,9 +431,15 @@ data class CaiDat(
     /** App dung moi luc, ke ca gio ngu va gio di hoc. Tablet ban cu khong ghi truong nay. */
     val appMoiLuc: List<String> = emptyList(),
     val appChan: List<String> = emptyList(),
+    /**
+     * App duoc phat tieng khi het gio choi, tru gio ngu va gio di hoc. Tablet ghi truong
+     * nay tu 27/9/2026, ban cu hon thi khong co.
+     */
+    val appNhac: List<String> = emptyList(),
     /** App mat mang khi tablet khoa. Tablet ban cu khong ghi truong nay. */
     val appCatMang: List<String> = emptyList(),
     val appAi: List<String> = emptyList(),
+    /** Gio rieng tung app: goi -> so phut moi ngay. App khong co trong nay la khong dat. */
     val gioiHanApp: Map<String, Int> = emptyMap()
 ) {
     companion object {
@@ -449,6 +455,7 @@ data class CaiDat(
                 appChoPhep = (d.get("appChoPhep") as? List<String>).orEmpty(),
                 appMoiLuc = (d.get("appMoiLuc") as? List<String>).orEmpty(),
                 appChan = (d.get("appChan") as? List<String>).orEmpty(),
+                appNhac = (d.get("appNhac") as? List<String>).orEmpty(),
                 appCatMang = (d.get("appCatMang") as? List<String>).orEmpty(),
                 appAi = (d.get("appAi") as? List<String>).orEmpty(),
                 gioiHanApp = (d.get("gioiHanApp") as? Map<String, Number>)

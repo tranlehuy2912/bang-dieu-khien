@@ -719,19 +719,23 @@ class BaiActivity : AppCompatActivity() {
         if (!bai.dangCho) {
             // Bai da xu ly roi thi giau ca hai nut di. De lai mot nut "Duyệt" mo
             // duoc cho bai da duyet la co ngay bam hai lan thanh hai phien. Cho do
-            // chi con nut Xoa, de danh sach o tab Bai gon lai.
+            // chi con nut Xoa, de danh sach o tab Bai gon lai. Bai da xoa (mo tu tam
+            // Bai da xoa) thi la nut Khoi phuc.
             b.nutDuyet.visibility = View.GONE
             b.nutTuChoi.visibility = View.GONE
             b.nutSoPhutKhac.visibility = View.GONE
-            b.nutXoa.visibility = View.VISIBLE
+            b.nutXoa.visibility = if (bai.an) View.GONE else View.VISIBLE
             b.nutXoa.setOnClickListener { xoa(bai) }
-            b.khungNut.visibility = if (bai.an) View.GONE else View.VISIBLE
+            b.nutKhoiPhuc.visibility = if (bai.an) View.VISIBLE else View.GONE
+            b.nutKhoiPhuc.setOnClickListener { khoiPhuc(bai) }
+            b.khungNut.visibility = View.VISIBLE
             return
         }
         b.khungNut.visibility = View.VISIBLE
         b.nutDuyet.visibility = View.VISIBLE
         b.nutTuChoi.visibility = View.VISIBLE
         b.nutXoa.visibility = View.GONE
+        b.nutKhoiPhuc.visibility = View.GONE
 
         // Khong con so phut mac dinh (27/9/2026): bai da cham thi nut Duyet mang dung
         // so phut may tinh, chua cham thi nut Duyet mo hop chon so phut.
@@ -760,7 +764,17 @@ class BaiActivity : AppCompatActivity() {
         Kho.anBai(ct, listOf(bai.id), true) { kq ->
             if (kq is Kho.KetQua.Hong) Dinh.noi(ct, kq.viSao)
         }
-        Dinh.noi(ct, "Đã xoá khỏi danh sách. Nút Hiện lại nằm ở cuối danh sách bài.")
+        Dinh.noi(ct, "Đã xoá khỏi danh sách. Xem lại ở nút Bài đã xoá cuối danh sách.")
+        finish()
+    }
+
+    /** Dua bai da xoa ve lai danh sach o tab Bai roi dong man nay, ve lai tam Bai da xoa. */
+    private fun khoiPhuc(bai: Bai) {
+        val ct = applicationContext
+        Kho.anBai(ct, listOf(bai.id), false) { kq ->
+            if (kq is Kho.KetQua.Hong) Dinh.noi(ct, kq.viSao)
+        }
+        Dinh.noi(ct, "Đã khôi phục vào danh sách.")
         finish()
     }
 

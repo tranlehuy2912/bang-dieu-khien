@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.firestore.ListenerRegistration
@@ -24,6 +25,7 @@ import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.databinding.FragmentBaiBinding
 import vn.huytl.bangdieukhien.databinding.ItemBaiBinding
+import vn.huytl.bangdieukhien.databinding.TamBaiDaXoaBinding
 import vn.huytl.bangdieukhien.telegram.TaiAnh
 
 /**
@@ -32,20 +34,33 @@ import vn.huytl.bangdieukhien.telegram.TaiAnh
  * Chi hien mot dong tom tat va vai tam anh nho. Bam vao mot dong moi mo man chi
  * tiet - cho do moi tai anh to va goi ban cham cua AI ra.
  *
- * Bai da xong co nut Xoa, dau danh sach co nut xoa het bai da xong, cuoi danh sach co
- * nut hien lai. Xoa chi an bai khoi danh sach nay, xem [Kho.anBai].
+ * Bai da xong co nut Xoa, dau danh sach co nut xoa het bai da xong. Xoa chi an bai
+ * khoi danh sach nay, xem [Kho.anBai]. Cuoi danh sach co nut nho "Bài đã xoá (3)" mo
+ * mot tam keo tu duoi len, moi bai da xoa mot nut Khoi phuc.
+ *
+ * Truoc 27/9/2026 cho nut nho do la mot dong chu "Hiện lại 3 bài đã xoá" rong het man,
+ * bam la dua ca ba bai ve mot luot, khong xem truoc duoc do la nhung bai nao.
  */
 class BaiFragment : Fragment() {
 
     private var _b: FragmentBaiBinding? = null
     private val b get() = _b!!
     private var nghe: ListenerRegistration? = null
-    private val bo = Bo()
-    private val dau = DongNut { xoaHetBaiXong() }
-    private val cuoi = DongNut { hienLai() }
+    private val bo = Bo(daXoa = false)
+    private val dau = DongNut(R.layout.item_nut_danh_sach) { xoaHetBaiXong() }
+    private val cuoi = DongNut(R.layout.item_nut_bai_da_xoa) { moBaiDaXoa() }
 
-    /** Ca danh sach vua doc ve, ke ca bai da xoa: nut hien lai can biet do la nhung bai nao. */
+    /** Ca danh sach vua doc ve, ke ca bai da xoa. */
     private var tatCa: List<Bai> = emptyList()
+
+    /**
+     * Cac bai da xoa, cho tam keo len. Song theo fragment nhu [bo] va cung doi moi lan
+     * Firestore goi lai, nen tam dang mo thay ngay bai vua khoi phuc bien di.
+     */
+    private val boDaXoa = Bo(daXoa = true)
+
+    /** Tam bai da xoa dang mo, null khi dong. */
+    private var tamDaXoa: BottomSheetDialog? = null
 
     override fun onCreateView(i: LayoutInflater, c: ViewGroup?, s: Bundle?): View {
         _b = FragmentBaiBinding.inflate(i, c, false)
@@ -55,6 +70,7 @@ class BaiFragment : Fragment() {
     override fun onViewCreated(view: View, s: Bundle?) {
         b.danhSach.layoutManager = LinearLayoutManager(requireContext())
         b.danhSach.adapter = ConcatAdapter(dau, bo, cuoi)
+        b.nutDaXoaTrong.setOnClickListener { moBaiDaXoa() }
     }
 
     override fun onStart() {
@@ -77,20 +93,31 @@ class BaiFragment : Fragment() {
         // thi moi lan doi tab lai de lai mot danh sach cu (ca anh nho) treo tren adapter.
         _b?.danhSach?.adapter = null
         _b = null
+        // Tam la mot cua so rieng: khong dong thi no con treo lai sau khi xoay man.
+        tamDaXoa?.dismiss()
         super.onDestroyView()
     }
 
     private fun ve(ds: List<Bai>) {
         tatCa = ds
         val hien = ds.filter { !it.an }
+        val daXoa = ds.filter { it.an }
         val soXong = hien.count { it.xong }
-        val soAn = ds.size - hien.size
         // Mot bai xong thi nut Xoa ngay tren dong do la du.
         dau.dat(if (soXong >= 2) "Xoá hết $soXong bài đã xong" else null)
         bo.dat(hien)
-        cuoi.dat(if (soAn > 0) "Hiện lại $soAn bài đã xoá" else null)
+
+        val chuDaXoa = if (daXoa.isEmpty()) null else getString(R.string.bai_da_xoa_nut, daXoa.size)
+        // Danh sach trong thi nut nam duoi dong chu giua man, thay cho dong cuoi danh sach.
+        cuoi.dat(if (hien.isEmpty()) null else chuDaXoa)
+        b.nutDaXoaTrong.text = chuDaXoa
+        b.nutDaXoaTrong.visibility = if (chuDaXoa != null) View.VISIBLE else View.GONE
         b.trong.setText(if (ds.isEmpty()) R.string.bai_trong else R.string.bai_da_xoa_het)
-        b.trong.visibility = if (hien.isEmpty()) View.VISIBLE else View.GONE
+        b.khungTrong.visibility = if (hien.isEmpty()) View.VISIBLE else View.GONE
+
+        boDaXoa.dat(daXoa)
+        // Khoi phuc het roi thi tam khong con gi de xem.
+        if (daXoa.isEmpty()) tamDaXoa?.dismiss()
     }
 
     private fun xoa(bai: Bai) =
@@ -117,15 +144,42 @@ class BaiFragment : Fragment() {
             .show()
     }
 
-    private fun hienLai() {
+    /**
+     * Mo tam bai da xoa.
+     *
+     * Tam chu khong phai mot man rieng: van la danh sach vua doc ve, khong phai doc lai
+     * Firestore lan nua, va keo xuong la ve dung cho cu trong danh sach.
+     */
+    private fun moBaiDaXoa() {
+        if (tamDaXoa != null) return
+        val tam = BottomSheetDialog(requireContext(), R.style.ThemeOverlay_BangDieuKhien_TamDuoi)
+        // Dung theme cua tam, xem ThemeOverlay.BangDieuKhien.TamDuoi.
+        val v = TamBaiDaXoaBinding.inflate(LayoutInflater.from(tam.context))
+        v.danhSach.layoutManager = LinearLayoutManager(tam.context)
+        v.danhSach.adapter = boDaXoa
+        tamDaXoa = tam.apply {
+            setContentView(v.root)
+            setOnDismissListener {
+                v.danhSach.adapter = null
+                tamDaXoa = null
+            }
+            show()
+        }
+    }
+
+    /**
+     * Dua mot bai ve lai danh sach. Khong co thanh bao: bai do bien khoi tam ngay truoc
+     * mat, va muon xoa lai thi nut Xoa van nam tren dong cua no.
+     */
+    private fun khoiPhuc(bai: Bai) {
         val ct = requireContext().applicationContext
-        val ids = tatCa.filter { it.an }.map { it.id }
-        Kho.anBai(ct, ids, false) { kq -> if (kq is Kho.KetQua.Hong) Dinh.noi(ct, kq.viSao) }
+        Kho.anBai(ct, listOf(bai.id), false) { kq -> if (kq is Kho.KetQua.Hong) Dinh.noi(ct, kq.viSao) }
     }
 
     private fun Int.dp(): Int = (this * resources.displayMetrics.density).toInt()
 
-    private inner class Bo : RecyclerView.Adapter<O>() {
+    /** [daXoa] la danh sach trong tam bai da xoa: nut Khoi phuc thay cho nut Xoa. */
+    private inner class Bo(private val daXoa: Boolean) : RecyclerView.Adapter<O>() {
         private var cac: List<Bai> = emptyList()
 
         /**
@@ -148,7 +202,7 @@ class BaiFragment : Fragment() {
         }
 
         override fun onCreateViewHolder(cha: ViewGroup, kieu: Int) =
-            O(ItemBaiBinding.inflate(layoutInflater, cha, false))
+            O(ItemBaiBinding.inflate(LayoutInflater.from(cha.context), cha, false), daXoa)
 
         override fun getItemCount() = cac.size
 
@@ -161,7 +215,7 @@ class BaiFragment : Fragment() {
      * Nam trong danh sach chu khong ghim tren dau man hinh, nen cuon xuong la khuat va
      * khong chiem cho cua cac bai.
      */
-    private inner class DongNut(private val bam: () -> Unit) :
+    private inner class DongNut(private val khuon: Int, private val bam: () -> Unit) :
         RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         private var chu: String? = null
 
@@ -178,17 +232,18 @@ class BaiFragment : Fragment() {
         override fun getItemCount() = if (chu == null) 0 else 1
 
         override fun onCreateViewHolder(cha: ViewGroup, kieu: Int): RecyclerView.ViewHolder {
-            val nut = layoutInflater.inflate(R.layout.item_nut_danh_sach, cha, false)
-            nut.setOnClickListener { bam() }
-            return object : RecyclerView.ViewHolder(nut) {}
+            val dong = layoutInflater.inflate(khuon, cha, false)
+            dong.findViewById<MaterialButton>(R.id.nut).setOnClickListener { bam() }
+            return object : RecyclerView.ViewHolder(dong) {}
         }
 
         override fun onBindViewHolder(o: RecyclerView.ViewHolder, i: Int) {
-            (o.itemView as MaterialButton).text = chu
+            o.itemView.findViewById<MaterialButton>(R.id.nut).text = chu
         }
     }
 
-    private inner class O(private val v: ItemBaiBinding) : RecyclerView.ViewHolder(v.root) {
+    private inner class O(private val v: ItemBaiBinding, private val daXoa: Boolean) :
+        RecyclerView.ViewHolder(v.root) {
 
         fun gan(bai: Bai) {
             val ct = requireContext()
@@ -212,8 +267,10 @@ class BaiFragment : Fragment() {
             v.nhan.setTextColor(ContextCompat.getColor(ct, mau))
             v.nhan.backgroundTintList = ContextCompat.getColorStateList(ct, nen)
 
-            v.nutXoa.visibility = if (bai.xong) View.VISIBLE else View.GONE
+            v.nutXoa.visibility = if (bai.xong && !daXoa) View.VISIBLE else View.GONE
             v.nutXoa.setOnClickListener { xoa(bai) }
+            v.nutKhoiPhuc.visibility = if (daXoa) View.VISIBLE else View.GONE
+            v.nutKhoiPhuc.setOnClickListener { khoiPhuc(bai) }
 
             val cham = bai.cham
             val cl = bai.claude
@@ -227,7 +284,9 @@ class BaiFragment : Fragment() {
                 else -> getString(R.string.bai_ai_chua_cham)
             }
 
-            veAnh(bai)
+            // Trong tam bai da xoa chi can nhan ra bai nao, dong gon thi thay duoc nhieu
+            // bai mot luc. Muon xem anh thi bam vao dong.
+            if (daXoa) v.hangAnh.visibility = View.GONE else veAnh(bai)
             v.root.setOnClickListener {
                 startActivity(
                     Intent(requireContext(), BaiActivity::class.java)

@@ -166,8 +166,9 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │             lại lần đọc đầu tiên
 │     chamClaude  kết quả Claude chấm lại mà Ba Huy dán vào: { luc, cac[] }.
 │             Nằm cạnh cham, không ghi đè lên nó
-│     anKhoiDanhSach  true khi Ba Huy bấm Xoá ở tab Bài. Chỉ ẩn khỏi danh sách
-│             bên điện thoại; document vẫn còn vì trang Bài đã chấm trên tablet đọc nó
+│     anKhoiDanhSach  true khi Ba Huy bấm Xoá ở tab Bài, false khi bấm Khôi phục
+│             trong tấm "Bài đã xoá". Chỉ ẩn khỏi danh sách bên điện thoại; document
+│             vẫn còn vì trang Bài đã chấm trên tablet đọc nó
 │
 ├── socai/{cauId}_{luc}         ◄── chỉ TABLET ghi, mỗi lần chấm một câu là một document
 │                               sổ cái, để cài lại app thì kéo về được (keoSoVe)

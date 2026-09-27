@@ -72,6 +72,10 @@
     <string name="bai_xoa_khoi_danh_sach">Xoá khỏi danh sách</string>
     <string name="bai_da_xoa_het">Không còn bài nào trong danh sách.</string>
     <string name="bai_hoan_tac">Hoàn tác</string>
+    <string name="bai_da_xoa">Bài đã xoá</string>
+    <string name="bai_da_xoa_nut">Bài đã xoá (%1$d)</string>
+    <string name="bai_khoi_phuc">Khôi phục</string>
+    <string name="bai_khoi_phuc_vao_danh_sach">Khôi phục vào danh sách</string>
 
     <!-- Chung -->
     <string name="huy">Huỷ</string>

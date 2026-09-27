@@ -83,4 +83,38 @@
         <item name="android:paddingEnd">8dp</item>
         <item name="cornerRadius">16dp</item>
     </style>
+
+    <!-- Nut nho mo danh sach bai da xoa: viec lau lau moi lam, nen mau nhat va vua chu. -->
+    <style name="Nut.DaXoa" parent="Widget.Material3.Button.OutlinedButton.Icon">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/ink_soft</item>
+        <item name="android:minHeight">40dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingLeft">14dp</item>
+        <item name="android:paddingRight">16dp</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="icon">@drawable/ic_xoa_viec</item>
+        <item name="iconSize">18dp</item>
+        <item name="iconPadding">6dp</item>
+        <item name="iconTint">@color/ink_mo</item>
+        <item name="strokeColor">@color/line</item>
+    </style>
+
+    <!--
+      Tam keo tu duoi len: nen cung mau nen man, cho the bai trang noi len nhu o danh
+      sach chinh. Khong dat thi Material3 lay mau nen pha tim.
+
+      Tat lop phu theo do cao: tam nam cao hon man chinh, va Material3 phu mot lop mau
+      chu dao len moi the co nen trang nam tren no, ra the xanh nhat thay vi trang.
+    -->
+    <style name="ThemeOverlay.BangDieuKhien.TamDuoi" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/TamDuoi</item>
+        <item name="elevationOverlayEnabled">false</item>
+    </style>
+
+    <style name="TamDuoi" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="backgroundTint">@color/canvas</item>
+    </style>
 </resources>

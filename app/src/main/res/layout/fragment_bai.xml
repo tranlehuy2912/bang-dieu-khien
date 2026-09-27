@@ -13,13 +13,32 @@
         android:paddingBottom="24dp"
         android:scrollbars="none" />
 
-    <TextView
-        android:id="@+id/trong"
+    <!-- Danh sach trong. Con bai da xoa thi nut mo chung nam ngay duoi dong chu, khong
+         treo mot minh tren dinh man. -->
+    <LinearLayout
+        android:id="@+id/khungTrong"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
         android:padding="32dp"
-        android:text="@string/bai_trong"
-        android:textColor="@color/ink_mo"
-        android:visibility="gone" />
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/trong"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/bai_trong"
+            android:textColor="@color/ink_mo" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/nutDaXoaTrong"
+            style="@style/Nut.DaXoa"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:visibility="gone" />
+    </LinearLayout>
 </FrameLayout>

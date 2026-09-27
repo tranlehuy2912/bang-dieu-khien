@@ -11,6 +11,8 @@
 
     <color name="wait">#E8A22B</color>
     <color name="wait_soft">#FEF5E5</color>
+    <!-- Chu tren nen wait_soft. Mau wait thi nhat qua, doc khong ro tren nen vang nhat. -->
+    <color name="wait_ink">#7A5200</color>
 
     <color name="locked">#8A6A52</color>
     <color name="locked_soft">#F5EDE7</color>

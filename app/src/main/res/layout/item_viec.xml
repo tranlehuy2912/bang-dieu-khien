@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Mot dong trong the Viec nha: ten viec va so phut ben trai, nut ben phai.
+<!-- Mot viec trong dot dang chay: ten va so phut ben trai, Bo va Xong ben phai. Viec
+     da xong thi hai nut nhuong cho dong chu "Da xong" mau xanh: mot nut xam tat thi
+     nhin nhu con bam duoc.
 
-     Mot khuon cho ca hai canh: luc chon viec de giao (nut Chon) va luc dot dang
-     chay (nut Bo va Xong). Giong dong viec tren may ba noi, chi nho hon: Ba Huy
-     khong can chu to nhu ba. -->
+     Giong dong viec tren may ba noi, chi nho hon: Ba Huy khong can chu to nhu ba. Luc
+     chon viec de giao thi dung item_chon_viec. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
@@ -36,16 +38,31 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/nutPhu"
-        style="@style/Widget.Material3.Button.TextButton"
+        style="@style/Nut.Chu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:minWidth="48dp"
+        android:textColor="@color/ink_soft"
         android:visibility="gone" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/nutChinh"
+        style="@style/Nut.Vua"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:minWidth="92dp" />
+        android:layout_marginStart="4dp" />
+
+    <TextView
+        android:id="@+id/daXong"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:drawablePadding="4dp"
+        android:gravity="center_vertical"
+        android:paddingEnd="4dp"
+        android:text="@string/viec_da_xong"
+        android:textColor="@color/ok"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:drawableStartCompat="@drawable/ic_da_xong"
+        app:drawableTint="@color/ok" />
 </LinearLayout>

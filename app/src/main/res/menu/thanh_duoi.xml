@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Nam the. Hai the co viec phai bam (Bai tap, Viec nha) dung sat the Gio choi, the chi
+     de doc (Nhat ky) va Cai dat o cuoi. -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/tab_bang" android:icon="@drawable/ic_bang" android:title="@string/tab_bang" />
     <item android:id="@+id/tab_bai" android:icon="@drawable/ic_bai" android:title="@string/tab_bai" />
+    <item android:id="@+id/tab_viecnha" android:icon="@drawable/ic_viec_nha" android:title="@string/tab_viecnha" />
+    <item android:id="@+id/tab_nhatky" android:icon="@drawable/ic_nhat_ky" android:title="@string/tab_nhatky" />
     <item android:id="@+id/tab_caidat" android:icon="@drawable/ic_cai_dat" android:title="@string/tab_caidat" />
 </menu>

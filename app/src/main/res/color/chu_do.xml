@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chu mau do cua nut Khoa ngay, Bo het viec. Truoc day dat thang mau do, nen nut
+     bi tat trong luc gui lenh van do tuoi nhu dang bam duoc. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:alpha="0.38" android:color="@color/ink" android:state_enabled="false" />
+    <item android:color="@color/alert" />
+</selector>

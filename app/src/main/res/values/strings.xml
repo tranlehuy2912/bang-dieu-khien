@@ -7,8 +7,11 @@
     <string name="child_name">Lê Hòa</string>
 
     <!-- Thanh duoi -->
-    <string name="tab_bang">Bảng</string>
+    <!-- The dau truoc 27/9/2026 ten la "Bảng". Id van la tab_bang, lop van la BangFragment. -->
+    <string name="tab_bang">Giờ chơi</string>
     <string name="tab_bai">Bài tập</string>
+    <string name="tab_viecnha">Việc nhà</string>
+    <string name="tab_nhatky">Nhật ký</string>
     <string name="tab_caidat">Cài đặt</string>
 
     <!-- Ghep doi -->
@@ -37,12 +40,29 @@
     <string name="bang_cho_duyet">Đang chờ duyệt bài</string>
     <string name="bang_che_do_ba">Đang mở toàn bộ máy</string>
     <string name="bang_han_ngay">Hạn mức hôm nay</string>
-    <string name="bang_nhat_ky">Hôm nay</string>
-    <string name="bang_chua_co_gi">Hôm nay chưa có gì xảy ra.</string>
-    <string name="bang_hoi_ai">Hỏi AI hôm nay</string>
+    <string name="bang_da_duyet_ngay">Đã duyệt hôm nay</string>
+    <string name="bang_con_lai_ngay">Còn lại hôm nay</string>
+    <string name="bang_cho_choi">Cho chơi ngay</string>
+    <string name="bang_pin">Pin %1$d%%</string>
+    <string name="bang_pin_sac">Đang sạc %1$d%%</string>
+    <string name="bang_bai_cho">%1$d bài đang chờ duyệt</string>
+    <string name="bang_viec_cho">Việc nhà chưa xong</string>
+    <string name="bang_vo_chua_doc">Vở dặn dò chưa đọc được</string>
+    <string name="bang_vo_chup_luc">%1$s chụp lúc %2$s</string>
+    <string name="bang_tin_co">Dán tin của cô giáo</string>
+    <string name="bang_mo_may">Mở toàn bộ máy cho Ba Huy dùng</string>
+    <!-- Tab Nhat ky. Ba the duoi dong "Hom nay" nen ten the khong nhac lai chu hom nay. -->
+    <string name="bang_hom_nay">Hôm nay</string>
+    <string name="bang_nhat_ky">Nhật ký</string>
+    <string name="bang_chua_co_gi">Chưa có gì xảy ra.</string>
+    <string name="bang_xem_ca_ngay">Xem cả ngày (%1$d dòng)</string>
+    <string name="bang_thu_gon">Thu gọn</string>
+    <string name="bang_hoi_ai">Hỏi AI</string>
+    <string name="bang_so_cau">%1$d câu</string>
+    <string name="bang_xem_het_hoi_ai">Xem cả %1$d câu</string>
     <!-- "Chua ghi duoc" chu khong phai "chua hoi": may chi biet no ghi duoc gi, khong
          biet con co hoi bang cach nao khac hay khong. -->
-    <string name="bang_chua_hoi_ai">Hôm nay chưa ghi được câu hỏi AI nào.</string>
+    <string name="bang_chua_hoi_ai">Chưa ghi được câu hỏi nào.</string>
     <!-- Man nay hoi tablet mot cau moi lan mo ra, nen cau bao khong con la "so lieu
          co the cu" - mot loi canh bao khong lam gi duoc - ma la mot su that kem gio:
          tablet khong tra loi, va day la lan cuoi no noi gi. -->
@@ -52,11 +72,10 @@
 
     <!-- So dung app. Tablet chi gui so nay khi may nay go PING, nen chua co so thi
          gan nhu luon la tablet con ban app cu. -->
-    <string name="bang_dung_app">Dùng app hôm nay</string>
+    <string name="bang_dung_app">Dùng app</string>
     <string name="su_dung_title">Dùng app gì, lúc nào</string>
     <string name="su_dung_dang_lay">Đang lấy sổ dùng app…</string>
     <string name="su_dung_chua_gui">Tablet chưa gửi sổ dùng app. Tablet cần bản app Nộp bài mới; cập nhật xong thì mở lại app này.</string>
-    <string name="su_dung_xem">Chạm để xem từng khoảng giờ và các ngày trước</string>
 
     <!-- Bai tap -->
     <string name="bai_trong">Chưa có bài nào được nộp.</string>
@@ -84,16 +103,11 @@
 
     <!-- Viec nha. Chung document voi may ba noi, xem KhoiViecNha. -->
     <string name="viec_tieu_de">Việc nhà</string>
-    <string name="viec_chon">Chọn việc rồi bấm Giao. Tablet khoá đến khi bấm xong hết. Máy bà nội dùng chung danh sách này.</string>
-    <!-- Chua co hop/danhsachviec: hai may cung dung danh sach mac dinh viet san. -->
-    <string name="viec_chon_mac_dinh">Đang dùng danh sách mặc định, máy bà nội cũng dùng danh sách này. Bấm Sửa danh sách rồi Lưu để đổi cho cả hai máy.</string>
     <string name="viec_giao_nut">Giao %1$d việc (%2$d phút)</string>
-    <string name="viec_dang_lam">%1$s giao đợt này. %2$s làm xong việc nào thì bấm Xong việc đó.</string>
+    <string name="viec_dang_lam">%1$s giao %2$d việc, tổng %3$s.</string>
     <!-- %1$s la luc bam gan nhat, ke ca lan bam Gui lai, khong phai luc xong viec. -->
     <string name="viec_cho_nhan">Đã xong hết, đang chờ tablet nhận để cộng %2$d phút. Lần bấm gần nhất lúc %1$s.</string>
-    <string name="viec_bi_bo_qua">Đã xong hết nhưng tablet chưa nhận, nên chưa cộng %2$d phút. Lần bấm gần nhất lúc %1$s, đã quá %3$s nên tablet sẽ bỏ qua. Bấm Gửi lại.</string>
-    <string name="viec_chon_nut">Chọn</string>
-    <string name="viec_bo_chon">Bỏ chọn</string>
+    <string name="viec_bi_bo_qua">Đã xong hết nhưng tablet chưa nhận, nên chưa cộng %2$d phút. Lần bấm gần nhất lúc %1$s, đã quá %3$s nên tablet sẽ bỏ qua.</string>
     <string name="viec_xong">Xong</string>
     <string name="viec_bo">Bỏ</string>
     <string name="viec_da_xong">Đã xong</string>

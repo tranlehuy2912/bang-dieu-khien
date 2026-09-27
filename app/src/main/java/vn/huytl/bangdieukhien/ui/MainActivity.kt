@@ -14,8 +14,9 @@ import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.databinding.ActivityMainBinding
 
 /**
- * Khung cua app: ba the o thanh duoi, moi the mot man. The Nhan bo ngay 27/9/2026,
- * Le Hoa nhan tin voi ba bang Telegram that.
+ * Khung cua app: nam the o thanh duoi, moi the mot man. The Nhan bo ngay 27/9/2026,
+ * Le Hoa nhan tin voi ba bang Telegram that. Cung ngay do the Bang doi ten thanh Gio choi,
+ * va Viec nha, Nhat ky tach ra thanh hai the rieng.
  *
  * Chua ghep doi thi day thang sang [GhepDoiActivity] - khong co ma nha thi moi
  * man hinh deu rong, hien ra chi lam Ba Huy tuong app hong.
@@ -104,6 +105,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun taoThe(id: Int): Fragment = when (id) {
         R.id.tab_bai -> BaiFragment()
+        R.id.tab_viecnha -> ViecNhaFragment()
+        R.id.tab_nhatky -> NhatKyFragment()
         R.id.tab_caidat -> CaiDatFragment()
         else -> BangFragment()
     }
@@ -111,5 +114,10 @@ class MainActivity : AppCompatActivity() {
     /** Cho [BangFragment] day sang the bai tap khi Ba Huy bam vao o "đang chờ". */
     fun sangTheBai() {
         b.thanhDuoi.selectedItemId = R.id.tab_bai
+    }
+
+    /** Cho [BangFragment] day sang the Viec nha khi Ba Huy bam vao dong "Việc nhà chưa xong". */
+    fun sangTheViecNha() {
+        b.thanhDuoi.selectedItemId = R.id.tab_viecnha
     }
 }

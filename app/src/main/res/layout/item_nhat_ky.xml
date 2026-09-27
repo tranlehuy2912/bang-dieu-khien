@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mot dong nhat ky: gio mot cot, chu mot cot. Dong dai xuong hang thi chu vao thang
+     cot chu, khong chui xuong duoi con so gio.
+
+     Cot gio rong theo em chu khong theo dp: phong to chu he thong thi cot gian theo,
+     khong thi so gio dinh vao chu. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingVertical="3dp">
+
+    <TextView
+        android:id="@+id/gio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:minEms="3"
+        android:fontFeatureSettings="tnum"
+        android:textColor="@color/ink_mo"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/chu"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:lineSpacingExtra="2dp"
+        android:textColor="@color/ink"
+        android:textSize="14sp" />
+</LinearLayout>

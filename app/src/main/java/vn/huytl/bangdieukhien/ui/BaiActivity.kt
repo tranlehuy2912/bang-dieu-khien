@@ -136,7 +136,7 @@ class BaiActivity : AppCompatActivity() {
         val noi = when {
             bai.quaNgay() -> "Bài nộp hôm trước. Sang ngày mới tablet tự bỏ bài chưa duyệt " +
                 "khỏi hàng chờ, nên bài này không duyệt được nữa. Muốn cho giờ thì bấm " +
-                "Cho chơi ngay ở tab Bảng."
+                "Cho chơi ngay ở tab Giờ chơi."
             bai.trangThai == Bai.HUY -> "${Nha.tenCon(this)} đã huỷ lần nộp này để chụp lại."
             else -> return
         }

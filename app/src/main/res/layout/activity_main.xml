@@ -12,12 +12,20 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
+    <!-- Vach mong thay cho bong do cua thanh the: Material3 ve bong bang cach pha mau
+         xanh chu dao vao nen, nen thanh the ra xanh nhat va o sang cua the dang chon
+         chim vao do. -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/line" />
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/thanhDuoi"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/surface"
-        app:elevation="8dp"
+        app:elevation="0dp"
         app:labelVisibilityMode="labeled"
         app:menu="@menu/thanh_duoi" />
 </LinearLayout>

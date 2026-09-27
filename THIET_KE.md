@@ -102,7 +102,7 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 ├── hop/danhsachapp             ◄── chỉ TABLET ghi (app đang cài, để chọn từ xa)
 ├── hop/dando                   ◄── chỉ TABLET ghi: vở dặn dò đang còn hiệu lực, cùng
 │                                   dạng với danDo trong bai/ kèm luc. Hết hiệu lực thì
-│                                   tablet xoá. Máy không đọc được (chuaDoc) thì tab Bảng
+│                                   tablet xoá. Máy không đọc được (chuaDoc) thì tab Giờ chơi
 │                                   hiện thẻ "Nhờ Claude đọc vở"
 ├── hop/sudung                  ◄── chỉ TABLET ghi, và chỉ khi nhận PING: sổ dùng app
 │     doan[]    { goi, tu, den }: các khoảng Lê Hòa cầm máy, epoch ms theo giờ tablet
@@ -114,7 +114,7 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │
 ├── lenh/{id}                   ◄── ĐIỆN THOẠI ghi, tablet đọc rồi xoá
 │                                   Bảng điều khiển nghe cả hàng này: lệnh còn nằm đó là
-│                                   tablet chưa lấy, tab Bảng hiện ra kèm nút Rút lại
+│                                   tablet chưa lấy, tab Giờ chơi hiện ra kèm nút Rút lại
 │                                   (xoá document trước khi tablet lấy). Quá 30 phút thì
 │                                   ghi là tablet sẽ bỏ qua
 │     kieu   DUYET TUCHOI CHO BOT DUNG TIEP KHOA MOMAY DONGMAY XOAPIN CAIDAT

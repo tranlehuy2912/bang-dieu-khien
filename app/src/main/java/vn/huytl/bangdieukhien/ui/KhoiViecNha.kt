@@ -15,26 +15,26 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.firestore.ListenerRegistration
 import vn.huytl.bangdieukhien.R
 import vn.huytl.bangdieukhien.data.Duong
-import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.Nguoi
 import vn.huytl.bangdieukhien.data.ViecNha
 import vn.huytl.bangdieukhien.databinding.DongSuaViecBinding
-import vn.huytl.bangdieukhien.databinding.FragmentBangBinding
+import vn.huytl.bangdieukhien.databinding.FragmentViecNhaBinding
+import vn.huytl.bangdieukhien.databinding.ItemChonViecBinding
 import vn.huytl.bangdieukhien.databinding.ItemViecBinding
 
 /**
- * The Viec nha o man Bang: giao viec, bam xong, sua danh sach viec.
+ * Tab Viec nha: giao viec, bam xong, sua danh sach viec.
  *
- * Y het khoi viec nha tren may ba noi, va chung mot document: ba giao ben do thi the
+ * Y het khoi viec nha tren may ba noi, va chung mot document: ba giao ben do thi tab
  * nay hien ngay, Ba Huy bam xong o day thi may ba cung thay ngay. Moi lan bam la mot
  * transaction, xem [Kho.giaoViec].
  *
- * Tach khoi BangFragment vi khoi nay tu nghe hai document rieng va tu giu trang thai
- * rieng, khong dung chung gi voi phan lenh. BangFragment tao no trong onViewCreated,
- * bat nghe trong onStart, va goi [bo] trong onDestroyView.
+ * Tu nghe hai document rieng va tu giu trang thai rieng, khong dung chung gi voi phan
+ * lenh. [ViecNhaFragment] tao no trong onViewCreated, bat nghe trong onStart, va goi
+ * [bo] trong onDestroyView. Truoc 27/9/2026 khoi nay la mot the giua tab Bang.
  */
-class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
+class KhoiViecNha(private val ct: Context, private val b: FragmentViecNhaBinding) {
 
     /** Dot dang giao, doc tu Firestore. null la khong co dot nao. */
     private var dot: ViecNha.Dot? = null
@@ -63,7 +63,7 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
 
     /**
      * View cua man hinh con khong. Cau tra loi cua transaction co the ve sau khi
-     * BangFragment da bo view, luc do dung vao [b] la dung vao view da chet.
+     * tab da bo view, luc do dung vao [b] la dung vao view da chet.
      */
     private var conSong = true
 
@@ -110,7 +110,7 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
     }
 
     /**
-     * Goi moi giay tu BangFragment, trong luc man Bang dang mo.
+     * Goi moi giay tu [ViecNhaFragment], trong luc tab Viec nha dang mo.
      *
      * Canh "tablet bo qua" tinh theo gio: dot xong het nam do qua nua tieng. Khong co
      * nhip nay thi man mo san luc moc do di qua van ghi "dang cho tablet nhan", vi
@@ -134,54 +134,61 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
         if (!daCoDot || !daCoDanhSach) {
             b.hopViecNha.removeAllViews()
             veChu("", canhBao = false)
-            b.nutGiaoViec.visibility = View.GONE
-            b.nutBoHetViec.visibility = View.GONE
+            b.hangNutViec.visibility = View.GONE
             b.nutSuaViec.visibility = View.GONE
             return
         }
         val d = dot?.takeIf { it.cac.isNotEmpty() }
-        xepLai(dangCoDot = d != null)
         b.hopViecNha.removeAllViews()
         if (d == null) veChon() else veDot(d)
     }
 
-    /** Chua co dot nao: danh sach de tich, va nut giao. */
+    /**
+     * Chua co dot nao: danh sach de tich, va nut Giao khi da tich it nhat mot viec.
+     *
+     * Chi con cau bao hong o tren danh sach. Cau huong dan "chon roi bam Giao" da bo: o
+     * tich va chu tren nut da noi du. Chuyen may ba dung chung danh sach thi nam o hop
+     * Sua danh sach, cho nguoi ta dang sua no.
+     */
     private fun veChon() {
         val ds = danhSach()
         daChon.retainAll(ds.map { it.ten }.toSet())
-        veChu(
-            when {
-                loi.isNotEmpty() -> loi
-                danhSachChung == null -> ct.getString(R.string.viec_chon_mac_dinh)
-                else -> ct.getString(R.string.viec_chon)
-            },
-            canhBao = loi.isNotEmpty()
-        )
+        veChu(loi, canhBao = true)
+        val lop = LayoutInflater.from(ct)
         ds.forEach { v ->
-            themDong(
-                ten = v.ten,
-                phu = Dinh.phut(v.phut),
-                nhanChinh = ct.getString(
-                    if (v.ten in daChon) R.string.viec_bo_chon else R.string.viec_chon_nut
-                ),
-                chinhMo = !dangGui,
-                khiChinh = {
-                    if (!daChon.add(v.ten)) daChon.remove(v.ten)
-                    ve()
-                }
-            )
+            val dong = ItemChonViecBinding.inflate(lop, b.hopViecNha, false)
+            dong.tenViec.text = v.ten
+            dong.phutViec.text = Dinh.phut(v.phut)
+            dong.oTich.isChecked = v.ten in daChon
+            dong.oTich.isEnabled = !dangGui
+            dong.root.isEnabled = !dangGui
+            // Doi ngay tai cho chu khong ve lai ca danh sach: ve lai thi o tich vua bam
+            // mat hieu ung, va dong dang an bi thay giua chung.
+            dong.root.setOnClickListener {
+                if (!daChon.add(v.ten)) daChon.remove(v.ten)
+                dong.oTich.isChecked = v.ten in daChon
+                veNutGiao(ds)
+            }
+            b.hopViecNha.addView(dong.root)
         }
-        val phut = ds.filter { it.ten in daChon }.sumOf { it.phut }
-        b.nutGiaoViec.visibility = if (daChon.isEmpty()) View.GONE else View.VISIBLE
+        b.nutBoHetViec.visibility = View.GONE
+        veNutGiao(ds)
+        b.nutSuaViec.visibility = View.VISIBLE
+        b.nutSuaViec.isEnabled = !dangGui
+    }
+
+    private fun veNutGiao(ds: List<ViecNha.Viec>) {
+        val co = daChon.isNotEmpty()
+        b.hangNutViec.visibility = if (co) View.VISIBLE else View.GONE
+        b.nutGiaoViec.visibility = if (co) View.VISIBLE else View.GONE
         b.nutGiaoViec.isEnabled = !dangGui
         b.nutGiaoViec.text =
             if (dangGui) ct.getString(R.string.viec_dang_gui)
-            else ct.getString(R.string.viec_giao_nut, daChon.size, phut)
+            else ct.getString(
+                R.string.viec_giao_nut, daChon.size, ds.filter { it.ten in daChon }.sumOf { it.phut }
+            )
         // Gan lai moi lan ve: canh dot xong het cung dung nut nay cho viec Gui lai.
         b.nutGiaoViec.setOnClickListener { giao() }
-        b.nutBoHetViec.visibility = View.GONE
-        b.nutSuaViec.visibility = View.VISIBLE
-        b.nutSuaViec.isEnabled = !dangGui
     }
 
     /**
@@ -203,25 +210,34 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
                     Dinh.phut((Duong.QUA_CU_MS / 60_000L).toInt())
                 )
                 choNhan -> ct.getString(R.string.viec_cho_nhan, Dinh.lucNgan(d.luc), d.tongPhut)
-                else -> ct.getString(R.string.viec_dang_lam, nguoi, Nha.tenCon(ct))
+                else -> ct.getString(R.string.viec_dang_lam, nguoi, d.cac.size, Dinh.phut(d.tongPhut))
             },
             canhBao = loi.isNotEmpty() || boQua
         )
+        val lop = LayoutInflater.from(ct)
         d.cac.forEach { v ->
-            themDong(
-                ten = v.ten,
-                phu = if (v.xong) ct.getString(R.string.viec_da_xong) else Dinh.phut(v.phut),
-                nhanChinh = ct.getString(if (v.xong) R.string.viec_da_xong else R.string.viec_xong),
-                chinhMo = !v.xong && !dangGui,
-                khiChinh = { xong(d.maPhien, v.ten) },
-                nhanPhu = if (v.xong) null else ct.getString(R.string.viec_bo),
+            val dong = ItemViecBinding.inflate(lop, b.hopViecNha, false)
+            dong.tenViec.text = v.ten
+            dong.phuViec.text = Dinh.phut(v.phut)
+            if (v.xong) {
+                dong.nutChinh.visibility = View.GONE
+                dong.daXong.visibility = View.VISIBLE
+            } else {
+                dong.nutChinh.text = ct.getString(R.string.viec_xong)
+                dong.nutChinh.isEnabled = !dangGui
+                dong.nutChinh.setOnClickListener { xong(d.maPhien, v.ten) }
+                dong.nutPhu.visibility = View.VISIBLE
+                dong.nutPhu.text = ct.getString(R.string.viec_bo)
+                dong.nutPhu.isEnabled = !dangGui
                 // Bo viec duy nhat la bo het: tablet mo khoa ma khong cong phut nao. Nut Bo
                 // nam sat nut Xong, nen hoi lai y nhu nut Bo het.
-                khiPhu = {
+                dong.nutPhu.setOnClickListener {
                     if (d.cac.size == 1) hoiBoHet(d.maPhien) else boViec(d.maPhien, v.ten)
                 }
-            )
+            }
+            b.hopViecNha.addView(dong.root)
         }
+        b.hangNutViec.visibility = View.VISIBLE
         if (choNhan) {
             b.nutGiaoViec.visibility = View.VISIBLE
             b.nutGiaoViec.isEnabled = !dangGui
@@ -242,54 +258,10 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentBangBinding) {
 
     private fun veChu(chu: String, canhBao: Boolean) {
         b.chuViecNha.text = chu
+        b.chuViecNha.visibility = if (chu.isEmpty()) View.GONE else View.VISIBLE
         b.chuViecNha.setTextColor(
             ContextCompat.getColor(ct, if (canhBao) R.color.alert else R.color.ink_soft)
         )
-    }
-
-    private fun themDong(
-        ten: String,
-        phu: String,
-        nhanChinh: String,
-        chinhMo: Boolean,
-        khiChinh: () -> Unit,
-        nhanPhu: String? = null,
-        khiPhu: (() -> Unit)? = null
-    ) {
-        val d = ItemViecBinding.inflate(LayoutInflater.from(ct), b.hopViecNha, false)
-        d.tenViec.text = ten
-        d.phuViec.text = phu
-        d.nutChinh.text = nhanChinh
-        d.nutChinh.isEnabled = chinhMo
-        d.nutChinh.setOnClickListener { khiChinh() }
-        if (nhanPhu != null && khiPhu != null) {
-            d.nutPhu.visibility = View.VISIBLE
-            d.nutPhu.text = nhanPhu
-            d.nutPhu.isEnabled = !dangGui
-            d.nutPhu.setOnClickListener { khiPhu() }
-        }
-        b.hopViecNha.addView(d.root)
-    }
-
-    /**
-     * Dang co dot viec thi day ca nhan lan the len ngay duoi cac the bao o dau man
-     * (bai cho duyet, vo dan do).
-     *
-     * Luc do tablet dang khoa vi viec nha, va cai Ba Huy can bam la nut Xong - khong
-     * the de no nam duoi ca hang nut cho gio va tin cua co. Het dot thi tra ve cho cu,
-     * sau cac nut lenh va khoi lenh dang cho tablet: khoi do noi ve chinh cac nut vua
-     * bam, nen phai nam sat ngay duoi chung. May ba cung day khoi viec nha len y nhu vay.
-     */
-    private fun xepLai(dangCoDot: Boolean) {
-        val cot = b.theViecNha.parent as? LinearLayout ?: return
-        val moc = if (dangCoDot) b.theVoDanDo else b.hopLenhCho
-        // Dung cho roi thi thoi: doi cho view moi lan ve lai la moi lan man hinh nhay.
-        if (cot.indexOfChild(b.nhanViecNha) == cot.indexOfChild(moc) + 1) return
-        cot.removeView(b.nhanViecNha)
-        cot.removeView(b.theViecNha)
-        val dat = cot.indexOfChild(moc) + 1
-        cot.addView(b.nhanViecNha, dat)
-        cot.addView(b.theViecNha, dat + 1)
     }
 
     /**

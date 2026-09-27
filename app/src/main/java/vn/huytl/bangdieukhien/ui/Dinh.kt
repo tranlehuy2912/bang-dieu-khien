@@ -41,19 +41,22 @@ object Dinh {
     fun tenNgay(lui: Int): String = when (lui) {
         0 -> "hôm nay"
         1 -> "hôm qua"
-        else -> {
-            val c = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, -lui) }
-            val thu = when (c.get(Calendar.DAY_OF_WEEK)) {
-                Calendar.MONDAY -> "thứ hai"
-                Calendar.TUESDAY -> "thứ ba"
-                Calendar.WEDNESDAY -> "thứ tư"
-                Calendar.THURSDAY -> "thứ năm"
-                Calendar.FRIDAY -> "thứ sáu"
-                Calendar.SATURDAY -> "thứ bảy"
-                else -> "chủ nhật"
-            }
-            "$thu ${SimpleDateFormat("dd/MM", VN).format(c.time)}"
+        else -> thuVaNgay(lui)
+    }
+
+    /** "thứ tư 23/09", ke ca hom nay va hom qua: ngay [lui] ngay truoc hom nay. */
+    fun thuVaNgay(lui: Int): String {
+        val c = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, -lui) }
+        val thu = when (c.get(Calendar.DAY_OF_WEEK)) {
+            Calendar.MONDAY -> "thứ hai"
+            Calendar.TUESDAY -> "thứ ba"
+            Calendar.WEDNESDAY -> "thứ tư"
+            Calendar.THURSDAY -> "thứ năm"
+            Calendar.FRIDAY -> "thứ sáu"
+            Calendar.SATURDAY -> "thứ bảy"
+            else -> "chủ nhật"
         }
+        return "$thu ${SimpleDateFormat("dd/MM", VN).format(c.time)}"
     }
 
     /** Phut tu dau ngay thanh "21:30". */
@@ -110,7 +113,7 @@ object Dinh {
         Toast.makeText(context, chu, Toast.LENGTH_SHORT).show()
 
     /**
-     * Vi sao mot ngay so dung app trong. Chung cho the o tab Bang va man xem tung ngay, de
+     * Vi sao mot ngay so dung app trong. Chung cho the o tab Nhat ky va man xem tung ngay, de
      * hai cho noi cung mot cau cho cung mot canh.
      *
      * Ban cuoi tablet gui tu truoc ngay do: "chua ghi duoc app nao" luc nay la noi sai, vi

@@ -162,12 +162,11 @@ class NhatKyFragment : Fragment() {
     }
 
     /**
-     * The "Hoi AI hom nay": moi cau hai dong, gio va ten app nhat o tren, cau con go
-     * o duoi.
+     * The "Hoi AI hom nay": moi cau hai phan, gio va ten app nhat o tren, cau con go
+     * o duoi, xuong dong dung cho con xuong dong. Hai cau ngan nhau bang mot dong trong.
      *
-     * Tablet ghi moi cau thanh mot dong "23/09 17:36  [ChatGPT]  cau hoi", xem
-     * NhatKyAi ben do. Tach ra cho de doc; dong nao khong dung khuon thi hien nguyen
-     * dong chu khong bo, de khong mat chu nao cua con.
+     * Tablet ghi moi cau thanh mot dong, [DongHoiAi] tach ra. Dong nao khong dung khuon
+     * thi hien nguyen dong chu khong bo, de khong mat chu nao cua con.
      *
      * Ngay tren dong da bo: the nay chi co hom nay, ma document tren Firestore cung
      * dat ten theo ngay.
@@ -178,17 +177,16 @@ class NhatKyFragment : Fragment() {
         val sb = SpannableStringBuilder()
         dong.forEach { d ->
             if (sb.isNotEmpty()) sb.append("\n\n")
-            val m = KHUON_HOI_AI.matchEntire(d)
-            if (m == null) {
-                sb.append(d)
+            val c = DongHoiAi.tach(d)
+            if (c == null) {
+                sb.append(DongHoiAi.traXuongDong(d))
                 return@forEach
             }
-            val (gio, app, cau) = m.destructured
             val dau = sb.length
-            sb.append("$gio · $app")
+            sb.append("${c.gio} · ${c.app}")
             sb.setSpan(ForegroundColorSpan(nhat), dau, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             sb.setSpan(RelativeSizeSpan(0.9f), dau, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            sb.append("\n").append(cau)
+            sb.append("\n").append(c.cau)
         }
         return sb
     }
@@ -245,15 +243,6 @@ class NhatKyFragment : Fragment() {
     }
 
     companion object {
-        /**
-         * Khuon mot dong trong so hoi AI cua tablet: ngay, gio, [ten app], cau.
-         *
-         * Hai dau cach giua cac phan la dung nhu tablet ghi - xem NhatKyAi.ghi ben
-         * homework-gate. Doi khuon ben do ma quen doi o day thi khong hong gi: moi
-         * dong chi hien nguyen ban, xau hon mot chut.
-         */
-        private val KHUON_HOI_AI = Regex("""^\d{2}/\d{2} (\d{2}:\d{2}) {2}\[(.*?)\] {2}(.*)$""")
-
         /** Mot dong nhat ky tablet ghi: gio, hai dau cach, chu. Xem DayLog ben homework-gate. */
         private val KHUON_NHAT_KY = Regex("""^(\d{1,2}:\d{2}) {2}(.*)$""")
 

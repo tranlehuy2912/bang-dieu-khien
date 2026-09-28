@@ -179,7 +179,9 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │                               sổ cái, để cài lại app thì kéo về được (keoSoVe)
 │
 ├── nhatky/{yyyy-MM-dd}         ◄── chỉ TABLET ghi, gộp cả ngày vào một document
-└── hoiai/{yyyy-MM-dd}          ◄── chỉ TABLET ghi
+└── hoiai/{yyyy-MM-dd}          ◄── chỉ TABLET ghi. Mảng dong, mỗi câu một phần tử
+                                "dd/MM HH:mm  [app]  câu". Chỗ con xuống dòng ghi thành
+                                " ↵ " (từ 28/09/2026), điện thoại đổi lại khi vẽ thẻ
 ```
 
 Trước 27/09/2026 còn `chat/{id}`, hai bên cùng ghi, mỗi tin một document. Khung chat

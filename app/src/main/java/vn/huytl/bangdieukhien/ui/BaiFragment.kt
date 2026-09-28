@@ -108,8 +108,11 @@ class BaiFragment : Fragment() {
          * dong dau van la bai cu va tuong dien thoai chua nhan. Co dong "Xoá hết" o dau thi
          * dong do dung yen va bai moi hien ngay duoi no, nen truoc 28/9/2026 luc thay luc
          * khong. Dang cuon xuong xem bai cu thi thoi, khong keo len.
+         *
+         * Chua ve lan nao (vua xoay man) thi thoi: luc do canScrollVertically luon tra false,
+         * va cuon ve dau se bo mat cho dang cuon vua khoi phuc.
          */
-        val oDau = !b.danhSach.canScrollVertically(-1)
+        val oDau = b.danhSach.isLaidOut && !b.danhSach.canScrollVertically(-1)
         val hien = ds.filter { !it.an }
         val daXoa = ds.filter { it.an }
         val soXong = hien.count { it.xong }

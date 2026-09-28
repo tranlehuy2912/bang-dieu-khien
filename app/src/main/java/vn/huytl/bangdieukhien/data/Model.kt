@@ -198,7 +198,15 @@ data class KhaiBai(
     val bai: String,
     val mon: String,
     val onTap: Boolean,
-    val cac: List<Cau>
+    val cac: List<Cau>,
+    /**
+     * Lan nop nay la nop lai cac cau sai cua bai nao (ma bai). Rong la bai moi.
+     *
+     * Con bam "Nộp lại N câu sai" tren the mot bai o man ket qua cua tablet (tu 28/9/2026).
+     * Loi nho Claude luc do chi cho cham cau trong danh sach, va cau ngoai sach trong
+     * danh sach co cauId rong - xem [NhoClaude.theoKhai].
+     */
+    val suaBai: String = ""
 ) {
     data class Cau(val ma: String, val cauId: String, val de: String, val dang: String)
 }
@@ -375,7 +383,8 @@ data class Bai(
                 bai = m["bai"] as? String ?: "",
                 mon = m["mon"] as? String ?: "",
                 onTap = m["onTap"] as? Boolean ?: false,
-                cac = cac
+                cac = cac,
+                suaBai = m["suaBai"] as? String ?: ""
             )
         }
 
@@ -433,8 +442,6 @@ data class CaiDat(
     val gioDay: Int = 6 * 60,
     val tranPhutMoiNgay: Int = 120,
     val khoaCaiDat: Boolean = true,
-    /** Tablet co tu cham bai bang AI khong. Tat thi Ba Huy cham bang Claude. */
-    val chamBangAi: Boolean = true,
     val appChoPhep: List<String> = emptyList(),
     /** App dung moi luc, ke ca gio ngu va gio di hoc. Tablet ban cu khong ghi truong nay. */
     val appMoiLuc: List<String> = emptyList(),
@@ -459,7 +466,6 @@ data class CaiDat(
                 gioDay = (d.getLong("gioDay") ?: (6 * 60L)).toInt(),
                 tranPhutMoiNgay = (d.getLong("tranPhutMoiNgay") ?: 120L).toInt(),
                 khoaCaiDat = d.getBoolean("khoaCaiDat") ?: true,
-                chamBangAi = d.getBoolean("chamBangAi") ?: true,
                 appChoPhep = (d.get("appChoPhep") as? List<String>).orEmpty(),
                 appMoiLuc = (d.get("appMoiLuc") as? List<String>).orEmpty(),
                 appChan = (d.get("appChan") as? List<String>).orEmpty(),

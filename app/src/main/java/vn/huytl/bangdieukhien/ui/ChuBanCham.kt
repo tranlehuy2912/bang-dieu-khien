@@ -47,14 +47,14 @@ object ChuBanCham {
                 ).append(' ').append(tenCau(c.ma))
                 if (c.de.isNotBlank()) append("\nĐề: ").append(c.de.trim())
                 if (c.ketQua.isNotBlank()) append("\n$tenCon viết: ").append(c.ketQua.trim())
-                if (!c.docRo) append("\nAI đọc không rõ câu này")
+                if (!c.docRo) append("\nĐọc chưa chắc câu này")
                 if (c.nhanXet.isNotBlank()) append("\nNhận xét: ").append(c.nhanXet.trim())
                 // Cung dieu kien voi dong Claude tren the: chi ghi khi Claude chac va noi khac may.
                 val cl = bai.claude?.cua(c.ma)
                 if (cl != null && cl.chac && cl.dung != (c.docRo && c.dung)) {
                     append('\n')
                     append(
-                        if (cl.dung) "Claude: đúng, máy chấm nhầm"
+                        if (cl.dung) "Claude: đúng, lần chấm trước nhầm"
                         else "Claude: sai" + if (cl.goiY.isNotBlank()) ". ${cl.goiY.trim()}" else ""
                     )
                 }

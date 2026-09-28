@@ -102,7 +102,7 @@ class NhoClaudeTest {
     }
 
     @Test
-    fun loi_nho_co_ma_bai_va_dat_cach_cham_truoc_ket_luan_cua_may() {
+    fun loi_nho_co_ma_bai_va_dat_cach_cham_truoc_ket_luan_lan_truoc() {
         val bai = Bai(
             id = "b1308359",
             luc = 1_790_133_813_356L,
@@ -123,7 +123,7 @@ class NhoClaudeTest {
         assertTrue(chu.contains("bài tập về nhà của Lê Hòa"))
         assertTrue(chu.contains("Lê Hòa khai đang làm: SGK Toán 8 — tập một — trang 47."))
         assertTrue(chu.contains("\"bai\":\"b1308359\""))
-        assertTrue(chu.indexOf("Cách chấm từng câu") < chu.indexOf("Máy đọc Lê Hòa viết: 11000000000"))
+        assertTrue(chu.indexOf("Cách chấm từng câu") < chu.indexOf("Lần trước đọc Lê Hòa viết: 11000000000"))
     }
 
     @Test
@@ -176,14 +176,14 @@ class NhoClaudeTest {
         val chu = NhoClaude.loiNho(baiChuaCham(khai), "Lê Hòa")
 
         assertTrue(chu.contains("Nhờ bạn chấm bài tập về nhà của Lê Hòa"))
-        assertTrue(chu.contains("người chấm duy nhất"))
+        assertTrue(chu.contains("Bạn là người chấm bài này"))
         assertTrue(chu.contains("Lê Hòa khai đang làm: SGK Toán 8 — tập một — trang 47."))
         assertTrue(chu.contains("ảnh đề bài và ảnh vở bài làm"))
         assertTrue(chu.contains("2. Câu 2.33a. Đề: Rút gọn (2x + 5y)^2 − (2x − 5y)^2"))
         assertTrue(chu.contains("\"so_dong\""))
         assertTrue(chu.contains("\"bai\":\"b77\""))
-        // Khong co ket luan cua may nao de ke ra, va khong hoi mau muc khi khong on tap.
-        assertFalse(chu.contains("Máy đọc Lê Hòa viết"))
+        // Khong co ket luan cua lan cham nao de ke ra, va khong hoi mau muc khi khong on tap.
+        assertFalse(chu.contains("Lần trước đọc Lê Hòa viết"))
         assertFalse(chu.contains("muc_do"))
         // Cau trong sach da co de va dang, mau khong doi Claude chep lai.
         assertFalse(chu.contains("\"de\":\"chép đề"))
@@ -212,15 +212,15 @@ class NhoClaudeTest {
     }
 
     @Test
-    fun loi_nho_cham_luon_bai_may_da_cham_noi_ro_va_chep_cau_cua_may() {
+    fun loi_nho_cham_luon_bai_da_cham_noi_ro_va_chep_cau_lan_truoc() {
         val bai = baiChuaCham(null).copy(luc = System.currentTimeMillis(), cham = cuaMay)
         val chu = NhoClaude.loiNho(bai, "Lê Hòa")
-        assertTrue(chu.contains("đã chấm bài này nhưng chưa duyệt"))
+        assertTrue(chu.contains("đã được chấm một lần nhưng chưa duyệt"))
         assertTrue(chu.contains("1. Câu 1. Đề: Tính 2 + 3."))
         assertTrue(chu.contains("Giữ nguyên mã câu như trên"))
-        // Hoi so dong nhu moi lan cham luon, va khong dua ket luan cua may cho Claude.
+        // Hoi so dong nhu moi lan cham luon, va khong dua ket luan cua lan truoc cho Claude.
         assertTrue(chu.contains("\"so_dong\""))
-        assertFalse(chu.contains("Máy chấm: sai"))
+        assertFalse(chu.contains("Lần trước chấm: sai"))
         assertTrue(NhoClaude.laLoiNho(chu))
         assertNull(NhoClaude.docKetQua(chu))
     }
@@ -263,6 +263,72 @@ class NhoClaudeTest {
         assertFalse(chu.contains("mực đỏ"))
         assertFalse(chu.contains("muc_do"))
         assertNull(NhoClaude.docKetQua(chu))
+    }
+
+    // ------------------------------------------------------ nop lai cau sai
+
+    /** Lan nop lai cac cau sai cua mot bai, xem [KhaiBai.suaBai]. */
+    private val khaiNopLai = KhaiBai(
+        tenNguon = "SBT Toán 8 tập một",
+        bai = "sửa bài lúc 11:18",
+        mon = "Toán",
+        onTap = false,
+        cac = listOf(
+            KhaiBai.Cau("2.19b", "sbttoan8t1:2.19b", "Tính nhanh x^3 − 9x^2 + 27x − 27 tại x = 103.", "CAU_NHO"),
+            KhaiBai.Cau("câu 3", "", "She ___ (go) to school every day.", "")
+        ),
+        suaBai = "9210662f"
+    )
+
+    @Test
+    fun loi_nho_nop_lai_chi_cham_cau_trong_danh_sach() {
+        val chu = NhoClaude.loiNho(baiChuaCham(khaiNopLai), "Lê Hòa")
+        assertTrue(chu.contains("Chỉ chấm đúng các câu trong danh sách trên"))
+        assertTrue(chu.contains("Các câu Lê Hòa nộp lại, kèm đề:"))
+        // Lan nop lai khong duoc dan Claude them muc cho cau ngoai danh sach: do la cau da
+        // cham o lan truoc, con sua de len cung trang.
+        assertFalse(chu.contains("thêm một mục cho câu đó"))
+        // Cau ngoai sach khong co dang trong ngan hang: hoi Claude xep dang.
+        assertTrue(chu.contains("2. Câu câu 3. Đề: She ___ (go) to school every day. (câu ngoài sách"))
+        assertTrue(chu.contains("\"dang\":\"CAU_NHO\""))
+        assertTrue(NhoClaude.laLoiNho(chu))
+        assertNull(NhoClaude.docKetQua(chu))
+    }
+
+    @Test
+    fun loi_nho_bai_moi_van_cho_them_cau_ngoai_danh_sach() {
+        val chu = NhoClaude.loiNho(baiChuaCham(khai), "Lê Hòa")
+        assertTrue(chu.contains("thêm một mục cho câu đó"))
+        assertFalse(chu.contains("Chỉ chấm đúng các câu trong danh sách trên"))
+    }
+
+    @Test
+    fun theo_khai_lan_nop_lai_bo_cau_ngoai_danh_sach() {
+        val ket = NhoClaude.KetQuaDan(
+            "b77",
+            listOf(
+                CauClaude(ma = "2.19a", dung = true, chac = true, conViet = "1000000", goiY = ""),
+                CauClaude(ma = "2.19 b", dung = true, chac = true, conViet = "1000000", goiY = ""),
+                CauClaude(ma = "Câu 3", dung = false, chac = true, conViet = "go", goiY = "Dòng 1 sai.")
+            )
+        )
+        val khop = NhoClaude.theoKhai(ket, khaiNopLai)
+        assertEquals(listOf("2.19b", "câu 3"), khop.cac.map { it.ma })
+        // Bai moi thi van giu cau ngoai danh sach: do la bai con lam them.
+        assertEquals(3, NhoClaude.theoKhai(ket, khaiNopLai.copy(suaBai = "")).cac.size)
+    }
+
+    @Test
+    fun goi_y_viet_cu_the_khong_con_gioi_han_15_chu() {
+        // Ba Huy doc goi y 15 chu nhieu luc khong hieu (28/9/2026): viet cu the, van khong
+        // dua dap so, va khong dung dau ngoac kep de khoi JSON dan ve khong vo.
+        listOf(baiChuaCham(khai), baiChuaCham(khaiNopLai)).forEach { bai ->
+            val chu = NhoClaude.loiNho(bai, "Lê Hòa")
+            assertFalse(chu.contains("15 chữ"))
+            assertTrue(chu.contains("từ 2 đến 4 câu"))
+            assertTrue(chu.contains("Không viết đáp số cuối cùng"))
+            assertTrue(chu.contains("không dùng dấu ngoặc kép"))
+        }
     }
 
     @Test

@@ -125,8 +125,9 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │            CHOGOAPP    tắt quản trị thiết bị để gỡ app
 │            PING        hỏi tablet ngay, tablet đẩy một bản trạng thái đầy đủ
 │                        và sổ dùng app
-│            SUACHAM     sửa bản chấm của máy theo kết quả Claude chấm lại
-│            CHAMBAI     bản chấm đầu tiên do Claude chấm (tablet tắt AI, hay AI hỏng)
+│            SUACHAM     sửa bản chấm đã có theo kết quả Claude chấm lại
+│            CHAMBAI     bản chấm đầu tiên do Claude chấm. Từ 28/09/2026 là đường chấm
+│                        duy nhất: tablet không tự chấm nữa
 │            TINCO       tin của cô giáo, không bị bỏ vì quá cũ
 │            DOCVO       kết quả Claude đọc tấm vở máy không đọc được, kèm chupLuc
 │                        để tablet chỉ ghi vào đúng tấm đó
@@ -161,9 +162,14 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │             là bài đã hết chờ; Bảng điều khiển hiện nó là "Quá ngày"
 │     anh[]   { fileId, khau: DAN_DO|DE_BAI|BAI_GIAI }
 │             (Bảng điều khiển đọc được cả DANDO|DEBAI|BAIGIAI)
-│     cham    kết quả AI chấm, nếu có
+│     cham    bản chấm tablet ghi sau khi tính phút theo kết quả Claude (bài nộp
+│             trước 28/09/2026 thì có thể là bản của máy chấm trên tablet)
 │     khai    các câu con khai trước khi chụp, kèm đề:
-│             { tenNguon, bai, mon, onTap, cac[] }
+│             { tenNguon, bai, mon, onTap, suaBai, cac[] }. suaBai chỉ có ở lần con
+│             nộp lại các câu sai của một bài (nút "Nộp lại N câu sai" trên thẻ bài ở
+│             màn kết quả tablet, từ 28/09/2026): là mã bài đó. Lúc ấy cac[] chỉ gồm
+│             các câu sai, câu ngoài sách có cauId rỗng và đề chép từ bản chấm cũ. Lời
+│             nhờ Claude chỉ cho chấm câu trong cac[], và tablet bỏ câu ngoài danh sách
 │     danDo   vở dặn dò của ngày, khi lần nộp không chụp trang vở: { ngay,
 │             cacBai[], dongKhac[], fileId, chuaDoc, nguon, chupLuc }. Ảnh trang vở
 │             cũng nằm cuối anh[] với khau DAN_DO. Claude chấm theo đúng ngày và danh

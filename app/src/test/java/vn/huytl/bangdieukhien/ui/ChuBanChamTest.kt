@@ -56,7 +56,7 @@ class ChuBanChamTest {
             Đề: Tính 10^9
             Lê Hòa viết: 1000000000
             Nhận xét: Thiếu chữ số 0.
-            Claude: đúng, máy chấm nhầm
+            Claude: đúng, lần chấm trước nhầm
 
             ✓ Câu 2.33a
             Đề: Rút gọn

@@ -120,6 +120,7 @@ class BaiActivity : AppCompatActivity() {
         b.than.removeAllViews()
 
         veViSaoHetCho(bai)
+        veNopLai(bai)
         veBanCham(bai)
         veNutClaude(bai)
         veAnh(bai)
@@ -145,6 +146,16 @@ class BaiActivity : AppCompatActivity() {
             else -> return
         }
         b.than.addView(theChu(noi))
+    }
+
+    /**
+     * Mot dong noi day la lan nop lai cac cau sai cua mot bai truoc (tu 28/9/2026 con nop
+     * lai bang nut tren the cua bai do o man ket qua tablet). Loi nho Claude luc nay chi
+     * cho cham cau trong danh sach. Xem [vn.huytl.bangdieukhien.data.KhaiBai.suaBai].
+     */
+    private fun veNopLai(bai: Bai) {
+        val khai = bai.khai?.takeIf { it.suaBai.isNotBlank() } ?: return
+        b.than.addView(theChu("Lần nộp lại các câu sai: ${khai.bai.ifBlank { "sửa bài cũ" }}."))
     }
 
     // ----------------------------------------------------------- nho Claude
@@ -271,21 +282,21 @@ class BaiActivity : AppCompatActivity() {
         val noi = buildString {
             append("Claude chấm đúng $dung/${ket.cac.size} câu.")
             if (thanhDung.isNotEmpty()) {
-                append("\n\nMáy bảo sai, Claude bảo đúng: ")
+                append("\n\nLần chấm trước bảo sai, Claude lần này bảo đúng: ")
                 append(thanhDung.joinToString(", ") { it.ma }).append(". ")
                 append("Tablet sẽ bỏ các câu này khỏi danh sách cần sửa của ")
                 append(getString(R.string.child_name)).append(" và cộng giờ theo luật.")
             }
             if (thanhSai.isNotEmpty()) {
-                append("\n\nMáy bảo đúng, Claude bảo sai: ")
+                append("\n\nLần chấm trước bảo đúng, Claude lần này bảo sai: ")
                 append(thanhSai.joinToString(", ") { it.ma }).append(". ")
                 append("Giờ của các câu này đã cộng rồi, tablet không rút lại.")
             }
             if (khongChac.isNotEmpty()) {
                 append("\n\nClaude đọc chưa chắc: ").append(khongChac.joinToString(", "))
-                append(". Các câu này vẫn giữ theo máy.")
+                append(". Các câu này vẫn giữ theo lần chấm trước.")
             }
-            if (thanhDung.isEmpty() && thanhSai.isEmpty()) append("\n\nClaude chấm giống máy.")
+            if (thanhDung.isEmpty() && thanhSai.isEmpty()) append("\n\nClaude chấm giống lần trước.")
         }
         MaterialAlertDialogBuilder(this)
             .setTitle("Kết quả của Claude")
@@ -354,10 +365,10 @@ class BaiActivity : AppCompatActivity() {
             val soat = bai.voDaSoat?.daDoc
             if (soat != null) append("\n\n").append(noiVoDaSoat(soat, ket))
             else if (bai.anh.any { it.laDanDo }) append("\n\n").append(noiDanDo(ket.danDo))
-            // Bai may da cham ma chua duyet cung di duong nay, xem NhoClaude.chamMoi.
+            // Bai da cham mot lan ma chua duyet cung di duong nay, xem NhoClaude.chamMoi.
             if (!bai.cham?.cac.isNullOrEmpty() && bai.dangCho) {
-                append("\n\nMáy đã chấm nhưng chưa duyệt bài này, nên tablet tính phút theo ")
-                append("bản của Claude thay cho bản của máy.")
+                append("\n\nBài này đã chấm một lần nhưng chưa duyệt, nên tablet tính phút theo ")
+                append("bản lần này thay cho bản trước.")
             }
             append("\n\n")
             append(
@@ -515,8 +526,8 @@ class BaiActivity : AppCompatActivity() {
             if (cham == null) {
                 b.than.addView(
                     theChu(
-                        if (NhoClaude.anhCanGui(bai).isEmpty()) getString(R.string.bai_ai_chua_cham)
-                        else "Máy chưa chấm bài này. Bấm \"Nhờ Claude chấm\" bên dưới để Claude chấm."
+                        if (NhoClaude.anhCanGui(bai).isEmpty()) "Bài chưa chấm."
+                        else "Bài chưa chấm. Bấm \"Nhờ Claude chấm\" bên dưới để Claude chấm."
                     )
                 )
                 return
@@ -582,13 +593,13 @@ class BaiActivity : AppCompatActivity() {
             if (c.ketQua.isNotBlank()) {
                 cot.addView(chu("Lê Hòa viết: ${c.ketQua}", 14f, mau = R.color.ink_soft))
             }
-            if (!c.docRo) cot.addView(chu("AI đọc không rõ câu này", 13f, mau = R.color.wait))
+            if (!c.docRo) cot.addView(chu("Đọc chưa chắc câu này", 13f, mau = R.color.wait))
             if (c.nhanXet.isNotBlank()) cot.addView(chu(c.nhanXet, 13f, mau = R.color.ink_mo))
             val cl = bai.claude?.cua(c.ma)
             if (cl != null && cl.chac && cl.dung != (c.docRo && c.dung)) {
                 cot.addView(
                     chu(
-                        if (cl.dung) "Claude: đúng, máy chấm nhầm"
+                        if (cl.dung) "Claude: đúng, lần chấm trước nhầm"
                         else "Claude: sai" + if (cl.goiY.isNotBlank()) ". ${cl.goiY}" else "",
                         13f, bold = true, mau = if (cl.dung) R.color.ok else R.color.alert
                     )

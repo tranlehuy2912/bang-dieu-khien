@@ -157,51 +157,10 @@ class CaiDatFragment : Fragment() {
             }
         ))
 
-        b.than.addView(tieu("Chấm bài"))
-        b.than.addView(nhom(
-            muc("Chấm bài bằng AI trên tablet", if (c.chamBangAi) "Bật" else "Tắt",
-                if (c.chamBangAi) "Máy tự chấm và tự cộng giờ" else "Ba chấm bằng Claude ở tab Bài") {
-                hoiChamBangAi(c.chamBangAi)
-            }
-        ))
+        // Khong con muc "Chấm bài bằng AI trên tablet" (bo ngay 28/9/2026): tablet khong con
+        // may cham nao de bat tat, bai nao cung cham bang Claude o tab Bai.
 
         veMucMay()
-    }
-
-    /**
-     * Hoi lai truoc khi doi cach cham, vi hai cach khac nhau o nhung cho de quen.
-     *
-     * Tat AI thi bai nop nam cho, khong ai cham cho den khi Ba Huy dan ket qua Claude.
-     * Vo dan do van nhu luc bat: con chup mot lan o man vo dan do, may doc cho con soat,
-     * va Claude cham theo dung danh sach do, nen tron goi 45 phut van tinh. May doc vo
-     * hong thi tablet gan tam anh vo vao bai, va Claude tu doc anh.
-     */
-    private fun hoiChamBangAi(dangBat: Boolean) {
-        val con = getString(R.string.child_name)
-        val (tieuDe, noi, nut) = if (dangBat) {
-            Triple(
-                "Tắt chấm bằng AI?",
-                "Bài $con nộp sẽ nằm chờ, máy không tự chấm và không tự cộng giờ. Mỗi bài, " +
-                    "mở tab Bài, bấm Nhờ Claude chấm, rồi dán kết quả của Claude về.\n\n" +
-                    "Vở dặn dò vẫn như cũ: $con chụp một lần đầu buổi, máy đọc cho $con soát, " +
-                    "và Claude chấm theo đúng danh sách $con đã soát. Gói 45 phút làm hết bài " +
-                    "cô giao vẫn tính như cũ.",
-                "Tắt"
-            )
-        } else {
-            Triple(
-                "Bật lại chấm bằng AI?",
-                "Máy sẽ tự chấm và tự cộng giờ mỗi lần $con nộp. Nút Nhờ Claude chấm lại " +
-                    "vẫn dùng được khi thấy máy chấm nhầm.",
-                "Bật"
-            )
-        }
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(tieuDe)
-            .setMessage(noi)
-            .setNegativeButton(R.string.huy, null)
-            .setPositiveButton(nut) { _, _ -> guiCaiDat("chamBangAi", !dangBat) }
-            .show()
     }
 
     private fun chepMaNha() {

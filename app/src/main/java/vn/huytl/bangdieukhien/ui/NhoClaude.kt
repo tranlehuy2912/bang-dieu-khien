@@ -29,6 +29,8 @@ import java.util.Locale
  * giai nham duoc. Bai nop luc 10:23 ngay 23/9/2026 la vi du: cau 2.32b bi doc chu
  * "b" thanh so 1 nen con dung ma thanh sai, con cau 2.33a thi may tu nhan sai roi
  * cham con sai. Ba Huy muon nho Claude cham lai ma khong phai ngoi truoc may Mac.
+ * Tu 28/9/2026 Ba Huy bo han may cham tren tablet: bai nao cung do Claude cham, qua
+ * dung duong nay.
  *
  * VI SAO LAM O APP NAY. Claude tren dien thoai khong tu lay duoc anh: bot Telegram
  * khong co lenh doc lai tin no da gui, va ma anh chi nam tren Firestore. App nay
@@ -46,10 +48,11 @@ import java.util.Locale
  * chi tiet bai bam "Dán kết quả của Claude", va [docKetQua] doc khoi do ra. Ma bai
  * trong khoi chan viec dan nham ket qua sang bai khac.
  *
- * HAI KIEU NHO. Bai may da cham va da xu xong thi Claude CHAM LAI: ket qua dan ve chi
- * sua nhung cau may nham. Bai chua co ban cham nao - tablet tat cham AI, hay AI hong luc
- * con nop - hay may cham roi ma bai van cho duyet, thi Claude CHAM LUON, va tablet tinh
- * phut theo ban cua Claude. Xem [chamMoi].
+ * HAI KIEU NHO. Bai chua co ban cham nao, hay da cham roi ma van cho duyet, thi Claude
+ * CHAM LUON, va tablet tinh phut theo ban cua Claude. Bai da cham va da xu xong thi
+ * Claude CHAM LAI: ket qua dan ve chi sua nhung cau lan cham truoc nham. Lan cham truoc
+ * do la cua Claude, hay cua may cham tren tablet voi bai nop truoc 28/9/2026. Xem
+ * [chamMoi].
  *
  * Ngoai hai kieu cham con mot loi nho doc vo dan do, cho tam vo may tren tablet doc
  * khong duoc. Xem [loiNhoDocVo].
@@ -87,10 +90,11 @@ object NhoClaude {
      * Claude cham ca bai va tablet tinh phut theo ban cua Claude, chu khong chi sua cau may
      * nham.
      *
-     * Hai canh: bai chua co ban cham nao cua may, hay may da cham ma bai van cho duyet (may
-     * doc khong ro, bao sai het, tu duyet khong duoc). Canh sau truoc ngay 27/9/2026 di
-     * duong cham lai: tablet cong gio cho cau may cham nham, ma bai van nam "Dang cho
-     * duyet" voi nut Duyet, nhin nhu chua duyet va de bam them lan nua.
+     * Hai canh: bai chua co ban cham nao, hay da cham ma bai van cho duyet (doc chua chac,
+     * sai het, tu duyet khong duoc). Canh sau truoc ngay 27/9/2026 di duong cham lai:
+     * tablet cong gio cho cau cham nham, ma bai van nam "Dang cho duyet" voi nut Duyet,
+     * nhin nhu chua duyet va de bam them lan nua. Tu 28/9/2026 tablet khong tu cham nua,
+     * nen moi bai moi nop deu vao canh dau.
      *
      * Ket qua dan ve di bang lenh [vn.huytl.bangdieukhien.data.Lenh.CHAM_BAI]: tablet chay
      * ban cua Claude qua dung cac buoc nhu mot ban AI cham - gia moi cau, tran ngay, moi cau
@@ -143,17 +147,24 @@ object NhoClaude {
         val coVo = soat != null || coAnhVo
 
         val mayDaCham = !bai.cham?.cac.isNullOrEmpty()
+        // Lan nop lai cac cau sai cua mot bai truoc. Xem [KhaiBai.suaBai].
+        val nopLai = khai?.suaBai?.isNotBlank() == true
 
         appendLine("$DAU_CHAM_MOI của $ten. Tôi là bố của $ten.")
         appendLine(
             if (mayDaCham) {
-                "Máy trên tablet đã chấm bài này nhưng chưa duyệt. Nhờ bạn chấm lại từ đầu, " +
-                    "không dựa vào máy: số phút chơi của $ten tính theo kết quả bạn chấm."
+                "Bài này đã được chấm một lần nhưng chưa duyệt. Nhờ bạn chấm lại từ đầu, " +
+                    "không dựa vào lần chấm trước: số phút chơi của $ten tính theo kết quả bạn chấm."
             } else {
-                "Hôm nay máy trên tablet không tự chấm, bạn là người chấm duy nhất bài này. " +
-                    "Số phút chơi của $ten tính theo kết quả bạn chấm."
+                "Bạn là người chấm bài này. Số phút chơi của $ten tính theo kết quả bạn chấm."
             }
         )
+        if (nopLai) {
+            appendLine(
+                "Đây là lần $ten nộp lại để sửa các câu làm sai ở một bài trước. $ten thường sửa " +
+                    "ngay trên trang vở cũ, nên ảnh có thể còn những câu khác đã chấm ở lần trước."
+            )
+        }
         appendLine()
 
         dongNop(bai, khai?.mon ?: bai.cham?.mon)
@@ -177,24 +188,37 @@ object NhoClaude {
         appendLine()
 
         if (khai != null) {
-            appendLine("Các câu $ten khai, kèm đề:")
+            appendLine(if (nopLai) "Các câu $ten nộp lại, kèm đề:" else "Các câu $ten khai, kèm đề:")
             khai.cac.forEachIndexed { i, c ->
                 append(i + 1).append(". Câu ").append(c.ma).append(".")
                 if (c.de.isNotBlank()) append(" Đề: ").append(c.de.trim())
+                // Cau ngoai sach cua lan nop lai khong co dang trong ngan hang, ma dang quyet
+                // gia cau do. Xem [coCauNgoaiSach].
+                if (c.cauId.isBlank()) append(" (câu ngoài sách: ghi thêm \"dang\")")
                 appendLine()
             }
             appendLine(
                 "Mỗi câu trên có đúng một mục trong kết quả, giữ nguyên mã câu. Câu $ten " +
                     "chưa làm thì \"dung\" là false, \"con_viet\" để trống, \"so_dong\" là 0."
             )
-            appendLine(
-                "Ảnh có câu $ten làm mà không có trong danh sách thì thêm một mục cho câu " +
-                    "đó: mã theo cách sách đánh số, chép đề vào \"de\", và ghi \"dang\"."
-            )
+            if (nopLai) {
+                // Tablet cung bo cau ngoai danh sach cua lan nop lai (ChamTheoClaude ben do):
+                // cau da dung tu lan truoc ma chep vao day thi so cai khong nhan ra, va con
+                // duoc tra gio lan hai. Dan Claude truoc cho khoi ton cong cham.
+                appendLine(
+                    "Chỉ chấm đúng các câu trong danh sách trên. Câu khác thấy trong ảnh đã chấm " +
+                        "ở lần trước: bỏ qua, không thêm mục nào cho chúng."
+                )
+            } else {
+                appendLine(
+                    "Ảnh có câu $ten làm mà không có trong danh sách thì thêm một mục cho câu " +
+                        "đó: mã theo cách sách đánh số, chép đề vào \"de\", và ghi \"dang\"."
+                )
+            }
         } else if (mayDaCham) {
             // Chep ma va de may nhan ra, khong chep ket luan cua may. Giu ma thi ket qua khop
             // voi cau may da ghi, xem [theoMay].
-            appendLine("${dauCau(ten)} không khai trước là làm câu nào. Máy đã nhận ra các câu dưới đây trong ảnh:")
+            appendLine("${dauCau(ten)} không khai trước là làm câu nào. Lần chấm trước đã nhận ra các câu dưới đây trong ảnh:")
             bai.cham?.cac.orEmpty().forEachIndexed { i, c ->
                 append(i + 1).append(". Câu ").append(c.ma.ifBlank { "chưa rõ mã" }).append(".")
                 if (c.de.isNotBlank()) append(" Đề: ").append(c.de.trim())
@@ -248,8 +272,7 @@ object NhoClaude {
         appendLine("Trả lời bằng tiếng Việt, gồm:")
         appendLine("1. Một bảng: mã câu, $ten viết, đáp án đúng, $ten đúng hay sai.")
         appendLine(
-            "2. Với mỗi câu $ten làm sai: một câu gợi ý để $ten tự sửa, không đưa đáp án. " +
-                cachVietGoiY(ten)
+            "2. Với mỗi câu $ten làm sai: một đoạn gợi ý để $ten tự sửa. " + cachVietGoiY(ten)
         )
         appendLine("3. Số câu $ten làm đúng.")
         if (soat != null) {
@@ -265,7 +288,7 @@ object NhoClaude {
                 "Mỗi câu một mục trong \"ket_qua\". \"dung\" là kết luận của bạn. \"chac\" " +
                 "là false nếu bạn không đọc chắc chữ $ten viết. \"con_viet\" là kết quả cuối " +
                 "$ten viết, theo bạn đọc. \"so_dong\" là số dòng đếm ở bước 6. \"goi_y\" chỉ " +
-                "viết cho câu $ten làm sai: đúng câu gợi ý ở mục 2, tối đa 15 chữ."
+                "viết cho câu $ten làm sai: chép nguyên đoạn gợi ý ở mục 2."
         )
         appendLine()
         val maMau = khai?.cac?.firstOrNull()?.ma ?: "1"
@@ -282,17 +305,23 @@ object NhoClaude {
         append("\"chac\":true hoặc false,\"con_viet\":\"...\",\"so_dong\":số dòng,\"goi_y\":\"...\"")
         if (coVo) append(",\"trong_dan_do\":true hoặc false")
         if (khai == null) append(",\"de\":\"chép đề câu đó\",\"dang\":\"CAU_NHO\"")
+        else if (coCauNgoaiSach(khai)) append(",\"dang\":\"CAU_NHO\"")
         append("}]}")
     }
 
-    /** Loi nho khi may da cham, Claude cham lai de bat cho may nham. */
+    /**
+     * Loi nho khi bai da cham va da xu xong, Claude cham lai de bat cho lan truoc nham.
+     *
+     * Lan truoc la Claude, hay may cham tren tablet voi bai nop truoc 28/9/2026: loi nho
+     * goi chung la "lần chấm trước", dung cho ca hai.
+     */
     private fun loiNhoChamLai(bai: Bai, ten: String): String = buildString {
         val cham = bai.cham
 
         appendLine("$DAU_LOI_NHO của $ten. Tôi là bố của $ten.")
         appendLine(
-            "Máy chấm tự động trên tablet đã chấm bài này, nhưng máy hay đọc nhầm chữ " +
-                "và giải nhầm, nên tôi cần bạn chấm lại độc lập."
+            "Bài này đã được chấm một lần, nhưng lần chấm đó có thể đọc nhầm chữ hay chấm " +
+                "nhầm, nên tôi cần bạn chấm lại độc lập."
         )
         appendLine()
 
@@ -305,14 +334,14 @@ object NhoClaude {
         appendLine()
 
         if (cham == null || cham.cac.isEmpty()) {
-            appendLine("Máy chấm chưa chấm bài này. Nhờ bạn tự nhận ra các câu trong ảnh rồi chấm.")
+            appendLine("Bài này chưa có bản chấm nào. Nhờ bạn tự nhận ra các câu trong ảnh rồi chấm.")
         } else {
-            appendLine("Các câu cần chấm, kèm đề và kết luận của máy chấm:")
+            appendLine("Các câu cần chấm, kèm đề và kết luận của lần chấm trước:")
             cham.cac.forEachIndexed { i, c ->
                 append(i + 1).append(". Câu ").append(c.ma.ifBlank { "chưa rõ mã" }).append(".")
                 if (c.de.isNotBlank()) append(" Đề: ").append(c.de.trim())
-                append(" Máy đọc $ten viết: ").append(c.ketQua.ifBlank { "không đọc ra" }).append(".")
-                append(" Máy chấm: ")
+                append(" Lần trước đọc $ten viết: ").append(c.ketQua.ifBlank { "không đọc ra" }).append(".")
+                append(" Lần trước chấm: ")
                 append(
                     when {
                         !c.docRo -> "đọc không rõ"
@@ -321,21 +350,20 @@ object NhoClaude {
                     }
                 )
                 append(".")
-                if (c.nhanXet.isNotBlank()) append(" Nhận xét của máy: ").append(c.nhanXet.trim())
+                if (c.nhanXet.isNotBlank()) append(" Gợi ý lần trước: ").append(c.nhanXet.trim())
                 appendLine()
             }
         }
         appendLine()
 
         appendLine("Trả lời bằng tiếng Việt, gồm:")
-        appendLine("1. Một bảng: mã câu, $ten viết, đáp án đúng, $ten đúng hay sai, máy chấm đúng hay nhầm.")
+        appendLine("1. Một bảng: mã câu, $ten viết, đáp án đúng, $ten đúng hay sai, lần chấm trước đúng hay nhầm.")
         appendLine(
-            "2. Các câu máy đọc nhầm chữ, các câu máy chấm nhầm đúng sai, và các câu máy " +
-                "chấm đúng nhưng nhận xét chỉ sai chỗ."
+            "2. Các câu lần trước đọc nhầm chữ, các câu lần trước chấm nhầm đúng sai, và các " +
+                "câu chấm đúng nhưng gợi ý chỉ sai chỗ."
         )
         appendLine(
-            "3. Với mỗi câu $ten làm sai: một câu gợi ý để $ten tự sửa, không đưa đáp án. " +
-                cachVietGoiY(ten)
+            "3. Với mỗi câu $ten làm sai: một đoạn gợi ý để $ten tự sửa. " + cachVietGoiY(ten)
         )
         appendLine("4. Số câu $ten làm đúng thật.")
         appendLine(
@@ -343,7 +371,7 @@ object NhoClaude {
                 "Mỗi câu một mục trong \"ket_qua\", giữ nguyên mã câu như trên. \"dung\" là " +
                 "kết luận của bạn. \"chac\" là false nếu bạn không đọc chắc chữ $ten viết. " +
                 "\"con_viet\" là kết quả cuối $ten viết, theo bạn đọc. \"goi_y\" chỉ viết " +
-                "cho câu $ten làm sai: đúng câu gợi ý ở mục 3, không đưa đáp án."
+                "cho câu $ten làm sai: chép nguyên đoạn gợi ý ở mục 3."
         )
         val maMau = cham?.cac?.firstOrNull()?.ma?.takeIf { it.isNotBlank() } ?: "2.28"
         // Mau CO Y khong phai JSON hop le: "true hoặc false" khong doc duoc. Bam nut
@@ -366,9 +394,9 @@ object NhoClaude {
     /**
      * Doan vo dan do khi con da soat tu dau buoi.
      *
-     * Chep y cau lenh cua may cham luc co ban soat (PromptCham.doanDanDo ben tablet): dung
-     * dung ngay va danh sach nay, khong suy tu anh. Nho vay ca hai duong cham tinh tron
-     * goi theo cung mot danh sach, danh sach con da soat bang mat va Ba Huy da thay tren
+     * Chep y cau lenh cua may cham tren tablet luc co ban soat (may cham bo ngay 28/9/2026):
+     * dung dung ngay va danh sach nay, khong suy tu anh. Nho vay moi lan cham tinh tron goi
+     * theo cung mot danh sach, danh sach con da soat bang mat va Ba Huy da thay tren
      * Telegram tu dau buoi.
      *
      * Anh trang vo gui kem chi de doi chieu. Cho nao lech thi Claude ghi ra cho Ba Huy
@@ -465,10 +493,23 @@ object NhoClaude {
      * Goi y hien thang tren man cua con. Truoc ngay 26/9/2026 loi nho dan Claude goi con
      * la "con", nen man do hien "Con sửa ...". Ba Huy muon no chi ghi "Sửa ...", cho nao
      * can goi thi goi ten, y nhu cac cau khac tren tablet.
+     *
+     * Truoc ngay 28/9/2026 goi y toi da 15 chu, va Ba Huy doc nhieu luc khong hieu no noi
+     * gi. Gio viet cu the: dong nao, sai gi, vi sao, lam lai buoc nao. Van khong dua dap
+     * so: con nop lai dung la duoc cong gio, co san dap so thi chep vao la xong.
+     *
+     * Cam dau ngoac kep trong goi y: goi y dai co khi trich chu con viet, va mot dau
+     * ngoac kep quen thoat la ca khoi JSON dan ve doc khong duoc.
      */
-    private fun cachVietGoiY(ten: String): String = "Câu gợi ý hiện thẳng trên tablet cho " +
-        "$ten đọc: mở đầu bằng việc cần làm, ví dụ \"Sửa dấu ở dòng 2.\", không mở đầu bằng " +
-        "\"Con\". Cần nhắc tới $ten thì gọi tên, không gọi \"con\"."
+    private fun cachVietGoiY(ten: String): String = "Gợi ý hiện thẳng trên tablet cho $ten " +
+        "đọc, nên viết cụ thể, từ 2 đến 4 câu: chép lại đúng đoạn $ten viết sai và nói nó ở " +
+        "dòng mấy, nói sai gì và vì sao sai (sai dấu nào, dùng nhầm quy tắc hay công thức " +
+        "nào), rồi nói bước nào phải làm lại. Không viết đáp số cuối cùng và không giải hộ: " +
+        "$ten sửa đúng mới được cộng giờ. Mở đầu bằng số dòng hoặc việc cần làm, không mở " +
+        "đầu bằng \"Con\"; cần nhắc tới $ten thì gọi tên, không gọi \"con\". Trong gợi ý " +
+        "không dùng dấu ngoặc kép, cần trích chữ thì để trong ngoặc đơn. Ví dụ: Dòng 2 viết " +
+        "(x - 3)^2 + y^2, sai dấu trước y^2: biểu thức ban đầu là hiệu hai bình phương nên " +
+        "phải là dấu trừ. Viết lại dòng 2 rồi phân tích tiếp."
 
     /** Dong mo dau cua loi nho cham lai, de nhan ra bo nho tam dang giu loi nho chu khong phai tra loi. */
     private const val DAU_LOI_NHO = "Nhờ bạn chấm lại bài tập về nhà"
@@ -751,13 +792,19 @@ object NhoClaude {
     fun theoKhai(ket: KetQuaDan, khai: KhaiBai?): KetQuaDan {
         if (khai == null) return ket
         val daDung = mutableSetOf<String>()
-        return ket.copy(cac = ket.cac.map { c ->
+        val nopLai = khai.suaBai.isNotBlank()
+        return ket.copy(cac = ket.cac.mapNotNull { c ->
             val k = khai.cac.firstOrNull { chuanMa(it.ma) == chuanMa(c.ma) && it.ma !in daDung }
-                ?: return@map c
+            // Lan nop lai cac cau sai: cau ngoai danh sach la cau da cham o lan truoc, con
+            // sua de len cung trang. Bo di, tablet cung bo (ChamTheoClaude ben do).
+                ?: return@mapNotNull if (nopLai) null else c
             daDung += k.ma
             c.copy(ma = k.ma, de = c.de.ifBlank { k.de }, dang = c.dang.ifBlank { k.dang })
         })
     }
+
+    /** Phan khai co cau ngoai sach (cauId rong), chi co o lan nop lai. Xem [KhaiBai.suaBai]. */
+    private fun coCauNgoaiSach(khai: KhaiBai): Boolean = khai.cac.any { it.cauId.isBlank() }
 
     /**
      * Dua cau Claude cham ve dung ma va de cua cau may da cham, voi cau khong nam trong khai.

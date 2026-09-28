@@ -484,6 +484,7 @@ class BaiActivity : AppCompatActivity() {
                     put("soDong", it.soDong)
                     put("de", it.de)
                     put("dang", it.dang)
+                    if (it.loaiLoi.isNotBlank()) put("loaiLoi", it.loaiLoi)
                     it.trongDanDo?.let { t -> put("trongDanDo", t) }
                 }
             })

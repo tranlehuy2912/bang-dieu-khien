@@ -181,6 +181,12 @@ data class CauClaude(
     /** Dang bai Claude xep, ten hang cua DangBai ben tablet. Chi can o cau ngoai sach. */
     val dang: String = "",
     /**
+     * Kieu sai, mot trong bay nhan cua LoaiLoi ben tablet. Chi co o cau sai. Tablet cong
+     * don nhan nay cho man Tien bo va "Luyện chỗ hay vấp" (tu 28/9/2026 Claude la noi
+     * duy nhat dat nhan).
+     */
+    val loaiLoi: String = "",
+    /**
      * Cau nay thuoc bai co giao trong vo dan do. null la Claude khong noi, luc do tablet
      * tu quyet theo luat cua may cham.
      */

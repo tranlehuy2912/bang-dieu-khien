@@ -288,9 +288,11 @@ object NhoClaude {
                 "Mỗi câu một mục trong \"ket_qua\". \"dung\" là kết luận của bạn. \"chac\" " +
                 "là false nếu bạn không đọc chắc chữ $ten viết. \"con_viet\" là kết quả cuối " +
                 "$ten viết, theo bạn đọc. \"so_dong\" là số dòng đếm ở bước 6. \"goi_y\" chỉ " +
-                "viết cho câu $ten làm sai: chép nguyên đoạn gợi ý ở mục 2."
+                "viết cho câu $ten làm sai: chép nguyên đoạn gợi ý ở mục 2. \"loai_loi\" chỉ " +
+                "ghi cho câu $ten làm sai: đúng một trong bảy nhãn dưới đây, chép đúng chữ in hoa."
         )
         appendLine()
+        LOAI_LOI.forEach { appendLine(it) }
         val maMau = khai?.cac?.firstOrNull()?.ma ?: "1"
         // Mau CO Y khong phai JSON hop le, cung ly do voi mau o [loiNhoChamLai].
         append("{\"bai\":\"${bai.id}\",")
@@ -302,7 +304,8 @@ object NhoClaude {
             append("\"lam_het_dan_do\":true hoặc false,")
         }
         append("\"ket_qua\":[{\"ma\":\"$maMau\",\"dung\":true hoặc false,")
-        append("\"chac\":true hoặc false,\"con_viet\":\"...\",\"so_dong\":số dòng,\"goi_y\":\"...\"")
+        append("\"chac\":true hoặc false,\"con_viet\":\"...\",\"so_dong\":số dòng,\"goi_y\":\"...\",")
+        append("\"loai_loi\":\"một nhãn ở trên hoặc chuỗi rỗng\"")
         if (coVo) append(",\"trong_dan_do\":true hoặc false")
         if (khai == null) append(",\"de\":\"chép đề câu đó\",\"dang\":\"CAU_NHO\"")
         else if (coCauNgoaiSach(khai)) append(",\"dang\":\"CAU_NHO\"")
@@ -483,6 +486,22 @@ object NhoClaude {
      * Dang bai quyet gia moi cau: trac nghiem tinh theo cum, hoc thuoc khong tinh. Cau
      * trong sach da co dang trong ngan hang, nen Claude chi can xep cau ngoai sach.
      */
+    /**
+     * Bay kieu sai, chep y nguyen tap nhan LoaiLoi ben tablet (Ba Huy muon Claude tra
+     * nhan ngay 28/9/2026, sau khi bo may cham - truoc do chi may cham tren tablet dat
+     * nhan). Man Tien bo va "Luyện chỗ hay vấp" tren tablet cong don theo nhan, nen tap
+     * nhan phai dong: nhan la bi ep ve KHAC. Them hay doi nhan thi sua ca hai cho.
+     */
+    private val LOAI_LOI = listOf(
+        "SAI_DAU: sai dấu, mất dấu, nhầm dấu khi chuyển vế hay khi phá ngoặc.",
+        "SAI_BUOC: một bước biến đổi hay một bước lập luận sai, các bước khác đúng.",
+        "NHAM_CONG_THUC: dùng nhầm công thức, quy tắc, định nghĩa, hằng đẳng thức.",
+        "TINH_NHAM: cộng trừ nhân chia ra số sai, cách làm vẫn đúng.",
+        "THIEU: thiếu trường hợp, thiếu điều kiện, thiếu kết luận, hoặc bỏ dở giữa chừng.",
+        "LAC_DE: làm lệch cái đề hỏi, trả lời sang chuyện khác.",
+        "KHAC: sai mà không thuộc sáu nhãn trên."
+    )
+
     private const val DANG_BAI = "\"dang\" là một trong: TRAC_NGHIEM (chỉ khoanh, ghi Đúng/Sai, " +
         "nối cột, điền một từ), CAU_NHO (câu nhỏ có trình bày lời giải), BAI_RIENG (bài " +
         "đứng riêng), VIET_DAI (đoạn văn, bài văn), KHONG_TINH (học thuộc, luyện chữ, chép bài)."
@@ -735,6 +754,8 @@ object NhoClaude {
                 soDong = c.optInt("so_dong", 0).coerceAtLeast(0),
                 de = c.chuoi("de"),
                 dang = c.chuoi("dang").uppercase(Locale.ROOT),
+                // Tablet ep nhan la ve KHAC va bo nhan cua cau dung (LoaiLoi.doc ben do).
+                loaiLoi = c.chuoi("loai_loi").uppercase(Locale.ROOT),
                 // Chi nhan true hay false that. Khong noi thi tablet tu quyet theo luat
                 // cua may cham: co trang vo thi la lam them, khong co thi la bai co giao.
                 trongDanDo = c.opt("trong_dan_do") as? Boolean

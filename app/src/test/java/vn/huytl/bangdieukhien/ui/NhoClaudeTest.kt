@@ -331,6 +331,27 @@ class NhoClaudeTest {
         }
     }
 
+    /**
+     * Claude tra them kieu sai cho cau sai (28/9/2026): man Tien bo va "Luyện chỗ hay vấp"
+     * tren tablet cong don theo nhan, ma tu khi bo may cham chi con Claude dat nhan.
+     */
+    @Test
+    fun loi_nho_hoi_kieu_sai_va_doc_duoc_nhan_ve() {
+        val chu = NhoClaude.loiNho(baiChuaCham(khai), "Lê Hòa")
+        listOf("SAI_DAU", "SAI_BUOC", "NHAM_CONG_THUC", "TINH_NHAM", "THIEU", "LAC_DE", "KHAC")
+            .forEach { assertTrue("thieu nhan $it", chu.contains("$it: ")) }
+        assertTrue(chu.contains("\"loai_loi\""))
+        assertNull(NhoClaude.docKetQua(chu))
+
+        val ket = NhoClaude.docKetQua(
+            """{"bai":"b77","ket_qua":[
+               {"ma":"2.28","dung":false,"chac":true,"con_viet":"A","goi_y":"Dòng 1 sai dấu.","loai_loi":"sai_dau"},
+               {"ma":"2.33a","dung":true,"chac":true,"con_viet":"40xy","goi_y":""}]}"""
+        )!!
+        assertEquals("SAI_DAU", ket.cac[0].loaiLoi)
+        assertEquals("", ket.cac[1].loaiLoi)
+    }
+
     @Test
     fun goi_y_khong_mo_dau_bang_chu_con() {
         // Goi y hien thang tren man cua con: Ba Huy muon "Sửa ...", khong phai "Con sửa ...".

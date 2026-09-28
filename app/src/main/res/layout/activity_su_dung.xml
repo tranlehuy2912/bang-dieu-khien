@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Le Hoa dung app gi, tu may gio den may gio, bay ngay gan nhat. Chep bo cuc trang
-     cung ten ben tablet. Chi de doc: nut duy nhat la doi ngay dang xem. -->
+     cung ten ben tablet (activity_thong_ke.xml). Chi de doc: nut duy nhat la doi ngay dang xem. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"

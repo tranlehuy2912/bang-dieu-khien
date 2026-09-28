@@ -24,7 +24,7 @@ import vn.huytl.bangdieukhien.databinding.ActivitySuDungBinding
 /**
  * Le Hoa da dung app gi, tu may gio den may gio, bay ngay gan nhat.
  *
- * Chep trang "Dùng app gì, lúc nào" ben tablet. Truoc day muon xem phai cam tablet,
+ * Chep trang "Thời gian dùng app" ben tablet. Truoc day muon xem phai cam tablet,
  * qua PIN, hoac go /thongke ben Telegram va chi nhan duoc ban cat bot. So nay tablet
  * day sang khi may nay go [vn.huytl.bangdieukhien.data.Lenh.PING].
  *

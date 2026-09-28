@@ -71,9 +71,13 @@
     <string name="bang_hoi_hong">Không hỏi được tablet: %1$s</string>
 
     <!-- So dung app. Tablet chi gui so nay khi may nay go PING, nen chua co so thi
-         gan nhu luon la tablet con ban app cu. -->
-    <string name="bang_dung_app">Dùng app</string>
-    <string name="su_dung_title">Dùng app gì, lúc nào</string>
+         gan nhu luon la tablet con ban app cu.
+         Ten the o man Nhat ky va tieu de man chi tiet deu la "Thoi gian dung app" tu
+         28/09/2026 (truoc do la "Dung app" va "Dung app gi, luc nao"), theo y Ba Huy.
+         Trang cung loai ben tablet (thong_ke_title) doi cung ngay, de hai may cung
+         mot ten. -->
+    <string name="bang_dung_app">Thời gian dùng app</string>
+    <string name="su_dung_title">Thời gian dùng app</string>
     <string name="su_dung_dang_lay">Đang lấy sổ dùng app…</string>
     <string name="su_dung_chua_gui">Tablet chưa gửi sổ dùng app. Tablet cần bản app Nộp bài mới; cập nhật xong thì mở lại app này.</string>
 

@@ -7,7 +7,7 @@ import java.util.Calendar
  * So ghi Le Hoa dung app gi, tu may gio den may gio, doc tu hop/sudung. Xem
  * [Duong.D_SU_DUNG].
  *
- * Tablet giu so nay cho trang "Dùng app gì, lúc nào" ben do, va chi day sang day khi
+ * Tablet giu so nay cho trang "Thời gian dùng app" ben do, va chi day sang day khi
  * may nay go [Lenh.PING]. Cach cat ngay, gop va cong o duoi chep dung NhatKySuDung
  * ben tablet, de cung mot ngay thi hai man ra cung mot con so.
  */

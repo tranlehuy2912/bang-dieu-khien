@@ -100,6 +100,16 @@ class BaiFragment : Fragment() {
 
     private fun ve(ds: List<Bai>) {
         tatCa = ds
+        /*
+         * Dang o dau danh sach thi ve xong van o dau.
+         *
+         * Bai vua nop chen vao vi tri 0, ma LinearLayoutManager giu dong dang nam tren cung
+         * dung yen. Danh sach da tran man thi bai moi nam khuat tren mep man, Ba Huy thay
+         * dong dau van la bai cu va tuong dien thoai chua nhan. Co dong "Xoá hết" o dau thi
+         * dong do dung yen va bai moi hien ngay duoi no, nen truoc 28/9/2026 luc thay luc
+         * khong. Dang cuon xuong xem bai cu thi thoi, khong keo len.
+         */
+        val oDau = !b.danhSach.canScrollVertically(-1)
         val hien = ds.filter { !it.an }
         val daXoa = ds.filter { it.an }
         val soXong = hien.count { it.xong }
@@ -118,6 +128,8 @@ class BaiFragment : Fragment() {
         boDaXoa.dat(daXoa)
         // Khoi phuc het roi thi tam khong con gi de xem.
         if (daXoa.isEmpty()) tamDaXoa?.dismiss()
+
+        if (oDau) b.danhSach.scrollToPosition(0)
     }
 
     private fun xoa(bai: Bai) =

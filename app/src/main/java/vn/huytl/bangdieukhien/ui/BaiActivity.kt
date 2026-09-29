@@ -281,9 +281,9 @@ class BaiActivity : AppCompatActivity() {
             }
             cot.addView(chu(x.ma, 15f, bold = true))
             val de = c?.de?.takeIf { it.isNotBlank() } ?: (muc?.get("de") as? String).orEmpty()
-            if (de.isNotBlank()) cot.addView(chu(ngan(de), 14f, mau = R.color.ink_soft))
+            if (de.isNotBlank()) cot.addView(chu(SoMu.hien(ngan(de)), 14f, mau = R.color.ink_soft))
             val viet = c?.ketQua?.takeIf { it.isNotBlank() } ?: (muc?.get("conViet") as? String).orEmpty()
-            if (viet.isNotBlank()) cot.addView(chu("$con viết: $viet", 14f, mau = R.color.ink_soft))
+            if (viet.isNotBlank()) cot.addView(chu("$con viết: ${SoMu.hien(viet)}", 14f, mau = R.color.ink_soft))
             cot.addView(chu(lyDoXu(x, c, con), 13f, mau = R.color.wait_ink).apply {
                 (layoutParams as LinearLayout.LayoutParams).topMargin = 2.dp().toInt()
             })
@@ -876,19 +876,19 @@ class BaiActivity : AppCompatActivity() {
             })
             val cot = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
             cot.addView(chu(c.ma.ifBlank { "câu" }, 15f, bold = true))
-            if (c.de.isNotBlank()) cot.addView(chu(c.de, 14f, mau = R.color.ink_soft))
+            if (c.de.isNotBlank()) cot.addView(chu(SoMu.hien(c.de), 14f, mau = R.color.ink_soft))
             if (c.ketQua.isNotBlank()) {
-                cot.addView(chu("Lê Hòa viết: ${c.ketQua}", 14f, mau = R.color.ink_soft))
+                cot.addView(chu("Lê Hòa viết: ${SoMu.hien(c.ketQua)}", 14f, mau = R.color.ink_soft))
             }
             if (nhoChup) cot.addView(chu("Ba Huy nhờ chụp lại câu này", 13f, mau = R.color.wait))
             else if (!c.docRo) cot.addView(chu("Đọc chưa chắc câu này", 13f, mau = R.color.wait))
-            if (c.nhanXet.isNotBlank()) cot.addView(chu(c.nhanXet, 13f, mau = R.color.ink_mo))
+            if (c.nhanXet.isNotBlank()) cot.addView(chu(SoMu.hien(c.nhanXet), 13f, mau = R.color.ink_mo))
             val cl = bai.claude?.cua(c.ma)
             if (cl != null && c.ma.trim() !in dangXem && cl.chac && cl.dung != (c.docRo && c.dung)) {
                 cot.addView(
                     chu(
                         if (cl.dung) "Claude: đúng, lần chấm trước nhầm"
-                        else "Claude: sai" + if (cl.goiY.isNotBlank()) ". ${cl.goiY}" else "",
+                        else "Claude: sai" + if (cl.goiY.isNotBlank()) ". ${SoMu.hien(cl.goiY)}" else "",
                         13f, bold = true, mau = if (cl.dung) R.color.ok else R.color.alert
                     )
                 )
@@ -960,12 +960,12 @@ class BaiActivity : AppCompatActivity() {
             val cot = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
             cot.addView(chu(c.ma, 15f, bold = true))
             val de = c.de.ifBlank { deTheoMa[c.ma].orEmpty() }
-            if (de.isNotBlank()) cot.addView(chu(de, 14f, mau = R.color.ink_soft))
+            if (de.isNotBlank()) cot.addView(chu(SoMu.hien(de), 14f, mau = R.color.ink_soft))
             if (c.conViet.isNotBlank()) {
-                cot.addView(chu("Lê Hòa viết: ${c.conViet}", 14f, mau = R.color.ink_soft))
+                cot.addView(chu("Lê Hòa viết: ${SoMu.hien(c.conViet)}", 14f, mau = R.color.ink_soft))
             }
             if (!c.chac) cot.addView(chu("Claude đọc chưa chắc câu này", 13f, mau = R.color.wait))
-            if (!c.dung && c.goiY.isNotBlank()) cot.addView(chu(c.goiY, 13f, mau = R.color.ink_mo))
+            if (!c.dung && c.goiY.isNotBlank()) cot.addView(chu(SoMu.hien(c.goiY), 13f, mau = R.color.ink_mo))
             hang.addView(cot)
             trong.addView(hang)
         }

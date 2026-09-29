@@ -65,15 +65,13 @@ object NhoClaude {
     private val VN = Locale.forLanguageTag("vi-VN")
 
     /**
-     * Cac tam can gui cho Claude.
+     * Cac tam can gui cho Claude: moi tam tru trang vo dan do.
      *
-     * Cham lai thi bo vo dan do: may da doc no va da tinh xong tron goi, Claude chi can
-     * soat bai lam. Cham luon thi gui ca vo dan do, dat len dau: Claude la nguoi duy
-     * nhat doc duoc co giao bai gi, va tron goi 45 phut dua vao do.
+     * Tu 30/9/2026 khong con tron goi 45 phut, nen Claude cham tung cau ma khong can biet
+     * co giao bai gi. Bai nop truoc ngay do con mang anh trang vo; bo di cho Claude khoi
+     * doc thua.
      */
-    fun anhCanGui(bai: Bai): List<Anh> =
-        if (chamMoi(bai)) bai.anh.sortedBy { if (it.laDanDo) 0 else 1 }
-        else bai.anh.filter { !it.laDanDo }
+    fun anhCanGui(bai: Bai): List<Anh> = bai.anh.filter { !it.laDanDo }
 
     /**
      * Lay file anh cua cac tam can gui, tai ve neu may chua co.
@@ -130,21 +128,11 @@ object NhoClaude {
      * tablet tinh phut theo so dong, va o lan on tap, bai co viet muc do khong. Cau
      * ngoai danh sach thi them de va dang bai, vi dang bai quyet gia cau do.
      *
-     * Lan nop co trang vo dan do thi hoi them dung ba thu may cham van doc ra - ngay
-     * trong vo, cac bai co giao, con da lam het chua - va cau nao thuoc bai co giao.
-     * Quy tac viet theo cau lenh cua may cham ben tablet, de tron goi tinh nhu cu.
-     *
-     * Lan nop dung ban vo con soat tu dau buoi ([Bai.voDaSoat]) thi chep san ngay va
-     * danh sach bai, va chi hoi hai thu: con lam het chua, cau nao thuoc bai co giao. Xem
-     * [voDaSoat].
+     * Truoc 30/9/2026 lan nop co vo dan do thi hoi them ngay trong vo, cac bai co giao, con
+     * da lam het chua, de tablet tinh tron goi 45 phut. Bo tron goi thi bo ca doan do.
      */
     private fun loiNhoChamMoi(bai: Bai, ten: String): String = buildString {
         val khai = bai.khai
-        // Ban chi co anh thi khong phai danh sach: di duong anh vo, Claude doc tam anh
-        // tablet gan theo bai. Xem VoDaSoat.chuaDoc.
-        val soat = bai.voDaSoat?.daDoc
-        val coAnhVo = bai.anh.any { it.laDanDo }
-        val coVo = soat != null || coAnhVo
 
         val mayDaCham = !bai.cham?.cac.isNullOrEmpty()
         // Lan nop lai cac cau sai cua mot bai truoc. Xem [KhaiBai.suaBai].
@@ -174,7 +162,6 @@ object NhoClaude {
                 ?.let { appendLine("${dauCau(ten)} khai đang làm: $it.") }
         }
         val loaiAnh = buildList {
-            if (coAnhVo) add("trang vở dặn dò")
             if (bai.anh.any { it.laDeBai }) add("ảnh đề bài")
             add("ảnh vở bài làm của $ten")
         }
@@ -239,52 +226,14 @@ object NhoClaude {
         appendLine(DANG_BAI)
         appendLine()
 
-        if (soat != null) {
-            voDaSoat(soat, coAnhVo, ten)
-        } else if (coAnhVo) {
-            // Trang vo cua Le Hoa chep lien tay, mot trang hai ba buoi. Khong dan thi
-            // Claude de gop bai cua ca trang vao mot ngay.
-            appendLine(
-                "Vở dặn dò là trang cô giáo ghi ngày và dặn bài về nhà. Trang thường chép " +
-                    "liền nhiều buổi, mỗi buổi mở đầu bằng một dòng ghi ngày. Nhờ bạn chỉ đọc " +
-                    "buổi có ngày gần ngày nộp bài nhất mà không sau ngày nộp, rồi ghi vào khối JSON:"
-            )
-            appendLine(
-                "- \"ngay_dan_do\": ngày ghi trong vở, dạng yyyy-MM-dd. Vở chỉ ghi ngày và " +
-                    "tháng thì lấy năm sao cho gần ngày nộp bài nhất. Không thấy ngày thì để null."
-            )
-            appendLine(
-                "- \"bai_duoc_giao\": tên từng bài tập phải làm mà vở giao, ví dụ [\"bài 2\", " +
-                    "\"bài 3\", \"SBT 2.26\"]. Dặn việc như mang sách vở, tiết sau kiểm tra, " +
-                    "học thuộc thì không phải bài tập. Không có bài tập nào thì để []."
-            )
-            appendLine(
-                "- \"lam_het_dan_do\": true chỉ khi \"bai_duoc_giao\" có ít nhất một bài và " +
-                    "ảnh cho thấy $ten đã làm hết các bài đó."
-            )
-            appendLine(
-                "- Mỗi câu trong \"ket_qua\" ghi thêm \"trong_dan_do\": true nếu câu đó " +
-                    "thuộc một bài trong \"bai_duoc_giao\", false nếu là bài $ten làm thêm."
-            )
-            appendLine()
-        }
-
         appendLine("Trả lời bằng tiếng Việt, gồm:")
         appendLine("1. Một bảng: mã câu, $ten viết, đáp án đúng, $ten đúng hay sai.")
         appendLine(
             "2. Với mỗi câu $ten làm sai: một đoạn gợi ý để $ten tự sửa. " + cachVietGoiY(ten)
         )
         appendLine("3. Số câu $ten làm đúng.")
-        if (soat != null) {
-            appendLine(
-                "4. Vở dặn dò: $ten đã làm hết các bài cô giao ở trên chưa" +
-                    if (coAnhVo) ", và danh sách $ten soát có khớp với trang vở không." else "."
-            )
-        } else if (coAnhVo) {
-            appendLine("4. Vở dặn dò: ngày ghi trong vở, các bài cô giao, và $ten đã làm hết chưa.")
-        }
         append(
-            "${if (coVo) 5 else 4}. Cuối cùng, in đúng một khối JSON theo mẫu dưới đây để tôi dán vào app. " +
+            "4. Cuối cùng, in đúng một khối JSON theo mẫu dưới đây để tôi dán vào app. " +
                 "Mỗi câu một mục trong \"ket_qua\". \"dung\" là kết luận của bạn. \"chac\" " +
                 "là false nếu bạn không đọc chắc chữ $ten viết. \"con_viet\" là kết quả cuối " +
                 "$ten viết, theo bạn đọc. \"so_dong\" là số dòng đếm ở bước 6: câu $ten làm " +
@@ -298,17 +247,9 @@ object NhoClaude {
         val maMau = khai?.cac?.firstOrNull()?.ma ?: "1"
         // Mau CO Y khong phai JSON hop le, cung ly do voi mau o [loiNhoChamLai].
         append("{\"bai\":\"${bai.id}\",")
-        if (soat != null) {
-            append("\"lam_het_dan_do\":true hoặc false,")
-            if (coAnhVo) append("\"vo_lech\":\"...\",")
-        } else if (coAnhVo) {
-            append("\"ngay_dan_do\":\"yyyy-MM-dd hoặc null\",\"bai_duoc_giao\":[\"...\"],")
-            append("\"lam_het_dan_do\":true hoặc false,")
-        }
         append("\"ket_qua\":[{\"ma\":\"$maMau\",\"dung\":true hoặc false,")
         append("\"chac\":true hoặc false,\"con_viet\":\"...\",\"so_dong\":số dòng,\"goi_y\":\"...\",")
         append("\"loai_loi\":\"một nhãn ở trên hoặc chuỗi rỗng\"")
-        if (coVo) append(",\"trong_dan_do\":true hoặc false")
         if (khai == null) append(",\"de\":\"chép đề câu đó\",\"dang\":\"CAU_NHO\"")
         else if (coCauNgoaiSach(khai)) append(",\"dang\":\"CAU_NHO\"")
         append("}]}")
@@ -394,52 +335,6 @@ object NhoClaude {
         append(SimpleDateFormat("HH:mm 'ngày' dd/MM/yyyy", VN).format(Date(bai.luc)))
         mon?.takeIf { it.isNotBlank() }?.let { append(", môn ").append(it) }
         appendLine(".")
-    }
-
-    /**
-     * Doan vo dan do khi con da soat tu dau buoi.
-     *
-     * Chep y cau lenh cua may cham tren tablet luc co ban soat (may cham bo ngay 28/9/2026):
-     * dung dung ngay va danh sach nay, khong suy tu anh. Nho vay moi lan cham tinh tron goi
-     * theo cung mot danh sach, danh sach con da soat bang mat va Ba Huy da thay tren
-     * Telegram tu dau buoi.
-     *
-     * Anh trang vo gui kem chi de doi chieu. Cho nao lech thi Claude ghi ra cho Ba Huy
-     * doc trong hop thoai dan ket qua, khong doi phep tinh. Vang anh (tablet chua gui duoc
-     * tin vo dan do) thi khong hoi cho lech.
-     */
-    private fun StringBuilder.voDaSoat(v: VoDaSoat, coAnh: Boolean, ten: String) {
-        appendLine(
-            when (v.nguon) {
-                VoDaSoat.NGUON_CLAUDE -> "Vở dặn dò hôm đó $ten đã chụp từ đầu buổi, và đã được đọc ra chữ từ trước:"
-                VoDaSoat.NGUON_LUC_CHAM -> "Vở dặn dò hôm đó đã được đọc ra chữ ở lần chấm bài trước:"
-                else -> "Vở dặn dò hôm đó $ten đã chụp từ đầu buổi, máy đọc ra chữ và $ten đã soát lại:"
-            }
-        )
-        appendLine("- Ngày ghi trên vở: ${v.ngay}.")
-        appendLine(
-            "- Bài cô giao: " +
-                if (v.cacBai.isEmpty()) "hôm đó cô KHÔNG giao bài tập nào." else v.cacBai.joinToString("; ") + "."
-        )
-        if (v.dongKhac.isNotEmpty()) appendLine("- Dặn dò khác: ${v.dongKhac.joinToString("; ")}.")
-        appendLine("Dùng đúng danh sách này, không tự đọc lại danh sách từ ảnh. Ghi vào khối JSON:")
-        appendLine(
-            "- \"lam_het_dan_do\": true chỉ khi danh sách bài cô giao ở trên có ít nhất một bài " +
-                "và ảnh bài làm cho thấy $ten đã làm hết các bài đó."
-        )
-        appendLine(
-            "- Mỗi câu trong \"ket_qua\" ghi thêm \"trong_dan_do\": true nếu câu đó thuộc một bài " +
-                "trong danh sách trên, false nếu là bài $ten làm thêm. Danh sách rỗng thì mọi câu đều false."
-        )
-        if (coAnh) {
-            appendLine(
-                "- \"vo_lech\": ảnh đầu tiên là trang vở đó, gửi kèm để bạn đối chiếu. Trang có thể " +
-                    "chép nhiều buổi, chỉ xem buổi ghi ngày trên. Nếu danh sách trên thiếu một bài " +
-                    "tập, có dòng không phải bài tập, hay ngày không khớp với trang vở, ghi ngắn chỗ " +
-                    "lệch vào đây. Khớp thì để chuỗi rỗng. Mục này để tôi đọc, không đổi cách tính giờ."
-            )
-        }
-        appendLine()
     }
 
     /**
@@ -659,23 +554,8 @@ object NhoClaude {
     data class KetQuaDan(
         /** Ma bai Claude chep lai tu loi nho. Rong la Claude khong ghi. */
         val bai: String,
-        val cac: List<CauClaude>,
-        /** Claude doc vo dan do ra gi. null la khoi JSON khong co truong nao ve vo dan do. */
-        val danDo: DanDoDan? = null,
-        /**
-         * Cho Claude thay danh sach con soat lech voi anh trang vo. Rong la khop, hay bai
-         * khong dung ban soat. Chi de Ba Huy doc, khong di sang tablet.
-         */
-        val voLech: String = ""
+        val cac: List<CauClaude>
     )
-
-    /**
-     * Vo dan do Claude doc ra: dung ba truong ma may cham van tra ve.
-     *
-     * [ngay] giu nguyen chu Claude viet. Tablet tu doc ngay, nhan ca kieu "14/9/2026"
-     * hay "Thứ hai, ngày 14 tháng 9", xem LuatCongGio.docNgay ben tablet.
-     */
-    data class DanDoDan(val ngay: String?, val baiDuocGiao: List<String>, val lamHet: Boolean)
 
     /**
      * Tim khoi JSON o cuoi cau tra loi cua Claude, doc ra ket luan tung cau.
@@ -763,24 +643,11 @@ object NhoClaude {
                 de = c.chuoi("de"),
                 dang = c.chuoi("dang").uppercase(Locale.ROOT),
                 // Tablet ep nhan la ve KHAC va bo nhan cua cau dung (LoaiLoi.doc ben do).
-                loaiLoi = c.chuoi("loai_loi").uppercase(Locale.ROOT),
-                // Chi nhan true hay false that. Khong noi thi tablet tu quyet theo luat
-                // cua may cham: co trang vo thi la lam them, khong co thi la bai co giao.
-                trongDanDo = c.opt("trong_dan_do") as? Boolean
+                loaiLoi = c.chuoi("loai_loi").uppercase(Locale.ROOT)
             )
         }
         if (cac.isEmpty()) return null
-        val coDanDo = o.has("ngay_dan_do") || o.has("bai_duoc_giao") || o.has("lam_het_dan_do")
-        val danDo = if (!coDanDo) null else DanDoDan(
-            ngay = (o.opt("ngay_dan_do") as? String)?.trim()?.takeIf { it.isNotEmpty() && it != "null" },
-            baiDuocGiao = o.optJSONArray("bai_duoc_giao")?.let { a ->
-                (0 until a.length()).mapNotNull { (a.opt(it) as? String)?.trim()?.takeIf { t -> t.isNotEmpty() } }
-            }.orEmpty(),
-            // Viet sai kieu la khong co goi, y nhu "dung": mot chu "true" khong duoc thanh
-            // 45 phut.
-            lamHet = o.opt("lam_het_dan_do") as? Boolean ?: false
-        )
-        return KetQuaDan(o.chuoi("bai"), cac, danDo, voLech = o.chuoi("vo_lech"))
+        return KetQuaDan(o.chuoi("bai"), cac)
     }
 
     /**
@@ -865,8 +732,8 @@ object NhoClaude {
      * (xem [vn.huytl.bangdieukhien.data.KetQuaClaude.goi]), de lenh XU_CAU gui lai dung no,
      * chi doi cau Ba Huy tu cham.
      *
-     * "coAnhDanDo" la de tablet biet lan nop nay co vo dan do khong - anh hay ban con soat -
-     * vi luat tron goi xu hai canh do khac nhau.
+     * Truoc 30/9/2026 goi nay con mang phan vo dan do (coAnhDanDo, ngayDanDo, baiDuocGiao,
+     * lamHetDanDo, trongDanDo tung cau) de tablet tinh tron goi. Bo tron goi thi bo het.
      */
     fun goiChamBai(ket: KetQuaDan, bai: Bai): Map<String, Any> = buildMap<String, Any> {
         put("cac", ket.cac.map {
@@ -880,24 +747,8 @@ object NhoClaude {
                 put("de", it.de)
                 put("dang", it.dang)
                 if (it.loaiLoi.isNotBlank()) put("loaiLoi", it.loaiLoi)
-                it.trongDanDo?.let { t -> put("trongDanDo", t) }
             }
         })
-        val soat = bai.voDaSoat?.daDoc
-        put("coAnhDanDo", soat != null || bai.anh.any { it.laDanDo })
-        if (soat != null) {
-            // Ngay va danh sach bai la cua ban con soat, Claude chi noi con lam het chua.
-            // Tablet con giu ban cua no tu luc nop va dung ban do truoc.
-            put("ngayDanDo", soat.ngay)
-            put("baiDuocGiao", soat.cacBai)
-            put("lamHetDanDo", ket.danDo?.lamHet ?: false)
-        } else {
-            ket.danDo?.let { d ->
-                d.ngay?.let { put("ngayDanDo", it) }
-                put("baiDuocGiao", d.baiDuocGiao)
-                put("lamHetDanDo", d.lamHet)
-            }
-        }
     }
 
     /**

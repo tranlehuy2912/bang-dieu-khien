@@ -29,6 +29,7 @@ import vn.huytl.bangdieukhien.data.LenhCho
 import vn.huytl.bangdieukhien.data.Nguoi
 import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.data.TrangThai
+import vn.huytl.bangdieukhien.data.NhacBaiBuoi
 import vn.huytl.bangdieukhien.data.VoDaSoat
 import vn.huytl.bangdieukhien.databinding.FragmentBangBinding
 import vn.huytl.bangdieukhien.telegram.TaiAnh
@@ -54,6 +55,7 @@ class BangFragment : Fragment() {
 
     private var ngheTrangThai: ListenerRegistration? = null
     private var ngheDanDo: ListenerRegistration? = null
+    private var ngheNhacBai: ListenerRegistration? = null
     private var ngheLenh: ListenerRegistration? = null
 
     /** Lenh may nay da go ma tablet chua lay, cu nhat truoc. Xem [veLenhCho]. */
@@ -214,6 +216,10 @@ class BangFragment : Fragment() {
             voDanDo = vo
             veVoDanDo()
         }
+        ngheNhacBai = Kho.ngheNhacBai(ct) { ds ->
+            if (_b == null) return@ngheNhacBai
+            veNhacBai(ds)
+        }
         ngheLenh = Kho.ngheLenhCho(ct) { ds ->
             if (_b == null) return@ngheLenhCho
             lenhCho = ds
@@ -231,6 +237,7 @@ class BangFragment : Fragment() {
         hoiKhiCoBanDau = false
         ngheTrangThai?.remove()
         ngheDanDo?.remove()
+        ngheNhacBai?.remove()
         ngheLenh?.remove()
         super.onStop()
     }
@@ -885,10 +892,8 @@ class BangFragment : Fragment() {
     /**
      * The vo dan do, chi hien khi may tren tablet doc khong duoc va con da gui anh sang.
      *
-     * Khong bat buoc bam: lan Nho Claude cham dau tien cung doc trang vo, va tablet giu
-     * ket qua do cho cac bai sau. Bam o day la de doc TRUOC khi cham: con co danh sach
-     * bai tap de soat, va hom co khong giao bai thi tin vo dan do tren Telegram co nut
-     * Duyet 45 phut.
+     * Tu 30/9/2026 day la duong duy nhat doc trang vo do: cham bai khong dung vo nua. Doc
+     * xong thi con co danh sach de soat, va tablet nhac bai theo tung dong.
      *
      * Chua co ma anh (tablet chua gui xong tin vo dan do) thi an: khong co anh thi Claude
      * khong co gi de doc.
@@ -905,6 +910,24 @@ class BangFragment : Fragment() {
         b.theVoDanDo.visibility = View.VISIBLE
     }
 
+    /**
+     * The "Bài dặn dò sắp tới": moi buoi mot khoi, buoi som truoc. Tablet tinh han va nhac
+     * Le Hoa tu hom truoc buoi do (30/9/2026); o day chi de Ba Huy thay cung danh sach.
+     */
+    private fun veNhacBai(ds: List<NhacBaiBuoi>) {
+        b.theNhacBai.visibility = if (ds.isEmpty()) View.GONE else View.VISIBLE
+        if (ds.isEmpty()) return
+        b.chuNhacBai.text = ds.joinToString("\n\n") { buoi ->
+            buildString {
+                append(buoi.ten.replaceFirstChar { it.uppercase() })
+                (buoi.cacBai + buoi.dongKhac).forEach { d ->
+                    append('\n').append(if (d.bai) "• " else "· ").append(d.chu)
+                    Dinh.ngayNgan(d.ngayVo)?.let { append(" (vở ").append(it).append(')') }
+                }
+            }
+        }
+    }
+
     private fun hoiDocVo() {
         val vo = voDanDo ?: return
         MaterialAlertDialogBuilder(requireContext())
@@ -912,7 +935,7 @@ class BangFragment : Fragment() {
             .setMessage(
                 "Nhờ Claude đọc: mở app Claude với ảnh trang vở và lời nhờ chép sẵn.\n\n" +
                     "Dán kết quả: Claude trả lời xong thì chép câu trả lời, quay lại đây bấm nút này.\n\n" +
-                    "Không đọc riêng thì lần Nhờ Claude chấm đầu tiên sẽ đọc luôn."
+                    "Đọc xong thì tablet nhắc bài theo vở này."
             )
             .setPositiveButton("Nhờ Claude đọc") { _, _ -> nhoClaudeDocVo(vo) }
             .setNeutralButton("Dán kết quả") { _, _ -> danKetQuaDocVo(vo) }
@@ -992,7 +1015,7 @@ class BangFragment : Fragment() {
                 khac.forEach { append("\n· ").append(it.chu) }
             }
             append("\n\n${getString(R.string.child_name)} thấy danh sách này trên tablet và soát ")
-            append("lại được. Các bài nộp sau chấm theo danh sách này.")
+            append("lại được. Tablet nhắc từng dòng trước tiết sau của môn đó.")
         }
         MaterialAlertDialogBuilder(ct)
             .setTitle("Kết quả Claude đọc vở")

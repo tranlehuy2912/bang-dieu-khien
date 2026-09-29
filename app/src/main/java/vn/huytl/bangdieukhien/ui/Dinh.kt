@@ -115,6 +115,12 @@ object Dinh {
     /** Ngay hom nay dang "yyyy-MM-dd", dung lam ten document nhat ky. */
     fun homNay(): String = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
+    /** "2026-09-28" thanh "28/9". null khi chu khong phai ngay. */
+    fun ngayNgan(yyyyMMdd: String): String? {
+        val m = Regex("""^(\d{4})-(\d{2})-(\d{2})$""").find(yyyyMMdd.trim()) ?: return null
+        return "${m.groupValues[3].toInt()}/${m.groupValues[2].toInt()}"
+    }
+
     fun noi(context: Context, chu: String) =
         Toast.makeText(context, chu, Toast.LENGTH_SHORT).show()
 

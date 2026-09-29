@@ -246,6 +246,17 @@ object Kho {
             khi(if (snap?.exists() == true) VoDaSoat.doc(snap.data) else null)
         }
 
+    /**
+     * Nghe cac dong vo dan do chua toi han, gom theo buoi. Xem [Duong.D_NHAC_BAI].
+     *
+     * Rong la khong con dong nao: tablet xoa document khi dong cuoi cung toi han.
+     */
+    fun ngheNhacBai(context: Context, khi: (List<NhacBaiBuoi>) -> Unit): ListenerRegistration? =
+        hop(context, Duong.D_NHAC_BAI)?.addSnapshotListener { snap, loi ->
+            if (loi != null) return@addSnapshotListener
+            khi(if (snap?.exists() == true) NhacBaiBuoi.docHet(snap.data) else emptyList())
+        }
+
     fun ngheDanhSachApp(context: Context, khi: (List<AppTrenMay>) -> Unit): ListenerRegistration? =
         hop(context, Duong.D_DANH_SACH_APP)?.addSnapshotListener { snap, loi ->
             if (loi != null) return@addSnapshotListener

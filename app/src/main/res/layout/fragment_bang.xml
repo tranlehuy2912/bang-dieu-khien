@@ -626,5 +626,54 @@
                     app:tint="@color/wait_ink" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <!-- Cac dong vo dan do chua toi han, gom theo buoi (hop/nhacbai). Tablet nhac Le Hoa
+             tu hom truoc buoi han; the nay de Ba Huy thay cung danh sach do. Chi de doc. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/theNhacBai"
+            style="@style/The"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_marginEnd="10dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_vo"
+                        app:tint="@color/ink_soft" />
+
+                    <TextView
+                        style="@style/Chu.TieuDe"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/bang_nhac_bai" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/chuNhacBai"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingExtra="3dp"
+                    android:textColor="@color/ink"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </ScrollView>

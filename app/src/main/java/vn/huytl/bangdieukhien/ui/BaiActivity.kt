@@ -31,7 +31,6 @@ import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.Lenh
 import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.data.SuaChamGoi
-import vn.huytl.bangdieukhien.data.VoDaSoat
 import vn.huytl.bangdieukhien.data.XuCau
 import vn.huytl.bangdieukhien.databinding.ActivityBaiBinding
 import vn.huytl.bangdieukhien.telegram.TaiAnh
@@ -49,14 +48,7 @@ class BaiActivity : AppCompatActivity() {
 
     private lateinit var b: ActivityBaiBinding
     private var nghe: ListenerRegistration? = null
-    private var ngheVo: ListenerRegistration? = null
     private var bai: Bai? = null
-
-    /** Bai dung nhu tren Firestore, chua ghep vo da doc. Xem [kemVoDaDoc]. */
-    private var baiGoc: Bai? = null
-
-    /** Vo dan do dang con hieu luc tren tablet (hop/dando). */
-    private var voHienTai: VoDaSoat? = null
 
     /** Lua chon o the "Câu cần Ba Huy xem", cung thu tu voi cham.canXem. Xem [veXuCau]. */
     private var chonXu: MutableList<XuCau.Chon?> = mutableListOf()
@@ -82,43 +74,17 @@ class BaiActivity : AppCompatActivity() {
             finish()
             return
         }
+        // Truoc 30/9/2026 man nay con nghe ca hop/dando de ghep vo da doc vao bai cho Claude
+        // tinh tron goi. Bo tron goi thi cham bai khong dung vo nua.
         nghe = Kho.ngheMotBai(this, id) { moi ->
-            baiGoc = moi
-            val ghep = moi?.let { kemVoDaDoc(it) }
-            bai = ghep
-            if (ghep == null) finish() else ve(ghep)
-        }
-        ngheVo = Kho.ngheDanDo(this) { v ->
-            voHienTai = v
-            val goc = baiGoc ?: return@ngheDanDo
-            val ghep = kemVoDaDoc(goc)
-            if (ghep != bai) {
-                bai = ghep
-                ve(ghep)
-            }
+            bai = moi
+            if (moi == null) finish() else ve(moi)
         }
     }
 
     override fun onDestroy() {
         nghe?.remove()
-        ngheVo?.remove()
         super.onDestroy()
-    }
-
-    /**
-     * Bai nop luc vo con chi co anh, ma tu do chinh tam anh ay da duoc doc ra chu (Claude
-     * doc, hay lan cham truoc doc): dung ban da doc, y nhu tablet (VoChoCham.voChoBai ben
-     * do). Khong thi loi nho bat Claude doc lai trang vo, lan doc do co the ra danh sach
-     * khac, ma tablet thi cham theo danh sach cua minh.
-     *
-     * Tablet ban moi tu chep ban da doc vao bai. Cho nay do cho luc tablet chua kip chep,
-     * hay la tablet ban cu.
-     */
-    private fun kemVoDaDoc(b: Bai): Bai {
-        val cua = b.voDaSoat ?: return b
-        if (!cua.chuaDoc || cua.chupLuc == 0L) return b
-        val hien = voHienTai?.takeIf { !it.chuaDoc && it.chupLuc == cua.chupLuc } ?: return b
-        return b.copy(voDaSoat = hien)
     }
 
     /**
@@ -669,10 +635,6 @@ class BaiActivity : AppCompatActivity() {
                 append(". Tablet sẽ chưa cộng giờ: các câu này hiện ở thẻ Câu cần Ba Huy xem ")
                 append("đầu màn này để chấm tay, hoặc bấm Duyệt.")
             }
-            // Ban chi co anh thi Claude doc anh vo nhu lan nop chup kem, xem VoDaSoat.chuaDoc.
-            val soat = bai.voDaSoat?.daDoc
-            if (soat != null) append("\n\n").append(noiVoDaSoat(soat, ket))
-            else if (bai.anh.any { it.laDanDo }) append("\n\n").append(noiDanDo(ket.danDo))
             // Bai da cham mot lan ma chua duyet cung di duong nay, xem NhoClaude.chamMoi.
             if (!bai.cham?.cac.isNullOrEmpty() && bai.dangCho) {
                 append("\n\nBài này đã chấm một lần nhưng chưa duyệt, nên tablet tính phút theo ")
@@ -694,75 +656,6 @@ class BaiActivity : AppCompatActivity() {
             }
             .show()
     }
-
-    /** Mot doan ke Claude doc vo dan do ra gi, va vi sao co hay khong co tron goi. */
-    private fun noiDanDo(d: NhoClaude.DanDoDan?): String = when {
-        d == null -> "Claude không ghi gì về vở dặn dò, nên không có gói 45 phút."
-        d.baiDuocGiao.isEmpty() ->
-            "Vở dặn dò: Claude không thấy bài tập nào được giao, nên không có gói 45 phút."
-        else -> buildString {
-            val con = getString(R.string.child_name)
-            append("Vở dặn dò")
-            d.ngay?.let { append(" ngày ").append(ngayGon(it)) }
-            append(": cô giao ").append(d.baiDuocGiao.joinToString(", ")).append(". ")
-            append(
-                when {
-                    !d.lamHet -> "Claude thấy $con chưa làm hết, nên chưa có gói 45 phút."
-                    d.ngay == null -> "Claude không đọc được ngày trong vở, nên không có gói 45 phút."
-                    else -> "Claude thấy $con đã làm hết. Tablet cộng gói 45 phút nếu ngày " +
-                        "trong vở còn hiệu lực và hôm đó chưa tính gói."
-                }
-            )
-        }
-    }
-
-    /**
-     * Mot doan ke vo dan do con soat, Claude thay con lam het chua, va cho Claude thay
-     * danh sach lech voi trang vo.
-     *
-     * Cho lech chi de Ba Huy doc: tablet van tinh goi theo danh sach con soat. Nen hop
-     * thoai noi luon duong ra khi Claude noi dung: bam Huy, xem lai anh, roi tu duyet.
-     *
-     * Danh sach khong phai luc nao cung do con soat: may doc hong thi Claude doc qua the
-     * vo dan do o tab Bang, hay lan cham bai dau tien doc ra. Ghi dung ai doc, de Ba Huy
-     * biet danh sach nay da qua mat ai.
-     */
-    private fun noiVoDaSoat(v: VoDaSoat, ket: NhoClaude.KetQuaDan): String = buildString {
-        val con = getString(R.string.child_name)
-        val aiDoc = when (v.nguon) {
-            VoDaSoat.NGUON_CLAUDE -> "Claude đọc"
-            VoDaSoat.NGUON_LUC_CHAM -> "đọc lúc chấm bài trước"
-            else -> "$con soát"
-        }
-        append("Vở dặn dò $aiDoc, ngày ").append(ngayGon(v.ngay)).append(": ")
-        val d = ket.danDo
-        if (v.cacBai.isEmpty()) {
-            append("cô không giao bài tập nào, nên không có gói 45 phút. Muốn cho gói thì ")
-            append("bấm nút dưới tin vở dặn dò trên Telegram.")
-        } else {
-            append("cô giao ").append(v.cacBai.joinToString(", ")).append(". ")
-            append(
-                when {
-                    d == null -> "Claude không ghi $con làm hết chưa, nên không có gói 45 phút."
-                    !d.lamHet -> "Claude thấy $con chưa làm hết, nên chưa có gói 45 phút."
-                    else -> "Claude thấy $con đã làm hết. Tablet cộng gói 45 phút nếu ngày " +
-                        "trong vở còn hiệu lực và hôm đó chưa tính gói."
-                }
-            )
-        }
-        if (ket.voLech.isNotBlank()) {
-            append("\n\nClaude thấy vở lệch với danh sách này: ").append(ket.voLech.trim())
-            append("\nTablet vẫn tính theo danh sách này. Thấy Claude nói đúng thì bấm ")
-            append("Huỷ, xem lại ảnh vở rồi tự duyệt.")
-        }
-    }
-
-    /** "2026-09-23" thanh "23/9/2026". Kieu khac thi de nguyen. */
-    private fun ngayGon(ngay: String): String =
-        Regex("^(\\d{4})-(\\d{1,2})-(\\d{1,2})$").find(ngay.trim())?.let { m ->
-            val (nam, thang, ngayTrongThang) = m.destructured
-            "${ngayTrongThang.toInt()}/${thang.toInt()}/$nam"
-        } ?: ngay
 
     /**
      * Ghi ban Claude len bai va go lenh cham cho tablet.

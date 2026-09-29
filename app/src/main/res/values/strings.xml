@@ -59,6 +59,7 @@
     <string name="bang_bai_cho">%1$d bài đang chờ duyệt</string>
     <string name="bang_viec_cho">Việc nhà chưa xong</string>
     <string name="bang_vo_chua_doc">Vở dặn dò chưa đọc được</string>
+    <string name="bang_nhac_bai">Bài dặn dò sắp tới</string>
     <string name="bang_vo_chup_luc">%1$s chụp lúc %2$s</string>
     <string name="bang_tin_co">Dán tin của cô giáo</string>
     <string name="bang_mo_may">Mở toàn bộ máy cho Ba Huy dùng</string>

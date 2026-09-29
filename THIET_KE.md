@@ -100,10 +100,16 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │                   điều khiển sửa được từ 27/09/2026, mỗi lần một app
 │     appChan, appAi, và các con số giờ
 ├── hop/danhsachapp             ◄── chỉ TABLET ghi (app đang cài, để chọn từ xa)
-├── hop/dando                   ◄── chỉ TABLET ghi: vở dặn dò đang còn hiệu lực, cùng
-│                                   dạng với danDo trong bai/ kèm luc. Hết hiệu lực thì
-│                                   tablet xoá. Máy không đọc được (chuaDoc) thì tab Giờ chơi
-│                                   hiện thẻ "Nhờ Claude đọc vở"
+├── hop/dando                   ◄── chỉ TABLET ghi: vở dặn dò của buổi vừa học, cùng
+│                                   dạng với danDo trong bai/ kèm luc. Tới giờ vào buổi học
+│                                   kế tiếp thì hết hiệu lực, tablet xoá. Máy không đọc được
+│                                   (chuaDoc) thì tab Giờ chơi hiện thẻ "Nhờ Claude đọc vở"
+├── hop/nhacbai                 ◄── chỉ TABLET ghi, từ 30/09/2026: các dòng vở dặn dò chưa
+│     cacBuoi[] { ma, ngay, ten,    tới hạn, gom theo buổi. Mỗi dòng hạn tới tiết sau của
+│       vaoHoc, cac[] { chu, bai,   đúng môn đó (dòng không đọc ra môn thì tới buổi học kế
+│       mon, ngayVo } }             tiếp). Tablet nhắc Lê Hòa từ đầu ngày trước buổi hạn;
+│                                   tab Giờ chơi hiện thẻ "Bài dặn dò sắp tới". Hết dòng
+│                                   thì tablet xoá
 ├── hop/sudung                  ◄── chỉ TABLET ghi, và chỉ khi nhận PING: sổ dùng app
 │     doan[]    { goi, tu, den }: các khoảng Lê Hòa cầm máy, epoch ms theo giờ tablet
 │     app[]     { goi, ten }: tên đọc được của từng app có trong doan
@@ -170,7 +176,8 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │             màn kết quả tablet, từ 28/09/2026): là mã bài đó. Lúc ấy cac[] chỉ gồm
 │             các câu sai, câu ngoài sách có cauId rỗng và đề chép từ bản chấm cũ. Lời
 │             nhờ Claude chỉ cho chấm câu trong cac[], và tablet bỏ câu ngoài danh sách
-│     danDo   vở dặn dò của ngày, khi lần nộp không chụp trang vở: { ngay,
+│     danDo   (chỉ bài nộp trước 30/09/2026, lúc còn trọn gói 45 phút)
+│             vở dặn dò của ngày, khi lần nộp không chụp trang vở: { ngay,
 │             cacBai[], dongKhac[], fileId, chuaDoc, nguon, chupLuc }. Ảnh trang vở
 │             cũng nằm cuối anh[] với khau DAN_DO. Claude chấm theo đúng ngày và danh
 │             sách này; chuaDoc là chỉ có ảnh, Claude đọc ảnh lúc chấm và tablet giữ

@@ -175,7 +175,6 @@ data class KetQuaCham(
     val cac: List<CauCham> = emptyList(),
     val tomTat: String = "",
     val phutDeNghi: Int = 0,
-    val lamHetDanDo: Boolean = false,
     /**
      * Cau tablet chua tu cap gio, cho Ba Huy tu cham (tu 29/9/2026). Xem [CauCanXem].
      *
@@ -269,18 +268,13 @@ data class CauClaude(
      * don nhan nay cho man Tien bo va "Luyện chỗ hay vấp" (tu 28/9/2026 Claude la noi
      * duy nhat dat nhan).
      */
-    val loaiLoi: String = "",
-    /**
-     * Cau nay thuoc bai co giao trong vo dan do. null la Claude khong noi, luc do tablet
-     * tu quyet theo luat cua may cham.
-     */
-    val trongDanDo: Boolean? = null
+    val loaiLoi: String = ""
 ) {
     /**
      * Mot dong trong chamClaude.cac, dung kieu tablet doc o BaiDaCham ben nop-bai.
      *
-     * Chi sau truong nay, tu truoc 29/9/2026. So dong, dang bai, kieu sai va trongDanDo
-     * khong nam o day ma nam nguyen ban trong chamClaude.goi, xem [KetQuaClaude.goi].
+     * Chi sau truong nay, tu truoc 29/9/2026. So dong, dang bai va kieu sai khong nam o
+     * day ma nam nguyen ban trong chamClaude.goi, xem [KetQuaClaude.goi].
      */
     fun banGhi(): Map<String, Any> = buildMap<String, Any> {
         put("ma", ma)
@@ -317,11 +311,10 @@ data class KhaiBai(
 }
 
 /**
- * Vo dan do cua ngay, tablet chep vao bai luc nop va vao hop/dando. Xem [Duong.F_DAN_DO].
+ * Vo dan do cua buoi vua hoc, trong hop/dando. Bai nop truoc 30/9/2026 cung mang no (luc
+ * do Claude dung vo de tinh tron goi). Xem [Duong.F_DAN_DO].
  *
- * Co cai nay thi Claude khong phai tu doc trang vo: ngay va cac bai co giao da co san,
- * may doc va con da soat lai. [fileId] la anh trang vo de Claude doi chieu, rong la
- * tablet chua gui duoc anh.
+ * [fileId] la anh trang vo de Ba Huy nho Claude doc, rong la tablet chua gui duoc anh.
  *
  * [chuaDoc] la ngoai le: chi co anh, may doc khong duoc. Luc do [cacBai] rong nhung chua
  * biet co giao gi, nen khong duoc dung nhu mot danh sach - xem [daDoc].
@@ -369,6 +362,62 @@ data class VoDaSoat(
     }
 }
 
+/**
+ * Cac dong vo dan do chua toi han cua mot buoi hoc, trong hop/nhacbai. Xem [Duong.D_NHAC_BAI].
+ *
+ * Tablet tinh han: moi dong toi tiet sau cua dung mon do, dong khong doc ra mon thi toi
+ * buoi hoc ke tiep. Dien thoai chi hien.
+ */
+data class NhacBaiBuoi(
+    /** Khoa buoi, "20261003-CHIEU". */
+    val ma: String,
+    /** Ngay cua buoi, dang yyyy-MM-dd. */
+    val ngay: String,
+    /** "chiều thứ bảy 3/10". */
+    val ten: String,
+    /** Luc vao hoc, epoch ms. */
+    val vaoHoc: Long,
+    val cac: List<Dong>
+) {
+    /** [bai] la dong con tich la bai tap; [ngayVo] la ngay ghi tren trang vo co dong do. */
+    data class Dong(val chu: String, val bai: Boolean, val mon: String, val ngayVo: String)
+
+    val cacBai: List<Dong> get() = cac.filter { it.bai }
+    val dongKhac: List<Dong> get() = cac.filterNot { it.bai }
+
+    companion object {
+        /** Doc ca document hop/nhacbai. Thieu hay hong thi ra danh sach rong. */
+        fun docHet(m: Map<*, *>?): List<NhacBaiBuoi> =
+            (m?.get(Duong.F_CAC_BUOI) as? List<*>).orEmpty().mapNotNull { doc(it as? Map<*, *>) }
+
+        fun doc(m: Map<*, *>?): NhacBaiBuoi? {
+            if (m == null) return null
+            val ma = (m["ma"] as? String)?.trim().orEmpty()
+            val ten = (m["ten"] as? String)?.trim().orEmpty()
+            if (ma.isEmpty() || ten.isEmpty()) return null
+            val cac = (m["cac"] as? List<*>).orEmpty().mapNotNull { x ->
+                val d = x as? Map<*, *> ?: return@mapNotNull null
+                val chu = (d["chu"] as? String)?.trim().orEmpty()
+                if (chu.isEmpty()) return@mapNotNull null
+                Dong(
+                    chu = chu,
+                    bai = d["bai"] as? Boolean ?: false,
+                    mon = (d["mon"] as? String)?.trim().orEmpty(),
+                    ngayVo = (d["ngayVo"] as? String)?.trim().orEmpty()
+                )
+            }
+            if (cac.isEmpty()) return null
+            return NhacBaiBuoi(
+                ma = ma,
+                ngay = (m["ngay"] as? String)?.trim().orEmpty(),
+                ten = ten,
+                vaoHoc = (m["vaoHoc"] as? Number)?.toLong() ?: 0L,
+                cac = cac
+            )
+        }
+    }
+}
+
 /** Ban Claude cham, nam o [Duong.F_CHAM_CLAUDE] canh ban cham cua may. */
 data class KetQuaClaude(
     val luc: Long,
@@ -402,8 +451,6 @@ data class Bai(
     val anh: List<Anh>,
     val cham: KetQuaCham?,
     val messageId: Long,
-    /** Vo dan do con soat ma lan nop nay dung thay cho trang vo. Xem [VoDaSoat]. */
-    val voDaSoat: VoDaSoat? = null,
     val claude: KetQuaClaude? = null,
     val khai: KhaiBai? = null,
     /** Ba Huy da bam Xoa o tab Bai. Xem [F_AN]. */
@@ -475,7 +522,6 @@ data class Bai(
                 anh = anh,
                 cham = docCham(d.get(Duong.F_CHAM) as? Map<*, *>),
                 messageId = d.getLong(Duong.F_MESSAGE_ID) ?: 0L,
-                voDaSoat = VoDaSoat.doc(d.get(Duong.F_DAN_DO) as? Map<*, *>),
                 claude = docClaude(d.get(Duong.F_CHAM_CLAUDE) as? Map<*, *>),
                 khai = docKhai(d.get(Duong.F_KHAI) as? Map<*, *>),
                 an = d.getBoolean(F_AN) ?: false,
@@ -551,7 +597,6 @@ data class Bai(
                 cac = cac,
                 tomTat = m["tomTat"] as? String ?: "",
                 phutDeNghi = (m["phutDeNghi"] as? Number)?.toInt() ?: 0,
-                lamHetDanDo = m["lamHetDanDo"] as? Boolean ?: false,
                 canXem = CauCanXem.docDanhSach(m["canXem"])
             )
         }

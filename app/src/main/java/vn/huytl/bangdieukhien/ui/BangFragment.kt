@@ -157,6 +157,7 @@ class BangFragment : Fragment() {
         b.cho30.setOnClickListener { cho(30) }
         b.cho45.setOnClickListener { cho(45) }
         b.choKhac.setOnClickListener { hoiSoPhut() }
+        b.nutCapQuy.setOnClickListener { hoiCapQuy() }
 
         b.nutDung.setOnClickListener {
             // Mot nut cho ca hai chieu: dang choi thi dung, dang dung thi tiep.
@@ -331,6 +332,7 @@ class BangFragment : Fragment() {
         val doDam = if (khongDap()) ALPHA_SO_CU else 1f
         b.khoiTrangThai.alpha = doDam
         b.khoiHanMuc.alpha = doDam
+        b.khoiQuy.alpha = doDam
 
         val (chu, mau, mauNhat) = when {
             // Viec nha xet truoc ca che do Ba: dang khoa vi viec nha thi moi thu
@@ -365,11 +367,9 @@ class BangFragment : Fragment() {
             b.nutKhoa, b.nutMoMay, b.nutTinCo
         ).forEach { it.isEnabled = true }
 
-        b.daDuyet.text = Dinh.phut(tt.phutDaDuyet)
-        b.conLaiNgay.text = Dinh.phut(tt.phutConLai)
-        val tran = tt.phutDaDuyet + tt.phutConLai
-        b.thanhNgay.max = if (tran > 0) tran else 1
-        b.thanhNgay.setProgressCompat(tt.phutDaDuyet, true)
+        veNgay(tt)
+        // Sau vong bat nut o tren: nut cap tu quy tat khi quy trong, khong bat lai mu quang.
+        veQuy(tt)
 
         // Ten tung viec theo tablet. The o tab Viec nha doc document chung, co khi di truoc
         // tablet vai giay; con dong nay noi vi sao tablet dang khoa.
@@ -409,6 +409,50 @@ class BangFragment : Fragment() {
         // Sau cung: no bat lai hay tat het nut tuy theo co lenh dang gui khong, nen
         // phai chay sau moi dong isEnabled o tren.
         veDuongLenh()
+    }
+
+    /**
+     * So phut trong ngay: da duyet, con kiem duoc, va mot dong chu noi con so tong.
+     *
+     * Tu 29/9/2026 tablet bo tran chung (truoc la 135 phut): [TrangThai.phutConLai] la tong
+     * tran rieng cua cac phan tru so da duyet, chi de xem. Dong chu duoi thanh ghi ro tong
+     * do, de "Còn kiếm được" khong bi doc thanh mot han muc chan nut Duyet nhu truoc day.
+     *
+     * Tong lay tu hai so tablet gui, khong viet cung 215 o day: tablet doi tran thi dong nay
+     * doi theo. Da duyet toi hay qua tong thi con lai la 0 va khong con suy ra duoc tong,
+     * nen luc do chi noi la da du.
+     *
+     * Tablet ban cu (chua gui quyGio) van dung tran chung that, nen an dong chu: noi "tong
+     * tran rieng" voi may do la noi sai.
+     */
+    private fun veNgay(tt: TrangThai) {
+        b.daDuyet.text = Dinh.phut(tt.phutDaDuyet)
+        b.conLaiNgay.text = Dinh.phut(tt.phutConLai)
+        val tran = tt.phutDaDuyet + tt.phutConLai
+        b.thanhNgay.max = if (tran > 0) tran else 1
+        b.thanhNgay.setProgressCompat(tt.phutDaDuyet, true)
+        b.chuTranNgay.visibility = if (tt.quyGio != null) View.VISIBLE else View.GONE
+        b.chuTranNgay.text =
+            if (tt.phutConLai > 0) getString(R.string.bang_tran_ngay, tran)
+            else getString(R.string.bang_tran_ngay_du)
+    }
+
+    /**
+     * Hang "Quỹ giờ chơi". An khi tablet chua gui so quy: ban cu, khong hieu lenh
+     * [Lenh.CAP_QUY]. Quy trong thi nut tat, vi tablet chi tra loi "Quỹ giờ chơi đang trống".
+     *
+     * Goi sau vong bat nut cua [ve] va truoc [veDuongLenh], nen lenh dang gui thi nut nay
+     * cung khoa nhu moi nut cho gio.
+     */
+    private fun veQuy(tt: TrangThai) {
+        val quy = tt.quyGio
+        if (quy == null) {
+            b.hangQuy.visibility = View.GONE
+            return
+        }
+        b.hangQuy.visibility = View.VISIBLE
+        b.soQuy.text = Dinh.phut(quy)
+        b.nutCapQuy.isEnabled = quy > 0
     }
 
     /**
@@ -523,7 +567,7 @@ class BangFragment : Fragment() {
                     else -> "đã duyệt, Lê Hòa chưa bấm chơi"
                 }
                 b.thanhPhien.visibility = View.VISIBLE
-                // Thanh chay theo phien hien tai chu khong theo han muc ngay: moc
+                // Thanh chay theo phien hien tai chu khong theo so phut ca ngay: moc
                 // day la luc bat dau phien, tuc la so phut duoc cap lan nay.
                 // Tong lay tu tablet. Truoc day lay conLaiMs, ma truong do luc
                 // dang choi chinh la so dang chay, nen thanh luon day gan het.
@@ -720,9 +764,66 @@ class BangFragment : Fragment() {
     /** Tat het nut bam duoc trong luc mot lenh dang tren duong di. */
     private fun khoaNut() {
         listOf(
-            b.cho15, b.cho30, b.cho45, b.choKhac,
+            b.cho15, b.cho30, b.cho45, b.choKhac, b.nutCapQuy,
             b.nutDung, b.nutBot, b.nutDongMay, b.nutKhoa, b.nutMoMay, b.nutTinCo
         ).forEach { it.isEnabled = false }
+    }
+
+    /**
+     * Cap gio tu "Quỹ giờ chơi": hoi bao nhieu, roi gui lenh [Lenh.CAP_QUY].
+     *
+     * Chi hien cac muc khong qua so dang co trong quy, cong mot dong cap het. Cap het thi
+     * lenh khong kem so phut: tablet cap het so co luc nhan lenh, ke ca khi quy vua tang.
+     * Hop chi co danh sach, khong co doan van, vi AlertDialog chi dung duoc mot trong hai,
+     * xem [hoiMoMay].
+     */
+    private fun hoiCapQuy() {
+        val quy = moiNhat?.quyGio ?: return
+        if (quy <= 0) return
+        val muc = MUC_CAP_QUY.filter { it <= quy }
+        val cac = (muc.map { Dinh.phut(it) } + "Cấp hết (${Dinh.phut(quy)})").toTypedArray()
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Cấp từ quỹ giờ chơi")
+            .setItems(cac) { _, i -> capQuy(muc.getOrNull(i)) }
+            .setNegativeButton(R.string.huy, null)
+            .show()
+    }
+
+    /**
+     * Gui lenh cap tu quy. [phut] null la cap het.
+     *
+     * Hoi lai o hai canh ma bam xong se khong thay gi doi, y nhu [cho]: tablet dang khong
+     * tra loi (so trong quy la so cu), hay con lenh cap tu quy truoc chua toi tablet. Tablet
+     * cap ca hai lenh, quy con bao nhieu cap bay nhieu, nen bam them vi tuong lan truoc hut
+     * la Le Hoa duoc gap doi.
+     */
+    private fun capQuy(phut: Int?) {
+        val cu = lenhCho.filter { it.kieu == Lenh.CAP_QUY && !it.quaHan() }
+        val im = khongDap()
+        if (cu.isEmpty() && !im) return gui(Lenh.CAP_QUY, phut = phut)
+
+        val noi = buildString {
+            if (im && dienThoaiMatMang()) {
+                append("Điện thoại này đang không gửi được lệnh (mất mạng?). Lệnh sẽ nằm chờ ")
+                append("trên máy này, có mạng lại mới tới tablet.")
+            } else if (im) {
+                val han = Dinh.phut((Duong.QUA_CU_MS / 60_000L).toInt())
+                append("Tablet đang không trả lời, số trong quỹ là lần cuối nó báo về. Lệnh sẽ ")
+                append("nằm chờ: tablet có mạng lại trong vòng $han thì cấp, quá $han thì ")
+                append("tablet bỏ qua.")
+            }
+            if (cu.isNotEmpty()) {
+                if (isNotEmpty()) append("\n\n")
+                append("Còn lệnh ${cu.joinToString(", ") { Dinh.lenh(it) }} chưa tới tablet. ")
+                append("Gửi thêm thì tablet cấp cả hai lần, quỹ còn bao nhiêu cấp bấy nhiêu.")
+            }
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Vẫn cấp ${phut?.let { Dinh.phut(it) } ?: "hết quỹ"}?")
+            .setMessage(noi)
+            .setPositiveButton("Vẫn gửi") { _, _ -> gui(Lenh.CAP_QUY, phut = phut) }
+            .setNegativeButton(R.string.huy, null)
+            .show()
     }
 
     private fun hoiSoPhut() {
@@ -984,6 +1085,12 @@ class BangFragment : Fragment() {
 
         /** Do dam cua phan so lieu trong the chinh khi so do la so cu. */
         private const val ALPHA_SO_CU = 0.5f
+
+        /**
+         * Cac muc trong hop cap tu quy, xem [hoiCapQuy]. Cung nhip 15 phut voi hang Cho choi
+         * ngay; muc nao lon hon so trong quy thi an.
+         */
+        private val MUC_CAP_QUY = listOf(15, 30, 45, 60)
 
         /** Cho ban trang thai tu may chu toi da bay lau roi van hoi tablet. */
         private const val CHO_BAN_DAU_MS = 5_000L

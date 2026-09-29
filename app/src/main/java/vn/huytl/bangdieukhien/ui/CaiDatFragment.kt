@@ -3,7 +3,6 @@ package vn.huytl.bangdieukhien.ui
 import android.app.TimePickerDialog
 import android.content.Intent
 import android.os.Bundle
-import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -97,11 +96,11 @@ class CaiDatFragment : Fragment() {
 
         b.than.addView(tieu("Giờ chơi"))
         b.than.addView(nhom(
-            muc("Tối đa mỗi ngày", Dinh.phut(c.tranPhutMoiNgay), "Duyệt bài không vượt quá số này") {
-                hoiSo("Tối đa phút mỗi ngày", c.tranPhutMoiNgay, 15, 480) {
-                    guiCaiDat("tranPhutMoiNgay", it)
-                }
-            },
+            // Khong con muc "Tối đa mỗi ngày" (bo ngay 29/9/2026). Tablet bo tran chung 135
+            // phut: moi phan co tran rieng (vo dan do 45, lam tren may 90, on lai 30, Kiem tra
+            // bai 20, Do tu vung 30, tong 215), phan lam tren may vuot tran thi vao Quy gio
+            // choi. Tablet nhan lenh CAIDAT tranPhutMoiNgay chi tra loi la khong con dung, nen
+            // de muc nay lai la mot nut bam khong doi duoc gi.
             muc("Giờ ngủ", Dinh.gio(c.gioNgu), "Quá giờ này là không cấp thêm phút nào") {
                 hoiGio(c.gioNgu) { guiCaiDat("gioNgu", it) }
             },
@@ -258,27 +257,6 @@ class CaiDatFragment : Fragment() {
         Kho.guiLenh(requireContext(), Lenh.CAI_DAT, chu = ten, giaTri = giaTri) { kq ->
             if (kq is Kho.KetQua.Hong) Dinh.noi(requireContext(), kq.viSao)
         }
-    }
-
-    private fun hoiSo(tieuDe: String, dangLa: Int, thapNhat: Int, caoNhat: Int, xong: (Int) -> Unit) {
-        val o = EditText(requireContext()).apply {
-            inputType = InputType.TYPE_CLASS_NUMBER
-            setText(dangLa.toString())
-            setPadding(48, 32, 48, 32)
-        }
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(tieuDe)
-            .setView(o)
-            .setPositiveButton(R.string.xong) { _, _ ->
-                val so = o.text.toString().toIntOrNull()
-                if (so == null || so !in thapNhat..caoNhat) {
-                    Dinh.noi(requireContext(), "Gõ một số từ $thapNhat đến $caoNhat.")
-                } else {
-                    xong(so)
-                }
-            }
-            .setNegativeButton(R.string.huy, null)
-            .show()
     }
 
     private fun hoiGio(dangLa: Int, xong: (Int) -> Unit) {

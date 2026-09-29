@@ -3,6 +3,8 @@ package vn.huytl.bangdieukhien.ui
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
@@ -23,11 +25,13 @@ import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.launch
 import vn.huytl.bangdieukhien.R
 import vn.huytl.bangdieukhien.data.Bai
+import vn.huytl.bangdieukhien.data.CauCanXem
 import vn.huytl.bangdieukhien.data.CauCham
 import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.Lenh
 import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.data.VoDaSoat
+import vn.huytl.bangdieukhien.data.XuCau
 import vn.huytl.bangdieukhien.databinding.ActivityBaiBinding
 import vn.huytl.bangdieukhien.telegram.TaiAnh
 
@@ -36,6 +40,9 @@ import vn.huytl.bangdieukhien.telegram.TaiAnh
  *
  * Thu tu tren man hinh la thu tu Ba Huy can: ban cham cua AI truoc, anh sau. Nhin
  * ban cham la biet co phai mo anh ra khong - phan lon cac lan thi khong.
+ *
+ * Tu 29/9/2026 tren ca ban cham con mot the "Câu cần Ba Huy xem" khi tablet de bai cho vi
+ * mot vai cau Claude chua cham chac, xem [veXuCau]. Lan do thi phai mo anh.
  */
 class BaiActivity : AppCompatActivity() {
 
@@ -49,6 +56,18 @@ class BaiActivity : AppCompatActivity() {
 
     /** Vo dan do dang con hieu luc tren tablet (hop/dando). */
     private var voHienTai: VoDaSoat? = null
+
+    /** Lua chon o the "Câu cần Ba Huy xem", cung thu tu voi cham.canXem. Xem [veXuCau]. */
+    private var chonXu: MutableList<XuCau.Chon?> = mutableListOf()
+
+    /** Bai va danh sach canXem ma [chonXu] dang ung voi. Doi la chon lai tu dau. */
+    private var kyXu = ""
+
+    /** Lenh XU_CAU dang tren duong di: nut gui tat, de khong gui hai lan mot luc. */
+    private var dangGuiXu = false
+
+    /** Phan than cua the "Câu cần Ba Huy xem" dang hien. Bam mot nut chi ve lai phan nay. */
+    private var trongXu: LinearLayout? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -121,6 +140,7 @@ class BaiActivity : AppCompatActivity() {
 
         veViSaoHetCho(bai)
         veNopLai(bai)
+        veXuCau(bai)
         veBanCham(bai)
         veNutClaude(bai)
         veAnh(bai)
@@ -156,6 +176,288 @@ class BaiActivity : AppCompatActivity() {
     private fun veNopLai(bai: Bai) {
         val khai = bai.khai?.takeIf { it.suaBai.isNotBlank() } ?: return
         b.than.addView(theChu("Lần nộp lại các câu sai: ${khai.bai.ifBlank { "sửa bài cũ" }}."))
+    }
+
+    // ------------------------------------------------------ cau can Ba Huy xem
+
+    /**
+     * The "Câu cần Ba Huy xem": cac cau tablet khong tu cap gio duoc, cho Ba Huy tu cham (tu
+     * 29/9/2026). Claude doc chua chac, hay cham dung ma khong ghi so dong: tablet de ca bai
+     * cho, va truoc ngay do Ba Huy chi con cach bam Duyet voi so phut doan. Xem [CauCanXem].
+     *
+     * Moi cau ba nut Dung, Sai, Chup lai. Chon du thi bam gui, may nay gui lenh XU_CAU voi
+     * nguyen ban Claude da gui, chi doi cac cau vua cham ([XuCau.giaTri]), va tablet cham lai
+     * ca bai theo dung duong CHAM_BAI.
+     *
+     * Dat tren cung, truoc ban cham: day la viec dang giu gio cua ca bai. Chi hien khi bai con
+     * cho duyet, vi tablet chi cham lai bai con trong hang cho.
+     *
+     * Lua chon song trong man nay qua cac lan Firestore goi lai. Danh sach canXem doi (tablet
+     * vua cham lai) thi chon lai tu dau. Da gui roi thi lua chon doc lai tu chamClaude.goi, nen
+     * mo lai man van thay dung cai da gui, kem luc gui.
+     */
+    private fun veXuCau(bai: Bai) {
+        trongXu = null
+        val canXem = bai.cham?.canXem.orEmpty()
+        if (!bai.dangCho || canXem.isEmpty()) {
+            kyXu = ""
+            return
+        }
+        val ky = bai.id + "|" + canXem.joinToString("|") { "${it.maClaude}:${it.lyDo}" }
+        if (ky != kyXu) {
+            kyXu = ky
+            val cl = bai.claude
+            chonXu = (
+                if (cl != null && cl.xuLuc > 0L) XuCau.chonTuGoi(cl.goi, canXem)
+                else canXem.map { null }
+                ).toMutableList()
+        }
+        val the = MaterialCardView(this).apply {
+            radius = 20f.dp()
+            strokeWidth = 1.dp().toInt()
+            strokeColor = ContextCompat.getColor(context, R.color.wait)
+            setCardBackgroundColor(ContextCompat.getColor(context, R.color.surface))
+            cardElevation = 0f
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = 12.dp().toInt() }
+        }
+        val trong = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(16.dp().toInt(), 16.dp().toInt(), 16.dp().toInt(), 16.dp().toInt())
+        }
+        the.addView(trong)
+        b.than.addView(the)
+        trongXu = trong
+        veTrongXu(bai)
+    }
+
+    /** Ve lai phan than cua the, sau moi lan bam va moi lan Firestore goi lai. */
+    private fun veTrongXu(bai: Bai) {
+        val trong = trongXu ?: return
+        trong.removeAllViews()
+        val canXem = bai.cham?.canXem.orEmpty()
+        val cl = bai.claude
+        val goi = cl?.goi
+        val viTri = XuCau.ghep(goi, canXem)
+        val khongThay = canXem.filterIndexed { k, _ -> viTri[k] == null }
+        // Thieu goi (bai cham bang ban app cu) hay khong ghep duoc cau nao thi khong gui duoc
+        // gi: van ke cac cau ra de Ba Huy biet, va chi cach dan lai ket qua Claude.
+        val guiDuoc = goi != null && khongThay.isEmpty()
+        val daGui = guiDuoc && XuCau.daGui(cl, canXem) && chonXu == XuCau.chonTuGoi(goi, canXem)
+        val con = Nha.tenCon(this)
+
+        trong.addView(chu("Câu cần Ba Huy xem", 18f, bold = true))
+        trong.addView(
+            chu(
+                "Claude chưa chắc hoặc chưa ghi số dòng ở ${canXem.size} câu dưới đây, nên " +
+                    "tablet chưa cộng giờ cho bài này. Xem ảnh bài rồi chấm từng câu.",
+                14f, mau = R.color.ink_soft
+            ).apply { (layoutParams as LinearLayout.LayoutParams).topMargin = 4.dp().toInt() }
+        )
+        if (!guiDuoc) {
+            trong.addView(
+                chu(
+                    if (goi == null) XuCau.THIEU_GOI
+                    else "Không thấy câu ${khongThay.joinToString(", ") { it.ma }} trong bản " +
+                        "Claude đã lưu. Bấm Dán kết quả của Claude để dán lại.",
+                    14f, mau = R.color.wait_ink
+                ).apply { (layoutParams as LinearLayout.LayoutParams).topMargin = 8.dp().toInt() }
+            )
+        }
+
+        // De va chu con viet lay tu ban cham tablet ghi, theo ma sach. Cau khong co trong do
+        // (hiem) thi lay tu ban Claude may nay da gui.
+        val theoMa = bai.cham?.cac.orEmpty().associateBy { it.ma.trim() }
+        val cacGoi = goi?.get("cac") as? List<*>
+        canXem.forEachIndexed { k, x ->
+            val c = theoMa[x.ma.trim()]
+            val muc = viTri[k]?.let { cacGoi?.getOrNull(it) as? Map<*, *> }
+            val cot = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(0, 16.dp().toInt(), 0, 0)
+            }
+            cot.addView(chu(x.ma, 15f, bold = true))
+            val de = c?.de?.takeIf { it.isNotBlank() } ?: (muc?.get("de") as? String).orEmpty()
+            if (de.isNotBlank()) cot.addView(chu(ngan(de), 14f, mau = R.color.ink_soft))
+            val viet = c?.ketQua?.takeIf { it.isNotBlank() } ?: (muc?.get("conViet") as? String).orEmpty()
+            if (viet.isNotBlank()) cot.addView(chu("$con viết: $viet", 14f, mau = R.color.ink_soft))
+            cot.addView(chu(lyDoXu(x, c, con), 13f, mau = R.color.wait_ink).apply {
+                (layoutParams as LinearLayout.LayoutParams).topMargin = 2.dp().toInt()
+            })
+            if (guiDuoc) cot.addView(hangNutXu(bai, k, x))
+            trong.addView(cot)
+        }
+        if (!guiDuoc) return
+
+        val conThieu = chonXu.count { it == null }
+        trong.addView(
+            chu(
+                when {
+                    daGui -> "Đã gửi cho tablet lúc ${Dinh.lucNgan(cl!!.xuLuc)}. Tablet chấm lại " +
+                        "xong thì thẻ này tự ẩn. Lâu không thấy ẩn thì bấm gửi lại."
+                    conThieu > 0 -> "Còn $conThieu câu chưa chọn."
+                    else -> "Tablet chấm lại cả bài theo lựa chọn này, rồi báo số phút trên Telegram."
+                },
+                13f, mau = R.color.ink_soft
+            ).apply { (layoutParams as LinearLayout.LayoutParams).topMargin = 16.dp().toInt() }
+        )
+        trong.addView(
+            MaterialButton(this).apply {
+                text = when {
+                    dangGuiXu -> "Đang gửi…"
+                    daGui -> "Gửi lại cho tablet"
+                    else -> "Gửi cho tablet"
+                }
+                isEnabled = !dangGuiXu && conThieu == 0
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { topMargin = 8.dp().toInt() }
+                setOnClickListener { guiXuCau(bai) }
+            }
+        )
+    }
+
+    /**
+     * Mot dong noi Claude ket luan gi va vi sao tablet chua tu cong gio cau nay.
+     *
+     * Ket luan lay tu ban cham tablet ghi (dung la ket luan cua Claude, vi tablet cham theo
+     * Claude), khong lay tu goi: goi da mang lua chon cua Ba Huy sau lan gui dau.
+     */
+    private fun lyDoXu(x: CauCanXem, c: CauCham?, con: String): String {
+        val ketLuan = c?.let { if (it.dung) "đúng" else "sai" }
+        return when (x.lyDo) {
+            CauCanXem.CHUA_CHAC ->
+                (ketLuan?.let { "Claude chấm $it nhưng" } ?: "Claude") + " đọc chưa chắc chữ $con viết."
+            CauCanXem.THIEU_DONG -> "Claude chấm đúng nhưng chưa ghi số dòng."
+            else -> (ketLuan?.let { "Claude chấm $it. " } ?: "") + "Tablet chưa tự cộng giờ câu này."
+        }
+    }
+
+    /** Ba nut Dung, Sai, Chup lai cua mot cau. Nut dang chon to mau, hai nut kia de trang. */
+    private fun hangNutXu(bai: Bai, k: Int, x: CauCanXem): View {
+        val hang = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { topMargin = 8.dp().toInt() }
+        }
+        val chon = chonXu.getOrNull(k)
+        // Chu "Đúng, 12 dòng" dai hon hai nut kia nen nut Dung rong hon.
+        val dung = (chon as? XuCau.Chon.Dung)?.takeIf { x.canSoDong && it.soDong > 0 }
+        hang.addView(
+            nutXu(dung?.let { "Đúng, ${it.soDong} dòng" } ?: "Đúng", chon is XuCau.Chon.Dung,
+                R.color.ok, R.color.ok, R.color.ok_soft, 1.4f, cuoi = false) { bamDung(bai, k, x) }
+        )
+        hang.addView(
+            nutXu("Sai", chon == XuCau.Chon.Sai, R.color.alert, R.color.alert, R.color.alert_soft,
+                1f, cuoi = false) { chonCau(bai, k, XuCau.Chon.Sai) }
+        )
+        hang.addView(
+            nutXu("Chụp lại", chon == XuCau.Chon.ChupLai, R.color.wait_ink, R.color.wait,
+                R.color.wait_soft, 1f, cuoi = true) { chonCau(bai, k, XuCau.Chon.ChupLai) }
+        )
+        return hang
+    }
+
+    /**
+     * Mot nut trong [hangNutXu]. Mau dat tay chu khong dua vao trang thai "checked" cua
+     * Material: nut vien cua Material3 khong doi mau ro rang khi chon, ma o day Ba Huy phai
+     * nhin mot cai la biet cau nao chon gi.
+     */
+    private fun nutXu(
+        chuNut: String,
+        dangChon: Boolean,
+        mauChu: Int,
+        mauVien: Int,
+        mauNen: Int,
+        trongSo: Float,
+        cuoi: Boolean,
+        bam: () -> Unit
+    ): View = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+        text = chuNut
+        textSize = 14f
+        maxLines = 1
+        setPaddingRelative(4.dp().toInt(), paddingTop, 4.dp().toInt(), paddingBottom)
+        setTextColor(ContextCompat.getColor(context, if (dangChon) mauChu else R.color.ink))
+        strokeColor = ColorStateList.valueOf(
+            ContextCompat.getColor(context, if (dangChon) mauVien else R.color.line)
+        )
+        backgroundTintList = ColorStateList.valueOf(
+            if (dangChon) ContextCompat.getColor(context, mauNen) else Color.TRANSPARENT
+        )
+        isEnabled = !dangGuiXu
+        layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, trongSo)
+            .apply { if (!cuoi) marginEnd = 8.dp().toInt() }
+        setOnClickListener { bam() }
+    }
+
+    /**
+     * Bam Dung. Cau tinh theo dong thi hoi so dong truoc: thieu so dong la tablet tra 0 phut
+     * va lai de ca bai cho. Mac dinh la so da chon, khong thi so Claude ghi.
+     *
+     * Hoi tu 1 toi [XuCau.SO_DONG_TOI_DA], rong them neu Claude ghi nhieu hon: cat so Claude
+     * dem duoc xuong la bot phut cua con ma khong ai hay.
+     */
+    private fun bamDung(bai: Bai, k: Int, x: CauCanXem) {
+        if (!x.canSoDong) return chonCau(bai, k, XuCau.Chon.Dung())
+        val macDinh = (chonXu.getOrNull(k) as? XuCau.Chon.Dung)?.soDong?.takeIf { it > 0 }
+            ?: x.soDong.takeIf { it > 0 }
+        val so = (1..maxOf(XuCau.SO_DONG_TOI_DA, macDinh ?: 0)).toList()
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Câu ${x.ma}: ${Nha.tenCon(this)} viết mấy dòng?")
+            .setSingleChoiceItems(so.map { "$it dòng" }.toTypedArray(), macDinh?.let { it - 1 } ?: -1) { hop, i ->
+                hop.dismiss()
+                chonCau(bai, k, XuCau.Chon.Dung(so[i]))
+            }
+            .setNegativeButton(R.string.huy, null)
+            .show()
+    }
+
+    private fun chonCau(bai: Bai, k: Int, c: XuCau.Chon) {
+        if (k !in chonXu.indices) return
+        chonXu[k] = c
+        veTrongXu(bai)
+    }
+
+    /**
+     * Gui lenh XU_CAU, va ghi lai ban Claude cung luc ([Kho.ghiXuCau]).
+     *
+     * Hai viec chay song song, y nhu [ghiChamMoi]: mat mang thi lenh van nam san trong hang
+     * doi cua tablet. Gui lai (the dang bao da gui) la gui dung ban cu: tablet chi cham lai
+     * bai con cho duyet, nen lenh thua toi sau khi bai da duyet thi tablet bo qua.
+     */
+    private fun guiXuCau(bai: Bai) {
+        if (dangGuiXu) return
+        val ket = XuCau.giaTri(bai.claude?.goi, bai.cham?.canXem.orEmpty(), chonXu)
+        if (ket is XuCau.Ket.Hong) {
+            Dinh.noi(this, ket.viSao)
+            return
+        }
+        val giaTri = (ket as XuCau.Ket.Duoc).giaTri
+        dangGuiXu = true
+        veTrongXu(bai)
+        Kho.ghiXuCau(this, bai.id, giaTri) { kq ->
+            if (kq is Kho.KetQua.Hong) Dinh.noi(this, kq.viSao)
+        }
+        Kho.guiLenh(this, Lenh.XU_CAU, baiId = bai.id, giaTri = giaTri) { kq ->
+            dangGuiXu = false
+            Dinh.noi(
+                this,
+                if (kq is Kho.KetQua.Hong) kq.viSao
+                else "Đã gửi cho tablet. Tablet chấm lại cả bài rồi báo số phút trên Telegram."
+            )
+            this.bai?.let { veTrongXu(it) }
+        }
+    }
+
+    /** De dai thi cat bot, the nay chi can du de nhan ra cau nao. */
+    private fun ngan(de: String): String {
+        val gon = de.trim().replace(Regex("\\s+"), " ")
+        return if (gon.length <= DE_NGAN) gon else gon.take(DE_NGAN).trimEnd() + "…"
     }
 
     // ----------------------------------------------------------- nho Claude
@@ -358,8 +660,11 @@ class BaiActivity : AppCompatActivity() {
                 append(". Tablet sẽ ghi là chưa thấy bài làm.")
             }
             if (khongChac.isNotEmpty()) {
+                // Tu 29/9/2026 cac cau nay hien o the "Câu cần Ba Huy xem" dau man, cham tay
+                // xong la tablet tinh phut. Nut Duyet van con cho ai muon duyet thang.
                 append("\n\nClaude đọc chưa chắc: ").append(khongChac.joinToString(", "))
-                append(". Tablet sẽ chưa cộng giờ, chờ bấm Duyệt.")
+                append(". Tablet sẽ chưa cộng giờ: các câu này hiện ở thẻ Câu cần Ba Huy xem ")
+                append("đầu màn này để chấm tay, hoặc bấm Duyệt.")
             }
             // Ban chi co anh thi Claude doc anh vo nhu lan nop chup kem, xem VoDaSoat.chuaDoc.
             val soat = bai.voDaSoat?.daDoc
@@ -463,46 +768,16 @@ class BaiActivity : AppCompatActivity() {
      * bai da duyet tay la cong hai lan.
      */
     private fun ghiChamMoi(bai: Bai, ket: NhoClaude.KetQuaDan) {
-        Kho.ghiChamClaude(this, bai.id, ket.cac, chinh = true) { kq ->
+        // Ban gui kem lenh CHAM_BAI nam lai nguyen trong chamClaude.goi, de the "Câu cần Ba
+        // Huy xem" gui lai dung no qua lenh XU_CAU (tu 29/9/2026). Bai da roi hang cho thi
+        // khong gui lenh nao, nen cung khong co goi.
+        val giaTri = if (bai.dangCho) NhoClaude.goiChamBai(ket, bai) else null
+        Kho.ghiChamClaude(this, bai.id, ket.cac, chinh = true, goi = giaTri) { kq ->
             if (kq is Kho.KetQua.Hong) Dinh.noi(this, kq.viSao)
         }
-        if (!bai.dangCho) {
+        if (giaTri == null) {
             Dinh.noi(this, "Đã ghi kết quả của Claude.")
             return
-        }
-        // Kieu goi xem Duong.Lenh.CHAM_BAI. "coAnhDanDo" la de tablet biet lan nop nay
-        // co vo dan do khong - anh hay ban con soat - vi luat tron goi xu hai canh do
-        // khac nhau.
-        val giaTri = buildMap<String, Any> {
-            put("cac", ket.cac.map {
-                buildMap<String, Any> {
-                    put("ma", it.ma)
-                    put("dung", it.dung)
-                    put("chac", it.chac)
-                    put("conViet", it.conViet)
-                    put("goiY", it.goiY)
-                    put("soDong", it.soDong)
-                    put("de", it.de)
-                    put("dang", it.dang)
-                    if (it.loaiLoi.isNotBlank()) put("loaiLoi", it.loaiLoi)
-                    it.trongDanDo?.let { t -> put("trongDanDo", t) }
-                }
-            })
-            val soat = bai.voDaSoat?.daDoc
-            put("coAnhDanDo", soat != null || bai.anh.any { it.laDanDo })
-            if (soat != null) {
-                // Ngay va danh sach bai la cua ban con soat, Claude chi noi con lam het
-                // chua. Tablet con giu ban cua no tu luc nop va dung ban do truoc.
-                put("ngayDanDo", soat.ngay)
-                put("baiDuocGiao", soat.cacBai)
-                put("lamHetDanDo", ket.danDo?.lamHet ?: false)
-            } else {
-                ket.danDo?.let { d ->
-                    d.ngay?.let { put("ngayDanDo", it) }
-                    put("baiDuocGiao", d.baiDuocGiao)
-                    put("lamHetDanDo", d.lamHet)
-                }
-            }
         }
         Kho.guiLenh(this, Lenh.CHAM_BAI, baiId = bai.id, giaTri = giaTri) { kq ->
             Dinh.noi(
@@ -558,17 +833,27 @@ class BaiActivity : AppCompatActivity() {
             })
         }
         // Da dan ket qua Claude: mot dong tong, con tung cau khac may thi ghi ngay
-        // duoi cau do. Xem [danKetQua].
+        // duoi cau do. Xem [danKetQua]. Ba Huy da cham tay o the "Câu cần Ba Huy xem" thi
+        // noi ca luc do, vi tu luc ay chamClaude mang ca ket luan cua Ba Huy (XuCau.cacClaude).
         bai.claude?.let { cl ->
             val dungCl = cl.cac.count { it.chac && it.dung }
             trong.addView(
                 chu(
                     (if (cl.chinh) "Claude chấm lúc " else "Claude chấm lại lúc ") +
-                        "${Dinh.lucNgan(cl.luc)}: đúng $dungCl/${cl.cac.size} câu",
+                        Dinh.lucNgan(cl.luc) +
+                        (if (cl.xuLuc > 0L) ", Ba Huy chấm tay thêm lúc ${Dinh.lucNgan(cl.xuLuc)}" else "") +
+                        ": đúng $dungCl/${cl.cac.size} câu",
                     14f, bold = true, mau = R.color.brand
                 ).apply { (layoutParams as LinearLayout.LayoutParams).topMargin = 8.dp().toInt() }
             )
         }
+
+        // Cau dang nam o the "Câu cần Ba Huy xem": khong ghi dong so voi Claude ben duoi.
+        // Ba Huy vua gui lua chon thi chamClaude da mang ket luan moi, con ban cham nay la
+        // ban cu cho toi luc tablet cham lai, va dong "lần chấm trước nhầm" la noi sai.
+        val dangXem = if (bai.dangCho) cham.canXem.map { it.ma.trim() }.toSet() else emptySet()
+        // Cau Ba Huy bam Chup lai: tablet ghi vao ban cham la sai, xem [XuCau.maChupLai].
+        val chupLai = XuCau.maChupLai(bai.claude?.goi)
 
         // Mot dong moi cau: dung hay sai, va co doc ro khong.
         //
@@ -580,8 +865,9 @@ class BaiActivity : AppCompatActivity() {
                 orientation = LinearLayout.HORIZONTAL
                 setPadding(0, 10.dp().toInt(), 0, 0)
             }
+            val nhoChup = c.ma.trim() in chupLai
             val dau = when {
-                !c.docRo -> "?" to R.color.wait
+                nhoChup || !c.docRo -> "?" to R.color.wait
                 c.dung -> "✓" to R.color.ok
                 else -> "✕" to R.color.alert
             }
@@ -594,10 +880,11 @@ class BaiActivity : AppCompatActivity() {
             if (c.ketQua.isNotBlank()) {
                 cot.addView(chu("Lê Hòa viết: ${c.ketQua}", 14f, mau = R.color.ink_soft))
             }
-            if (!c.docRo) cot.addView(chu("Đọc chưa chắc câu này", 13f, mau = R.color.wait))
+            if (nhoChup) cot.addView(chu("Ba Huy nhờ chụp lại câu này", 13f, mau = R.color.wait))
+            else if (!c.docRo) cot.addView(chu("Đọc chưa chắc câu này", 13f, mau = R.color.wait))
             if (c.nhanXet.isNotBlank()) cot.addView(chu(c.nhanXet, 13f, mau = R.color.ink_mo))
             val cl = bai.claude?.cua(c.ma)
-            if (cl != null && cl.chac && cl.dung != (c.docRo && c.dung)) {
+            if (cl != null && c.ma.trim() !in dangXem && cl.chac && cl.dung != (c.docRo && c.dung)) {
                 cot.addView(
                     chu(
                         if (cl.dung) "Claude: đúng, lần chấm trước nhầm"
@@ -890,6 +1177,12 @@ class BaiActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_ID = "bai_id"
+
+        /**
+         * De dai nhat bao nhieu ky tu o the "Câu cần Ba Huy xem". Du de nhan ra cau nao, de
+         * day du nam o the ban cham ngay duoi.
+         */
+        private const val DE_NGAN = 140
 
         fun mo(ct: Context, id: String) =
             ct.startActivity(Intent(ct, BaiActivity::class.java).putExtra(EXTRA_ID, id))

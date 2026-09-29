@@ -39,10 +39,18 @@
     <string name="bang_da_duyet">Đã duyệt, chưa bấm chơi</string>
     <string name="bang_cho_duyet">Đang chờ duyệt bài</string>
     <string name="bang_che_do_ba">Đang mở toàn bộ máy</string>
-    <string name="bang_han_ngay">Hạn mức hôm nay</string>
+    <!-- Tu 29/9/2026 tablet khong con tran chung moi ngay (truoc la 135 phut): moi phan co
+         tran rieng, va "con kiem duoc" la tong cac tran do tru phut da duyet, chi de xem.
+         Truoc ngay do nhan ben phai la "Còn lại hôm nay", doc nhu mot han muc chan nut Duyet.
+         Dong "Hạn mức hôm nay" khong con cho nao dung nen da bo. -->
     <string name="bang_da_duyet_ngay">Đã duyệt hôm nay</string>
-    <string name="bang_con_lai_ngay">Còn lại hôm nay</string>
+    <string name="bang_con_lai_ngay">Còn kiếm được</string>
+    <string name="bang_tran_ngay">Tối đa %1$d phút một ngày, là tổng trần riêng của từng phần.</string>
+    <string name="bang_tran_ngay_du">Hôm nay đã đủ tổng trần riêng của các phần.</string>
     <string name="bang_cho_choi">Cho chơi ngay</string>
+    <!-- Quy gio choi (29/9/2026): phut lam tren may ma tran rieng cua phan do cat. -->
+    <string name="bang_quy_gio">Quỹ giờ chơi</string>
+    <string name="bang_cap_quy">Cấp từ quỹ</string>
     <string name="bang_pin">Pin %1$d%%</string>
     <string name="bang_pin_sac">Đang sạc %1$d%%</string>
     <string name="bang_bai_cho">%1$d bài đang chờ duyệt</string>

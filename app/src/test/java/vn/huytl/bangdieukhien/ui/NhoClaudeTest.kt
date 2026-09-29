@@ -14,6 +14,7 @@ import vn.huytl.bangdieukhien.data.CauClaude
 import vn.huytl.bangdieukhien.data.KetQuaCham
 import vn.huytl.bangdieukhien.data.KhaiBai
 import vn.huytl.bangdieukhien.data.VoDaSoat
+import vn.huytl.bangdieukhien.data.XuCau
 
 /**
  * Doc ket qua Claude tu cau tra loi Ba Huy chep ve, va loi nho gui sang Claude.
@@ -418,6 +419,76 @@ class NhoClaudeTest {
                 .toList()
             assertTrue(sot.joinToString(" | "), sot.isEmpty())
         }
+    }
+
+    /**
+     * Tu 29/9/2026 bai dan do hom chua co goi tinh mot phut mot dong, khong con san phut moi
+     * cau: cau dung ma thieu so dong thi tablet de ca bai cho Ba Huy (cham.canXem). Loi nho
+     * cham luon bat Claude luon ghi so dong, ke ca cau la hinh ve hay bang.
+     */
+    @Test
+    fun loi_nho_bat_ghi_so_dong_cho_moi_cau_dung() {
+        listOf(baiChuaCham(khai), baiChuaCham(null), baiCoVo(), baiCoVoSoat()).forEach { bai ->
+            val chu = NhoClaude.loiNho(bai, "Lê Hòa")
+            assertTrue(chu.contains("Hình vẽ, bảng, sơ đồ Lê Hòa vẽ thì tính theo số dòng vở mà nó chiếm."))
+            assertTrue(chu.contains("không phải trắc nghiệm hay học thuộc thì luôn có ít nhất 1 dòng."))
+            assertTrue(chu.contains("luôn ghi một số lớn hơn 0, không để 0 hay null"))
+            assertNull(NhoClaude.docKetQua(chu))
+        }
+        // Cham lai bai da xu xong thi khong hoi so dong: tablet khong tinh lai phut.
+        val chamLai = Bai(
+            id = "b9", luc = 0L, trangThai = Bai.DUYET, soPhut = 0, anh = emptyList(),
+            cham = KetQuaCham(cac = listOf(CauCham(ma = "2.28", de = "Đề", ketQua = "A"))),
+            messageId = 0L
+        )
+        assertFalse(NhoClaude.loiNho(chamLai, "Lê Hòa").contains("so_dong"))
+    }
+
+    /**
+     * Ban CHAM_BAI gui tablet cung nam lai trong chamClaude.goi, de lenh XU_CAU gui lai dung
+     * no (29/9/2026). Thieu mot truong nao (so dong, dang, vo dan do) thi lan cham lai tren
+     * tablet ra khac lan dau.
+     */
+    @Test
+    fun goi_cham_bai_giu_du_truong_de_gui_lai() {
+        val ket = NhoClaude.KetQuaDan(
+            "b77",
+            listOf(
+                CauClaude(
+                    ma = "2.28", dung = false, chac = true, conViet = "A", goiY = "Dòng 1 sai dấu.",
+                    soDong = 1, dang = "TRAC_NGHIEM", loaiLoi = "SAI_DAU", trongDanDo = true
+                ),
+                CauClaude(ma = "2.33a", dung = true, chac = false, conViet = "40xy", goiY = "", soDong = 4)
+            ),
+            danDo = NhoClaude.DanDoDan("2026-09-23", listOf("bài 2.33"), lamHet = true)
+        )
+        val goi = NhoClaude.goiChamBai(ket, baiCoVo())
+        val (a, b) = (goi["cac"] as List<*>).map { it as Map<*, *> }
+        assertEquals(1, a["soDong"])
+        assertEquals("TRAC_NGHIEM", a["dang"])
+        assertEquals("SAI_DAU", a["loaiLoi"])
+        assertEquals(true, a["trongDanDo"])
+        assertEquals(false, b["chac"])
+        assertEquals(4, b["soDong"])
+        // Khong co kieu sai hay trongDanDo thi khong ghi truong, de tablet tu xu nhu truoc.
+        assertFalse(b.containsKey("loaiLoi"))
+        assertFalse(b.containsKey("trongDanDo"))
+        assertEquals(true, goi["coAnhDanDo"])
+        assertEquals("2026-09-23", goi["ngayDanDo"])
+        assertEquals(listOf("bài 2.33"), goi["baiDuocGiao"])
+        assertEquals(true, goi["lamHetDanDo"])
+        // chamClaude.cac viet lai tu goi ra dung ban ghiChamClaude van ghi: hai cho khong lech.
+        assertEquals(ket.cac.map { it.banGhi() }, XuCau.cacClaude(goi))
+
+        // Vo con soat: ngay va danh sach lay tu ban soat, Claude chi noi lam het chua.
+        val theoSoat = NhoClaude.goiChamBai(ket.copy(danDo = null), baiCoVoSoat())
+        assertEquals("2026-09-23", theoSoat["ngayDanDo"])
+        assertEquals(soat.cacBai, theoSoat["baiDuocGiao"])
+        assertEquals(false, theoSoat["lamHetDanDo"])
+        // Khong co vo nao: khong co truong vo dan do, tablet ap quy tac 17.
+        val khongVo = NhoClaude.goiChamBai(ket.copy(danDo = null), baiChuaCham(khai))
+        assertEquals(false, khongVo["coAnhDanDo"])
+        assertFalse(khongVo.containsKey("ngayDanDo"))
     }
 
     @Test

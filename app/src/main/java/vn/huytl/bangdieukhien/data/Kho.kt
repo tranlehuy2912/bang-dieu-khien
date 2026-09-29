@@ -339,9 +339,12 @@ object Kho {
      *
      * Khong ghi de [Duong.F_CHAM]: ban cua may giu nguyen de doi chieu, va man ket
      * qua ben tablet tu chon ket luan cua Claude khi co. Viec cong gio cho cau may
-     * cham nham thi di duong lenh [Lenh.SUA_CHAM], vi chi tablet biet con han muc
-     * hay dang gio ngu. Bai may chua cham thi ban nay la ban cham dau tien, va viec
-     * tinh phut di lenh [Lenh.CHAM_BAI].
+     * cham nham thi di duong lenh [Lenh.SUA_CHAM], vi chi tablet biet bai con cho
+     * duyet khong hay dang gio ngu. Bai may chua cham thi ban nay la ban cham dau
+     * tien, va viec tinh phut di lenh [Lenh.CHAM_BAI].
+     *
+     * Ghi de ca truong chamClaude: ban Claude moi thay han ban cu, ke ca [goi] va luc xu
+     * cau cua lan truoc. Dan lai ket qua Claude la cham lai tu dau.
      */
     fun ghiChamClaude(
         context: Context,
@@ -349,27 +352,57 @@ object Kho {
         cac: List<CauClaude>,
         /** Claude cham luon vi may chua cham. Xem [KetQuaClaude.chinh]. */
         chinh: Boolean = false,
+        /**
+         * Nguyen giaTri cua lenh CHAM_BAI gui cung luc, xem [KetQuaClaude.goi]. null la
+         * khong gui lenh nao: bai da roi hang cho, hay duong cham lai.
+         */
+        goi: Map<String, Any>? = null,
         xong: (KetQua) -> Unit = {}
     ) {
         val n = nha(context) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
-        val ban = mapOf(
-            "luc" to System.currentTimeMillis(),
-            "chinh" to chinh,
-            "cac" to cac.map {
-                buildMap {
-                    put("ma", it.ma)
-                    put("dung", it.dung)
-                    put("chac", it.chac)
-                    put("conViet", it.conViet)
-                    put("goiY", it.goiY)
-                    if (it.de.isNotBlank()) put("de", it.de)
-                }
-            }
-        )
+        val ban = buildMap<String, Any> {
+            put("luc", System.currentTimeMillis())
+            put("chinh", chinh)
+            put("cac", cac.map { it.banGhi() })
+            if (goi != null) put("goi", goi)
+        }
         n.collection(Duong.BAI).document(baiId).update(Duong.F_CHAM_CLAUDE, ban)
             .addOnSuccessListener { xong(KetQua.Xong) }
             .addOnFailureListener {
                 Log.w(TAG, "ghi ban Claude hong", it)
+                xong(KetQua.Hong(loiNguoiDoc(it)))
+            }
+    }
+
+    /**
+     * Ghi lai ban Claude sau khi Ba Huy tu cham cac cau can xem, cung luc gui lenh
+     * [Lenh.XU_CAU]. [giaTri] la dung ban gui kem lenh do, xem [XuCau.giaTri].
+     *
+     * Ba cho doi, bang duong dan long nhau nen luc va chinh cua lan dan giu nguyen:
+     *  - goi = giaTri. Lan xu sau (neu tablet con hoi) phai dung tren ban nay, khong thi
+     *    lua chon cua lan truoc mat va tablet hoi lai dung cac cau do;
+     *  - cac viet lai tu giaTri, de man ket qua tablet hien dung ket luan Ba Huy chon, xem
+     *    [XuCau.cacClaude];
+     *  - xuLuc la luc gui, de man bai biet la da gui va dang cho tablet cham lai.
+     */
+    fun ghiXuCau(
+        context: Context,
+        baiId: String,
+        giaTri: Map<String, Any?>,
+        xong: (KetQua) -> Unit = {}
+    ) {
+        val n = nha(context) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
+        val cl = Duong.F_CHAM_CLAUDE
+        n.collection(Duong.BAI).document(baiId).update(
+            mapOf(
+                "$cl.goi" to giaTri,
+                "$cl.cac" to XuCau.cacClaude(giaTri),
+                "$cl.xuLuc" to System.currentTimeMillis()
+            )
+        )
+            .addOnSuccessListener { xong(KetQua.Xong) }
+            .addOnFailureListener {
+                Log.w(TAG, "ghi xu cau hong", it)
                 xong(KetQua.Hong(loiNguoiDoc(it)))
             }
     }
@@ -401,8 +434,8 @@ object Kho {
      * Dat mot lenh vao hang doi cua tablet.
      *
      * Tablet nghe hang nay, lam xong thi xoa document di. Khong sua trang thai o
-     * day: chi tablet moi biet that su co cap duoc gio khong (con han muc ngay
-     * khong, co dang gio ngu khong), nen man hinh cho tablet noi lai.
+     * day: chi tablet moi biet that su co cap duoc gio khong (co dang gio ngu khong,
+     * quy gio choi con bao nhieu), nen man hinh cho tablet noi lai.
      */
     fun guiLenh(
         context: Context,

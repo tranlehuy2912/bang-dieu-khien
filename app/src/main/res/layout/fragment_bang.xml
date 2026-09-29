@@ -233,9 +233,13 @@
                     android:layout_marginTop="20dp"
                     android:background="@color/line" />
 
-                <!-- Han muc ngay, ngay tren hang nut cho gio: hai so nay quyet dinh bam
-                     nut nao. So da duyet ben trai, trung phan thanh da day; so con lai
-                     ben phai, trung phan thanh con trong. -->
+                <!-- So phut trong ngay, ngay tren hang nut cho gio. So da duyet ben trai, trung
+                     phan thanh da day; so con kiem duoc ben phai, trung phan thanh con trong.
+
+                     Tu 29/9/2026 hai so nay chi de xem: tablet bo tran chung 135 phut, moi phan
+                     co tran rieng, va ben phai la tong cac tran do (215) tru so da duyet. Dong
+                     chu duoi thanh noi ro con so tong, de khong ai doc ra mot han muc chan nut
+                     Duyet. Tablet ban cu khong co dong nay, xem BangFragment.veNgay. -->
                 <LinearLayout
                     android:id="@+id/khoiHanMuc"
                     android:layout_width="match_parent"
@@ -304,6 +308,14 @@
                         app:indicatorColor="@color/wait"
                         app:trackCornerRadius="3dp"
                         app:trackThickness="6dp" />
+
+                    <TextView
+                        android:id="@+id/chuTranNgay"
+                        style="@style/Chu.Nho"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <TextView
@@ -354,6 +366,60 @@
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:text="Khác" />
+                </LinearLayout>
+
+                <!-- Quy gio choi (29/9/2026): phut Le Hoa lam tren may ma tran rieng cua phan do
+                     da cat. Khong het han, Ba Huy cap bao nhieu va luc nao thi tuy; cap tu quy
+                     khong tinh vao tran nao. Nam ngay duoi hang Cho choi ngay vi cung la mot
+                     cach cho gio, va cung bi khoa trong luc lenh dang gui.
+
+                     Tablet ban cu khong gui so quy thi ca hang an; quy bang 0 thi nut tat. Phan
+                     so mo di khi tablet khong tra loi, y nhu khoiHanMuc. -->
+                <LinearLayout
+                    android:id="@+id/hangQuy"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:id="@+id/khoiQuy"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/Chu.Nho"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/bang_quy_gio" />
+
+                        <TextView
+                            android:id="@+id/soQuy"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/ink"
+                            android:textSize="17sp"
+                            android:textStyle="bold"
+                            android:text="@string/bang_gach" />
+                    </LinearLayout>
+
+                    <!-- Le trong 16dp thay cho 4dp cua Nut.Phien: nut nay dung mot minh, rong
+                         theo chu, khong phai chia hang voi hai ba nut khac. -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/nutCapQuy"
+                        style="@style/Nut.Phien"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="16dp"
+                        android:paddingRight="16dp"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:text="@string/bang_cap_quy" />
                 </LinearLayout>
 
                 <!-- Lenh dang tren duong di, hay vua hong. Nam cuoi the, ngay duoi cac

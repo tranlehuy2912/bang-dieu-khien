@@ -28,9 +28,24 @@ data class TrangThai(
     val tongPhienMs: Long = 0L,
     /** Viec nha Le Hoa chua lam xong, theo tablet. Con viec thi tablet dang khoa. */
     val viecNha: List<String> = emptyList(),
+    /** Phut con doi bang bai tap hom nay. Gio nguoi lon cho va gio cap tu quy khong tinh. */
     val phutDaDuyet: Int = 0,
+    /**
+     * Con kiem them duoc bao nhieu phut hom nay, CHI DE HIEN.
+     *
+     * Tablet tu 29/9/2026 tinh so nay bang tong tran rieng cua cac phan (215 phut) tru
+     * [phutDaDuyet]. Khong con tran chung nao chan nut Duyet hay nut cho gio: moi phan tu
+     * chan bang tran cua no ben tablet. Tablet cu hon thi day la tran chung tru di.
+     */
     val phutConLai: Int = 0,
     val soBaiCho: Int = 0,
+    /**
+     * So phut trong "Quỹ giờ chơi" cua tablet, xem [Duong.F_QUY_GIO].
+     *
+     * null la tablet ban cu chua gui truong nay. Luc do man Gio choi an ca hang quy: tablet
+     * do cung khong hieu lenh [Lenh.CAP_QUY], bam vao chi duoc cau "Không hiểu lệnh".
+     */
+    val quyGio: Int? = null,
     val cheDoBaBat: Boolean = false,
     val cheDoBaHetLuc: Long = 0L,
     val quyenTroGiup: Boolean = true,
@@ -101,6 +116,7 @@ data class TrangThai(
                 phutDaDuyet = (d.getLong(Duong.F_PHUT_DA_DUYET) ?: 0L).toInt(),
                 phutConLai = (d.getLong(Duong.F_PHUT_CON_LAI) ?: 0L).toInt(),
                 soBaiCho = (d.getLong(Duong.F_SO_BAI_CHO) ?: 0L).toInt(),
+                quyGio = d.getLong(Duong.F_QUY_GIO)?.toInt()?.coerceAtLeast(0),
                 cheDoBaBat = cheDoBa?.get("bat") as? Boolean ?: false,
                 cheDoBaHetLuc = (cheDoBa?.get("hetLuc") as? Number)?.toLong() ?: 0L,
                 quyenTroGiup = quyen?.get("trogiup") as? Boolean ?: true,
@@ -159,10 +175,78 @@ data class KetQuaCham(
     val cac: List<CauCham> = emptyList(),
     val tomTat: String = "",
     val phutDeNghi: Int = 0,
-    val lamHetDanDo: Boolean = false
+    val lamHetDanDo: Boolean = false,
+    /**
+     * Cau tablet chua tu cap gio, cho Ba Huy tu cham (tu 29/9/2026). Xem [CauCanXem].
+     *
+     * Rong la khong co cau nao phai xem, ke ca voi ban cham tablet ghi truoc ngay do
+     * (chua co truong nay).
+     */
+    val canXem: List<CauCanXem> = emptyList()
 ) {
     fun soDung(): Int = cac.count { it.dung }
     fun coCauKhongRo(): Boolean = cac.any { !it.docRo }
+}
+
+/**
+ * Mot cau tablet khong tu cap gio duoc, cho Ba Huy tu cham. Nam trong cham.canXem.
+ *
+ * VI SAO CO (29/9/2026). Tablet bo san phut moi cau: bai dan do hom chua co goi tinh mot
+ * phut mot dong, nen cau Claude cham dung ma khong ghi so dong ra 0 phut, va tablet de ca
+ * bai cho Ba Huy thay vi doan. Cau Claude doc chua chac chu con viet cung vay, tu truoc.
+ * Tablet tu tinh danh sach nay (ApprovalService.cauCanXem ben nop-bai), de ben nay khong
+ * phai chep lai luat tinh phut.
+ *
+ * Ba Huy bam Dung, Sai hay Chup lai cho tung cau, roi gui lenh [Lenh.XU_CAU], xem
+ * [XuCau].
+ */
+data class CauCanXem(
+    /** Ma cau trong ban cham cua tablet, khop voi [CauCham.ma]: ma sach khi khop duoc. */
+    val ma: String,
+    /**
+     * Ma cau nguyen van trong ban Claude dien thoai da gui (goi.cac[].ma, xem
+     * [KetQuaClaude.goi]). Khac [ma] khi tablet da doi sang ma sach, vi du Claude ghi
+     * "Câu 2.33A" ma sach ghi "2.33a".
+     */
+    val maClaude: String,
+    /** [CHUA_CHAC] hay [THIEU_DONG]. Tablet ban moi hon co the them ly do khac. */
+    val lyDo: String,
+    /**
+     * Cau nay tinh phut theo so dong: khong phai trac nghiem, khong phai hoc thuoc. Bam Dung
+     * o cau nay thi phai hoi so dong, khong thi tablet lai de ca bai cho.
+     */
+    val canSoDong: Boolean,
+    /** So dong Claude ghi. 0 la khong ghi. */
+    val soDong: Int
+) {
+    companion object {
+        /** Claude doc chua chac chu con viet (chac = false). */
+        const val CHUA_CHAC = "CHUA_CHAC"
+
+        /** Claude cham dung ma khong ghi so dong. */
+        const val THIEU_DONG = "THIEU_DONG"
+
+        /**
+         * Doc truong canXem cua ban cham. Tach khoi [Bai.doc] de kiem thu goi thang duoc.
+         *
+         * Muc hong thi bo, khong lam hong ca danh sach. Thieu maClaude thi lay [ma], y nhu
+         * tablet luc ghi. Thieu canSoDong thi coi la can: hoi thua mot lan so dong thi Ba
+         * Huy chi ton mot cham, con thieu so dong thi tablet tra 0 phut va bai lai nam cho.
+         */
+        fun docDanhSach(v: Any?): List<CauCanXem> = (v as? List<*>).orEmpty().mapNotNull { c ->
+            val o = c as? Map<*, *> ?: return@mapNotNull null
+            val maClaudeGhi = (o["maClaude"] as? String)?.trim().orEmpty()
+            val ma = (o["ma"] as? String)?.trim().orEmpty().ifEmpty { maClaudeGhi }
+            if (ma.isEmpty()) return@mapNotNull null
+            CauCanXem(
+                ma = ma,
+                maClaude = maClaudeGhi.ifEmpty { ma },
+                lyDo = (o["lyDo"] as? String)?.trim().orEmpty(),
+                canSoDong = o["canSoDong"] as? Boolean ?: true,
+                soDong = (o["soDong"] as? Number)?.toInt()?.coerceAtLeast(0) ?: 0
+            )
+        }
+    }
 }
 
 /** Ket luan cua Claude cho mot cau, Ba Huy dan tu app Claude vao. */
@@ -191,7 +275,22 @@ data class CauClaude(
      * tu quyet theo luat cua may cham.
      */
     val trongDanDo: Boolean? = null
-)
+) {
+    /**
+     * Mot dong trong chamClaude.cac, dung kieu tablet doc o BaiDaCham ben nop-bai.
+     *
+     * Chi sau truong nay, tu truoc 29/9/2026. So dong, dang bai, kieu sai va trongDanDo
+     * khong nam o day ma nam nguyen ban trong chamClaude.goi, xem [KetQuaClaude.goi].
+     */
+    fun banGhi(): Map<String, Any> = buildMap<String, Any> {
+        put("ma", ma)
+        put("dung", dung)
+        put("chac", chac)
+        put("conViet", conViet)
+        put("goiY", goiY)
+        if (de.isNotBlank()) put("de", de)
+    }
+}
 
 /**
  * Cac cau con khai truoc khi chup, kem de tung cau. Tablet ghi luc con nop.
@@ -275,7 +374,21 @@ data class KetQuaClaude(
     val luc: Long,
     val cac: List<CauClaude>,
     /** true la Claude cham luon vi may chua cham, false la Claude cham lai ban cua may. */
-    val chinh: Boolean = false
+    val chinh: Boolean = false,
+    /**
+     * Nguyen "giaTri" may nay gui tablet lan gan nhat, lenh [Lenh.CHAM_BAI] hay
+     * [Lenh.XU_CAU] (tu 29/9/2026). null la bai cham bang ban app cu, hay ban Claude
+     * nay khong di kem lenh nao (bai da roi hang cho, duong cham lai).
+     *
+     * VI SAO GIU NGUYEN BAN. [cac] chi co sau truong, thieu so dong, dang bai, kieu sai,
+     * trongDanDo va phan vo dan do. Lenh XU_CAU phai gui lai dung ban da gui, chi doi cau
+     * Ba Huy vua xu: tablet cham lai CA bai tu ban do. Dung lai ban tu [cac] thi moi cau
+     * mat so dong va ra 0 phut. Doc bang map tho de khong mat truong nao ma ban app nay
+     * chua biet ten.
+     */
+    val goi: Map<*, *>? = null,
+    /** Luc Ba Huy gui lenh XU_CAU gan nhat, 0 la chua gui lan nao. */
+    val xuLuc: Long = 0L
 ) {
     fun cua(ma: String): CauClaude? = cac.firstOrNull { it.ma == ma.trim() }
 }
@@ -413,7 +526,9 @@ data class Bai(
             return KetQuaClaude(
                 luc = (m["luc"] as? Number)?.toLong() ?: 0L,
                 cac = cac,
-                chinh = m["chinh"] as? Boolean ?: false
+                chinh = m["chinh"] as? Boolean ?: false,
+                goi = m["goi"] as? Map<*, *>,
+                xuLuc = (m["xuLuc"] as? Number)?.toLong() ?: 0L
             )
         }
 
@@ -436,7 +551,8 @@ data class Bai(
                 cac = cac,
                 tomTat = m["tomTat"] as? String ?: "",
                 phutDeNghi = (m["phutDeNghi"] as? Number)?.toInt() ?: 0,
-                lamHetDanDo = m["lamHetDanDo"] as? Boolean ?: false
+                lamHetDanDo = m["lamHetDanDo"] as? Boolean ?: false,
+                canXem = CauCanXem.docDanhSach(m["canXem"])
             )
         }
     }
@@ -446,6 +562,14 @@ data class Bai(
 data class CaiDat(
     val gioNgu: Int = 22 * 60,
     val gioDay: Int = 6 * 60,
+    /**
+     * Tran chung moi ngay, KHONG CON HIEN tu 29/9/2026.
+     *
+     * Ngay do tablet bo tran chung (truoc la 135 phut): moi phan co tran rieng, tong 215
+     * phut, va lenh CAIDAT tranPhutMoiNgay chi duoc tablet tra loi la khong con dung. Tablet
+     * van ghi truong nay vao hop/caidat, nen van doc de ban sao khong lech, nhung man Cai
+     * dat bo muc "Tối đa mỗi ngày".
+     */
     val tranPhutMoiNgay: Int = 120,
     val khoaCaiDat: Boolean = true,
     val appChoPhep: List<String> = emptyList(),

@@ -287,7 +287,9 @@ object NhoClaude {
             "${if (coVo) 5 else 4}. Cuối cùng, in đúng một khối JSON theo mẫu dưới đây để tôi dán vào app. " +
                 "Mỗi câu một mục trong \"ket_qua\". \"dung\" là kết luận của bạn. \"chac\" " +
                 "là false nếu bạn không đọc chắc chữ $ten viết. \"con_viet\" là kết quả cuối " +
-                "$ten viết, theo bạn đọc. \"so_dong\" là số dòng đếm ở bước 6. \"goi_y\" chỉ " +
+                "$ten viết, theo bạn đọc. \"so_dong\" là số dòng đếm ở bước 6: câu $ten làm " +
+                "đúng mà không phải trắc nghiệm hay học thuộc thì luôn ghi một số lớn hơn 0, " +
+                "không để 0 hay null, vì thiếu số dòng thì tôi phải tự đếm lại. \"goi_y\" chỉ " +
                 "viết cho câu $ten làm sai: chép nguyên đoạn gợi ý ở mục 2. \"loai_loi\" chỉ " +
                 "ghi cho câu $ten làm sai: đúng một trong bảy nhãn dưới đây, chép đúng chữ in hoa."
         )
@@ -473,9 +475,15 @@ object NhoClaude {
         )
         appendLine("5. Chỗ nào mờ, không đọc chắc được thì ghi rõ là không chắc, không đoán.")
         if (chamMoi) {
+            // Tu 29/9/2026 bai dan do hom chua co goi tinh mot phut mot dong, khong con san
+            // phut moi cau. Cau dung ma thieu so dong ra 0 phut, va tablet de ca bai cho Ba Huy
+            // tu dem (cham.canXem). Hinh ve, bang, so do thi truoc day Claude hay de 0 vi khong
+            // co "dong chu" nao, nen noi ro cach dem.
             appendLine(
                 "6. Đếm số dòng $ten tự viết để làm câu đó. Không tính dòng chép lại đề, " +
-                    "dòng trống, dòng đã gạch xoá, dòng lặp lại vô nghĩa."
+                    "dòng trống, dòng đã gạch xoá, dòng lặp lại vô nghĩa. Hình vẽ, bảng, sơ đồ " +
+                    "$ten vẽ thì tính theo số dòng vở mà nó chiếm. Câu $ten làm đúng mà không " +
+                    "phải trắc nghiệm hay học thuộc thì luôn có ít nhất 1 dòng."
             )
         }
     }
@@ -847,6 +855,49 @@ object NhoClaude {
             daDung += i
             c.copy(ma = cuaMay[i].ma.trim(), de = cuaMay[i].de)
         })
+    }
+
+    /**
+     * "giaTri" cua lenh [vn.huytl.bangdieukhien.data.Lenh.CHAM_BAI] cho ket qua Claude vua
+     * dan, da qua [theoKhai] va [theoMay]. Kieu goi xem chu thich cua lenh do trong Duong.
+     *
+     * Tach khoi BaiActivity ngay 29/9/2026: ban nay con duoc giu nguyen trong chamClaude.goi
+     * (xem [vn.huytl.bangdieukhien.data.KetQuaClaude.goi]), de lenh XU_CAU gui lai dung no,
+     * chi doi cau Ba Huy tu cham.
+     *
+     * "coAnhDanDo" la de tablet biet lan nop nay co vo dan do khong - anh hay ban con soat -
+     * vi luat tron goi xu hai canh do khac nhau.
+     */
+    fun goiChamBai(ket: KetQuaDan, bai: Bai): Map<String, Any> = buildMap<String, Any> {
+        put("cac", ket.cac.map {
+            buildMap<String, Any> {
+                put("ma", it.ma)
+                put("dung", it.dung)
+                put("chac", it.chac)
+                put("conViet", it.conViet)
+                put("goiY", it.goiY)
+                put("soDong", it.soDong)
+                put("de", it.de)
+                put("dang", it.dang)
+                if (it.loaiLoi.isNotBlank()) put("loaiLoi", it.loaiLoi)
+                it.trongDanDo?.let { t -> put("trongDanDo", t) }
+            }
+        })
+        val soat = bai.voDaSoat?.daDoc
+        put("coAnhDanDo", soat != null || bai.anh.any { it.laDanDo })
+        if (soat != null) {
+            // Ngay va danh sach bai la cua ban con soat, Claude chi noi con lam het chua.
+            // Tablet con giu ban cua no tu luc nop va dung ban do truoc.
+            put("ngayDanDo", soat.ngay)
+            put("baiDuocGiao", soat.cacBai)
+            put("lamHetDanDo", ket.danDo?.lamHet ?: false)
+        } else {
+            ket.danDo?.let { d ->
+                d.ngay?.let { put("ngayDanDo", it) }
+                put("baiDuocGiao", d.baiDuocGiao)
+                put("lamHetDanDo", d.lamHet)
+            }
+        }
     }
 
     /**

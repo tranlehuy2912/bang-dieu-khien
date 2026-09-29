@@ -105,6 +105,10 @@ object Dinh {
         Lenh.CHAM_BAI -> "chấm bài theo Claude"
         Lenh.TIN_CO -> "tin của cô giáo"
         Lenh.DOC_VO -> "vở dặn dò Claude đọc"
+        // Thieu so phut (hay 0) la cap het quy, xem Lenh.CAP_QUY.
+        Lenh.CAP_QUY -> l.phut?.takeIf { it > 0 }?.let { "cấp ${phut(it)} từ quỹ giờ chơi" }
+            ?: "cấp hết quỹ giờ chơi"
+        Lenh.XU_CAU -> "xử câu chưa chắc"
         else -> l.kieu.lowercase(VN)
     }
 

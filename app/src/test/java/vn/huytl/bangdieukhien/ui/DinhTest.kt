@@ -20,6 +20,15 @@ class DinhTest {
     }
 
     @Test
+    fun lenh_cap_quy_va_xu_cau_co_nhan_rieng() {
+        // Tu 29/9/2026. Thieu so phut hay 0 la cap het quy, y nhu tablet hieu.
+        assertEquals("cấp 30 phút từ quỹ giờ chơi", Dinh.lenh(lenh(Lenh.CAP_QUY, 30)))
+        assertEquals("cấp hết quỹ giờ chơi", Dinh.lenh(lenh(Lenh.CAP_QUY)))
+        assertEquals("cấp hết quỹ giờ chơi", Dinh.lenh(lenh(Lenh.CAP_QUY, 0)))
+        assertEquals("xử câu chưa chắc", Dinh.lenh(lenh(Lenh.XU_CAU)))
+    }
+
+    @Test
     fun lenh_la_thi_hien_ten_kieu() {
         // Ban Bang dieu khien moi hon go ra kieu ban nay chua biet: van hien, khong de trong.
         assertEquals("kieumoi", Dinh.lenh(lenh("KIEUMOI")))

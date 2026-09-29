@@ -34,24 +34,32 @@ object ChuBanCham {
             bai.claude?.let { cl ->
                 append('\n')
                 append(if (cl.chinh) "Claude chấm lúc " else "Claude chấm lại lúc ")
-                append("${Dinh.lucNgan(cl.luc)}: đúng ${cl.cac.count { it.chac && it.dung }}/${cl.cac.size} câu")
+                append(Dinh.lucNgan(cl.luc))
+                if (cl.xuLuc > 0L) append(", Ba Huy chấm tay thêm lúc ${Dinh.lucNgan(cl.xuLuc)}")
+                append(": đúng ${cl.cac.count { it.chac && it.dung }}/${cl.cac.size} câu")
             }
+            // Cung hai tap voi the ban cham: cau dang cho Ba Huy xem, cau Ba Huy nho chup lai.
+            val dangXem = if (bai.dangCho) cham.canXem.map { it.ma.trim() }.toSet() else emptySet()
+            val chupLai = vn.huytl.bangdieukhien.data.XuCau.maChupLai(bai.claude?.goi)
             cham.cac.forEach { c ->
+                val nhoChup = c.ma.trim() in chupLai
                 append("\n\n")
                 append(
                     when {
-                        !c.docRo -> "?"
+                        nhoChup || !c.docRo -> "?"
                         c.dung -> "✓"
                         else -> "✕"
                     }
                 ).append(' ').append(tenCau(c.ma))
                 if (c.de.isNotBlank()) append("\nĐề: ").append(c.de.trim())
                 if (c.ketQua.isNotBlank()) append("\n$tenCon viết: ").append(c.ketQua.trim())
-                if (!c.docRo) append("\nĐọc chưa chắc câu này")
+                if (nhoChup) append("\nBa Huy nhờ chụp lại câu này")
+                else if (!c.docRo) append("\nĐọc chưa chắc câu này")
                 if (c.nhanXet.isNotBlank()) append("\nNhận xét: ").append(c.nhanXet.trim())
-                // Cung dieu kien voi dong Claude tren the: chi ghi khi Claude chac va noi khac may.
+                // Cung dieu kien voi dong Claude tren the: chi ghi khi Claude chac va noi khac may,
+                // va cau do khong con nam o the "Câu cần Ba Huy xem".
                 val cl = bai.claude?.cua(c.ma)
-                if (cl != null && cl.chac && cl.dung != (c.docRo && c.dung)) {
+                if (cl != null && c.ma.trim() !in dangXem && cl.chac && cl.dung != (c.docRo && c.dung)) {
                     append('\n')
                     append(
                         if (cl.dung) "Claude: đúng, lần chấm trước nhầm"

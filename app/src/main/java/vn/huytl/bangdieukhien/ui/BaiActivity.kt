@@ -30,6 +30,7 @@ import vn.huytl.bangdieukhien.data.CauCham
 import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.Lenh
 import vn.huytl.bangdieukhien.data.Nha
+import vn.huytl.bangdieukhien.data.SuaChamGoi
 import vn.huytl.bangdieukhien.data.VoDaSoat
 import vn.huytl.bangdieukhien.data.XuCau
 import vn.huytl.bangdieukhien.databinding.ActivityBaiBinding
@@ -574,8 +575,7 @@ class BaiActivity : AppCompatActivity() {
         }
 
         val theoMa = bai.cham?.cac.orEmpty().associateBy { it.ma.trim() }
-        val thanhDung = ket.cac.filter { it.chac && it.dung }
-            .mapNotNull { cl -> theoMa[cl.ma]?.takeIf { !(it.docRo && it.dung) } }
+        val thanhDung = SuaChamGoi.thanhDung(bai.cham?.cac.orEmpty(), ket.cac)
         val thanhSai = ket.cac.filter { it.chac && !it.dung }
             .mapNotNull { cl -> theoMa[cl.ma]?.takeIf { it.docRo && it.dung } }
         val khongChac = ket.cac.filter { !it.chac }.map { it.ma }
@@ -585,7 +585,7 @@ class BaiActivity : AppCompatActivity() {
             append("Claude chấm đúng $dung/${ket.cac.size} câu.")
             if (thanhDung.isNotEmpty()) {
                 append("\n\nLần chấm trước bảo sai, Claude lần này bảo đúng: ")
-                append(thanhDung.joinToString(", ") { it.ma }).append(". ")
+                append(thanhDung.joinToString(", ") { it.cu.ma }).append(". ")
                 append("Tablet sẽ bỏ các câu này khỏi danh sách cần sửa của ")
                 append(getString(R.string.child_name)).append(" và cộng giờ theo luật.")
             }
@@ -616,7 +616,7 @@ class BaiActivity : AppCompatActivity() {
      * Hai viec chay song song chu khong noi duoi nhau: ghi ban Claude chi xong khi may
      * chu nhan, ma mat mang thi lenh sua cham van nen nam san trong hang doi cua tablet.
      */
-    private fun ghiKetQua(bai: Bai, ket: NhoClaude.KetQuaDan, thanhDung: List<CauCham>) {
+    private fun ghiKetQua(bai: Bai, ket: NhoClaude.KetQuaDan, thanhDung: List<SuaChamGoi.Cau>) {
         Kho.ghiChamClaude(this, bai.id, ket.cac) { kq ->
             if (kq is Kho.KetQua.Hong) Dinh.noi(this, kq.viSao)
         }
@@ -626,7 +626,7 @@ class BaiActivity : AppCompatActivity() {
         }
         Kho.guiLenh(
             this, Lenh.SUA_CHAM, baiId = bai.id,
-            giaTri = thanhDung.map { mapOf("ma" to it.ma, "de" to it.de) }
+            giaTri = SuaChamGoi.giaTri(thanhDung)
         ) { kq ->
             Dinh.noi(
                 this,

@@ -12,6 +12,9 @@
     <string name="tab_bai">Bài tập</string>
     <string name="tab_viecnha">Việc nhà</string>
     <string name="tab_nhatky">Nhật ký</string>
+    <!-- Them ngay 29/9/2026. Chu "Thời khoá biểu" dai qua cho mot o trong sau o cua thanh
+         duoi, nen o day ghi "Lịch học", ten day du nam o dau trang. -->
+    <string name="tab_lich">Lịch học</string>
     <string name="tab_caidat">Cài đặt</string>
 
     <!-- Ghep doi -->
@@ -133,4 +136,11 @@
     <string name="viec_sua_huong_dan">Lưu xong thì máy bà nội đổi theo ngay. Tối đa %1$d việc, mỗi việc từ 0 đến %2$d phút.</string>
     <string name="viec_them">Thêm việc</string>
     <string name="viec_luu">Lưu</string>
+
+    <!-- Lich hoc -->
+    <string name="lich_tieu_de">Thời khoá biểu</string>
+    <string name="lich_buoi_toi">Buổi tới</string>
+    <string name="lich_dang_hoc">Đang học</string>
+    <string name="lich_sang">SÁNG</string>
+    <string name="lich_chieu">CHIỀU</string>
 </resources>

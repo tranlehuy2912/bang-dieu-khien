@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mot o trong luoi thoi khoa bieu. Chieu cao dat trong LichFragment: o tiet, dai buoi
+     va o gop cua ngay nghi cao khac nhau, nhung o cung hang phai cao bang nhau. Co chu
+     12sp la tran: LichFragment.datCoChu ha xuong khi o hep. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/cao_o_lich"
+    android:ellipsize="end"
+    android:gravity="center"
+    android:includeFontPadding="false"
+    android:lineSpacingExtra="1dp"
+    android:maxLines="2"
+    android:paddingHorizontal="3dp"
+    android:textColor="@color/ink"
+    android:textSize="12sp" />

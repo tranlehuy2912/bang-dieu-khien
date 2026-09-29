@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mot cot cua luoi thoi khoa bieu: dau cot la thu va ngay, duoi la cac o tiet. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/dauCot"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/cao_dau_cot"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <!-- Rong het cot va tu nho lai nhu o_lich: chu to thi "Thứ 2" khong bi cat. -->
+        <TextView
+            android:id="@+id/nhanThu"
+            android:layout_width="match_parent"
+            android:layout_height="18dp"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:textColor="@color/brand_dark"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:autoSizeMaxTextSize="12sp"
+            app:autoSizeMinTextSize="7sp"
+            app:autoSizeStepGranularity="0.5sp"
+            app:autoSizeTextType="uniform" />
+
+        <TextView
+            android:id="@+id/nhanNgay"
+            android:layout_width="match_parent"
+            android:layout_height="16dp"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:textColor="@color/ink_soft"
+            android:textSize="11sp"
+            app:autoSizeMaxTextSize="11sp"
+            app:autoSizeMinTextSize="7sp"
+            app:autoSizeStepGranularity="0.5sp"
+            app:autoSizeTextType="uniform" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/danhSachO"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+</LinearLayout>

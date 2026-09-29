@@ -31,4 +31,13 @@
     <color name="parent_soft">#EDEAFB</color>
     <color name="child_tint">#0F8A8A</color>
     <color name="child_soft">#E3F5F5</color>
+
+    <!-- Tab Lich hoc. Net ke luoi va mau chu cua nam mon chinh lay dung mau ben tablet
+         (st_ke_luoi, MatMon.DAT_TAY): Ba Huy va Le Hoa nhin cung mot bang mau mon. -->
+    <color name="ke_luoi">#C8D0DC</color>
+    <color name="mon_toan">#2F6FED</color>
+    <color name="mon_khtn">#1E8E3E</color>
+    <color name="mon_van">#C2591A</color>
+    <color name="mon_su_dia">#7B3FBF</color>
+    <color name="mon_anh">#B03060</color>
 </resources>

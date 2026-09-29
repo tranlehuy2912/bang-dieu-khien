@@ -238,6 +238,14 @@ lên `hop/caidat`; nó gửi lệnh `CAIDAT`, tablet nhận, áp vào `Prefs`, r
 `hop/caidat` cho đúng cái đang chạy. Một người ghi một chỗ thì không bao giờ có
 cảnh hai bên đè nhau.
 
+### Thời khoá biểu chép sang, không đi qua Firestore
+
+Tab Lịch học (từ 29/09/2026) vẽ thời khoá biểu từ `ThoiKhoaBieu.kt` và `NgayNghi.kt`, hai
+file chép y hệt từ tablet, chỉ khác dòng `package`. Bên tablet lịch nằm thẳng trong code, đổi
+lịch là cài lại app bên đó, nên cài lại app này cùng lúc là hai máy hiện cùng một lịch. Đổi
+lại, tab chạy với mọi bản tablet và không tốn lượt đọc nào. `tools/kiem-duong.sh` bên nop-bai
+so hai bản này, cùng lúc so ba bản `Duong.kt`.
+
 ### Việc nhà là trạng thái, cho giờ là sự kiện
 
 Cho giờ và việc nhà đi hai đường khác nhau, và khác vì bản chất khác:

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Luoi thoi khoa bieu o tab Lich hoc. Chieu cao o co dinh de cac cot thang hang.
+         46dp: du cho ten mon xuong hai dong o co chu 12sp. -->
+    <dimen name="cao_o_lich">46dp</dimen>
+    <dimen name="cao_dai_buoi">28dp</dimen>
+    <dimen name="cao_dau_cot">42dp</dimen>
+</resources>

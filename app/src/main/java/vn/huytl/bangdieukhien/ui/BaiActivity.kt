@@ -32,6 +32,7 @@ import vn.huytl.bangdieukhien.data.Lenh
 import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.data.SuaChamGoi
 import vn.huytl.bangdieukhien.data.BoSuaGoi
+import vn.huytl.bangdieukhien.data.MaCau
 import vn.huytl.bangdieukhien.data.XuCau
 import vn.huytl.bangdieukhien.databinding.ActivityBaiBinding
 import vn.huytl.bangdieukhien.telegram.TaiAnh
@@ -249,7 +250,7 @@ class BaiActivity : AppCompatActivity() {
                 orientation = LinearLayout.VERTICAL
                 setPadding(0, 16.dp().toInt(), 0, 0)
             }
-            cot.addView(chu(x.ma, 15f, bold = true))
+            cot.addView(chu(MaCau.hien(x.ma), 15f, bold = true))
             val de = c?.de?.takeIf { it.isNotBlank() } ?: (muc?.get("de") as? String).orEmpty()
             if (de.isNotBlank()) cot.addView(chu(SoMu.hienDe(ngan(de), monCua(bai)), 14f, mau = R.color.ink_soft))
             val viet = c?.ketQua?.takeIf { it.isNotBlank() } ?: (muc?.get("conViet") as? String).orEmpty()
@@ -772,7 +773,8 @@ class BaiActivity : AppCompatActivity() {
                 layoutParams = LinearLayout.LayoutParams(28.dp().toInt(), LinearLayout.LayoutParams.WRAP_CONTENT)
             })
             val cot = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-            cot.addView(chu(c.ma.ifBlank { "câu" }, 15f, bold = true))
+            // Ma phieu Claude tu dat thi kem nghia: "B5-TL3g: Bài 5, tự luận, câu 3g", xem [MaCau].
+            cot.addView(chu(MaCau.hien(c.ma).ifBlank { "câu" }, 15f, bold = true))
             if (c.de.isNotBlank()) cot.addView(chu(SoMu.hienDe(c.de, monCua(bai)), 14f, mau = R.color.ink_soft))
             if (c.ketQua.isNotBlank()) {
                 cot.addView(chu("Lê Hòa viết: ${SoMu.hienDe(c.ketQua, monCua(bai))}", 14f, mau = R.color.ink_soft))
@@ -801,7 +803,7 @@ class BaiActivity : AppCompatActivity() {
             )
         }
         // Nut bo cau sai khoi danh sach can sua cua con (30/9/2026), xem [hoiBoSua].
-        val sai = BoSuaGoi.cauSai(cham, chupLai)
+        val sai = BoSuaGoi.cauSai(cham)
         if (sai.isNotEmpty()) {
             trong.addView(
                 MaterialButton(this, null, androidx.appcompat.R.attr.borderlessButtonStyle).apply {
@@ -810,7 +812,7 @@ class BaiActivity : AppCompatActivity() {
                         LinearLayout.LayoutParams.WRAP_CONTENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                     ).apply { topMargin = 8.dp().toInt() }
-                    setOnClickListener { hoiBoSua(bai, sai) }
+                    setOnClickListener { hoiBoSua(bai, sai, chupLai) }
                 }
             )
         }
@@ -825,12 +827,13 @@ class BaiActivity : AppCompatActivity() {
      *
      * Tich san het: thuong Ba Huy bam nut nay la de bo ca bai (trang vo con khong con giu).
      * Tablet chi bo cau con dang cho sua; cau con da sua dung roi thi no noi lai o o tra loi.
+     * Cau doc chua ro va cau nho chup lai cung co trong hop, co ghi chu, xem [BoSuaGoi.cauSai].
      */
-    private fun hoiBoSua(bai: Bai, sai: List<CauCham>) {
+    private fun hoiBoSua(bai: Bai, sai: List<CauCham>, chupLai: Set<String>) {
         val chon = BooleanArray(sai.size) { true }
         MaterialAlertDialogBuilder(this)
             .setTitle("Bỏ khỏi danh sách cần sửa")
-            .setMultiChoiceItems(sai.map { it.ma.trim().ifBlank { "câu" } }.toTypedArray(), chon) { _, i, co ->
+            .setMultiChoiceItems(sai.map { BoSuaGoi.nhan(it, chupLai) }.toTypedArray(), chon) { _, i, co ->
                 chon[i] = co
             }
             .setNegativeButton(R.string.huy, null)
@@ -898,7 +901,7 @@ class BaiActivity : AppCompatActivity() {
                 layoutParams = LinearLayout.LayoutParams(28.dp().toInt(), LinearLayout.LayoutParams.WRAP_CONTENT)
             })
             val cot = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-            cot.addView(chu(c.ma, 15f, bold = true))
+            cot.addView(chu(MaCau.hien(c.ma), 15f, bold = true))
             val de = c.de.ifBlank { deTheoMa[c.ma].orEmpty() }
             if (de.isNotBlank()) cot.addView(chu(SoMu.hienDe(de, monCua(bai)), 14f, mau = R.color.ink_soft))
             if (c.conViet.isNotBlank()) {
@@ -1065,8 +1068,13 @@ class BaiActivity : AppCompatActivity() {
             .show()
     }
 
+    /**
+     * Ly do di kem lenh TU_CHOI, tablet ghi vao bai va hien cho con o the bai tren man Bai da
+     * cham ("Không được duyệt. Lý do: ..."). "Ba Huy yêu cầu làm lại" them ngay 30/9/2026.
+     */
     private fun hoiTuChoi(bai: Bai) {
         val cac = arrayOf(
+            "Ba Huy yêu cầu làm lại",
             "Làm ẩu, làm lại đi",
             "Thiếu bài, chưa làm hết",
             "Chụp mờ quá, chụp lại",

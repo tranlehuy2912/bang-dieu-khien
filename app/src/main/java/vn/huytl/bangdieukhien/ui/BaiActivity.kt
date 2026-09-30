@@ -31,6 +31,7 @@ import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.Lenh
 import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.data.SuaChamGoi
+import vn.huytl.bangdieukhien.data.BoSuaGoi
 import vn.huytl.bangdieukhien.data.XuCau
 import vn.huytl.bangdieukhien.databinding.ActivityBaiBinding
 import vn.huytl.bangdieukhien.telegram.TaiAnh
@@ -799,8 +800,51 @@ class BaiActivity : AppCompatActivity() {
                     .apply { (layoutParams as? LinearLayout.LayoutParams)?.topMargin = 12.dp().toInt() }
             )
         }
+        // Nut bo cau sai khoi danh sach can sua cua con (30/9/2026), xem [hoiBoSua].
+        val sai = BoSuaGoi.cauSai(cham, chupLai)
+        if (sai.isNotEmpty()) {
+            trong.addView(
+                MaterialButton(this, null, androidx.appcompat.R.attr.borderlessButtonStyle).apply {
+                    text = "Không bắt sửa câu sai…"
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply { topMargin = 8.dp().toInt() }
+                    setOnClickListener { hoiBoSua(bai, sai) }
+                }
+            )
+        }
+
         the.addView(trong)
         b.than.addView(the)
+    }
+
+    /**
+     * Ba Huy chon cau sai de tablet bo khoi dong "Có N câu cần sửa", khong cong phut. Xem
+     * [Lenh.BO_SUA].
+     *
+     * Tich san het: thuong Ba Huy bam nut nay la de bo ca bai (trang vo con khong con giu).
+     * Tablet chi bo cau con dang cho sua; cau con da sua dung roi thi no noi lai o o tra loi.
+     */
+    private fun hoiBoSua(bai: Bai, sai: List<CauCham>) {
+        val chon = BooleanArray(sai.size) { true }
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Bỏ khỏi danh sách cần sửa")
+            .setMultiChoiceItems(sai.map { it.ma.trim().ifBlank { "câu" } }.toTypedArray(), chon) { _, i, co ->
+                chon[i] = co
+            }
+            .setNegativeButton(R.string.huy, null)
+            .setPositiveButton("Bỏ, không cộng phút") { _, _ ->
+                val cac = sai.filterIndexed { i, _ -> chon[i] }
+                if (cac.isEmpty()) return@setPositiveButton
+                Kho.guiLenh(this, Lenh.BO_SUA, baiId = bai.id, giaTri = BoSuaGoi.giaTri(cac)) { kq ->
+                    Dinh.noi(
+                        this,
+                        if (kq is Kho.KetQua.Hong) kq.viSao else "Đã báo tablet. Tablet trả lời ở màn Bảng."
+                    )
+                }
+            }
+            .show()
     }
 
     /**

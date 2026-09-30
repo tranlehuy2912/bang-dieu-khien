@@ -137,6 +137,10 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │            TINCO       tin của cô giáo, không bị bỏ vì quá cũ
 │            DOCVO       kết quả Claude đọc tấm vở máy không đọc được, kèm chupLuc
 │                        để tablet chỉ ghi vào đúng tấm đó
+│            CAPQUY      cấp giờ từ quỹ giờ chơi (29/09/2026)
+│            XUCAU       Ba Huy tự chấm câu Claude đọc chưa chắc (29/09/2026)
+│            BOSUA       bỏ câu sai khỏi danh sách cần sửa của con, không cộng
+│                        phút (30/09/2026)
 │     phut, baiId, chu, giaTri
 │     tao    epoch ms theo đồng hồ máy gửi. Tablet dùng trường này để xếp lệnh
 │            và bỏ lệnh quá nửa tiếng. taoLuc (server timestamp) chỉ Bảng điều

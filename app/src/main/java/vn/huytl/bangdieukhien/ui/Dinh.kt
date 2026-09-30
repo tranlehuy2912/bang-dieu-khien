@@ -109,6 +109,7 @@ object Dinh {
         Lenh.CAP_QUY -> l.phut?.takeIf { it > 0 }?.let { "cấp ${phut(it)} từ quỹ giờ chơi" }
             ?: "cấp hết quỹ giờ chơi"
         Lenh.XU_CAU -> "xử câu chưa chắc"
+        Lenh.BO_SUA -> "bỏ câu khỏi danh sách cần sửa"
         else -> l.kieu.lowercase(VN)
     }
 

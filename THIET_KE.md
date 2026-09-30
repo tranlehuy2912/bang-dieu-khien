@@ -100,10 +100,10 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │                   điều khiển sửa được từ 27/09/2026, mỗi lần một app
 │     appChan, appAi, và các con số giờ
 ├── hop/danhsachapp             ◄── chỉ TABLET ghi (app đang cài, để chọn từ xa)
-├── hop/dando                   ◄── chỉ TABLET ghi: vở dặn dò của buổi vừa học, cùng
-│                                   dạng với danDo trong bai/ kèm luc. Tới giờ vào buổi học
-│                                   kế tiếp thì hết hiệu lực, tablet xoá. Máy không đọc được
-│                                   (chuaDoc) thì tab Giờ chơi hiện thẻ "Nhờ Claude đọc vở"
+├── hop/dando                   ◄── bỏ từ 30/09/2026, tablet chỉ còn xoá document này.
+│                                   Từng giữ vở dặn dò của buổi vừa học; máy không đọc được
+│                                   thì tab Giờ chơi hiện thẻ "Nhờ Claude đọc vở". Giờ máy
+│                                   không đọc được thì Lê Hòa tự gõ trên tablet
 ├── hop/nhacbai                 ◄── chỉ TABLET ghi, từ 30/09/2026: các dòng vở dặn dò chưa
 │     cacBuoi[] { ma, ngay, ten,    tới hạn, gom theo buổi. Mỗi dòng hạn tới tiết sau của
 │       vaoHoc, cac[] { chu, bai,   đúng môn đó (dòng không đọc ra môn thì tới buổi học kế
@@ -135,8 +135,8 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │            CHAMBAI     bản chấm đầu tiên do Claude chấm. Từ 28/09/2026 là đường chấm
 │                        duy nhất: tablet không tự chấm nữa
 │            TINCO       tin của cô giáo, không bị bỏ vì quá cũ
-│            DOCVO       kết quả Claude đọc tấm vở máy không đọc được, kèm chupLuc
-│                        để tablet chỉ ghi vào đúng tấm đó
+│            DOCVO       bỏ từ 30/09/2026 (từng là kết quả Claude đọc tấm vở máy không
+│                        đọc được); tablet trả lời là không nhận nữa
 │            CAPQUY      cấp giờ từ quỹ giờ chơi (29/09/2026)
 │            XUCAU       Ba Huy tự chấm câu Claude đọc chưa chắc (29/09/2026)
 │            BOSUA       bỏ câu sai khỏi danh sách cần sửa của con, không cộng

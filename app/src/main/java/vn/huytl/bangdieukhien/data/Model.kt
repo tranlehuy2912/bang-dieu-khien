@@ -311,58 +311,6 @@ data class KhaiBai(
 }
 
 /**
- * Vo dan do cua buoi vua hoc, trong hop/dando. Bai nop truoc 30/9/2026 cung mang no (luc
- * do Claude dung vo de tinh tron goi). Xem [Duong.F_DAN_DO].
- *
- * [fileId] la anh trang vo de Ba Huy nho Claude doc, rong la tablet chua gui duoc anh.
- *
- * [chuaDoc] la ngoai le: chi co anh, may doc khong duoc. Luc do [cacBai] rong nhung chua
- * biet co giao gi, nen khong duoc dung nhu mot danh sach - xem [daDoc].
- */
-data class VoDaSoat(
-    /** Ngay ghi tren vo, dang yyyy-MM-dd. Ban chi co anh thi la ngay chup. */
-    val ngay: String,
-    /** Cac dong con tich la bai tap. Rong la hom do co khong giao bai tap nao. */
-    val cacBai: List<String>,
-    val dongKhac: List<String> = emptyList(),
-    val fileId: String = "",
-    val chuaDoc: Boolean = false,
-    /** Ai doc ra danh sach: CON, CLAUDE hay LUCCHAM, y het VoDanDo ben tablet. */
-    val nguon: String = NGUON_CON,
-    /** Luc chup tam anh trang vo, de lenh DOCVO ghi vao dung tam do. */
-    val chupLuc: Long = 0L,
-    /** Luc tablet luu ban nay. Chi co o hop/dando. */
-    val luc: Long = 0L
-) {
-    /** Ban nay dung duoc nhu mot danh sach bai: da co chu, khong phai chi co anh. */
-    val daDoc: VoDaSoat? get() = takeUnless { chuaDoc }
-
-    companion object {
-        /** null la bai khong dung ban soat nao, hay ban ghi thieu ngay. */
-        fun doc(m: Map<*, *>?): VoDaSoat? {
-            val ngay = (m?.get("ngay") as? String)?.trim().orEmpty()
-            if (ngay.isEmpty()) return null
-            fun ds(ten: String) = (m?.get(ten) as? List<*>).orEmpty()
-                .mapNotNull { (it as? String)?.trim()?.takeIf { t -> t.isNotEmpty() } }
-            return VoDaSoat(
-                ngay = ngay,
-                cacBai = ds("cacBai"),
-                dongKhac = ds("dongKhac"),
-                fileId = (m?.get(Duong.F_FILE_ID) as? String)?.trim().orEmpty(),
-                chuaDoc = m?.get("chuaDoc") as? Boolean ?: false,
-                nguon = (m?.get("nguon") as? String)?.trim()?.takeIf { it.isNotEmpty() } ?: NGUON_CON,
-                chupLuc = (m?.get("chupLuc") as? Number)?.toLong() ?: 0L,
-                luc = (m?.get(Duong.F_LUC) as? Number)?.toLong() ?: 0L
-            )
-        }
-
-        const val NGUON_CON = "CON"
-        const val NGUON_CLAUDE = "CLAUDE"
-        const val NGUON_LUC_CHAM = "LUCCHAM"
-    }
-}
-
-/**
  * Cac dong vo dan do chua toi han cua mot buoi hoc, trong hop/nhacbai. Xem [Duong.D_NHAC_BAI].
  *
  * Tablet tinh han: moi dong toi tiet sau cua dung mon do, dong khong doc ra mon thi toi

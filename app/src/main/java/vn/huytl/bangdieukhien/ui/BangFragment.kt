@@ -30,12 +30,7 @@ import vn.huytl.bangdieukhien.data.Nguoi
 import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.data.TrangThai
 import vn.huytl.bangdieukhien.data.NhacBaiBuoi
-import vn.huytl.bangdieukhien.data.VoDaSoat
 import vn.huytl.bangdieukhien.databinding.FragmentBangBinding
-import vn.huytl.bangdieukhien.telegram.TaiAnh
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
 
 /**
  * Tab Gio choi, man chinh: liec mot cai la biet tablet dang the nao, va bam duoc ngay.
@@ -54,7 +49,6 @@ class BangFragment : Fragment() {
     private val b get() = _b!!
 
     private var ngheTrangThai: ListenerRegistration? = null
-    private var ngheDanDo: ListenerRegistration? = null
     private var ngheNhacBai: ListenerRegistration? = null
     private var ngheLenh: ListenerRegistration? = null
 
@@ -64,8 +58,6 @@ class BangFragment : Fragment() {
     /** Khoi lenh dang cho da ve voi nhung dong nao, de khong dung lai view moi giay. */
     private var daVeLenhCho = ""
 
-    /** Vo dan do cua ngay tren tablet, null la khong co ban nao con hieu luc. */
-    private var voDanDo: VoDaSoat? = null
     private var moiNhat: TrangThai? = null
 
     /**
@@ -174,7 +166,6 @@ class BangFragment : Fragment() {
         b.nutTinCo.setOnClickListener { hoiTinCo() }
         b.theViecCho.setOnClickListener { (activity as? MainActivity)?.sangTheViecNha() }
         b.theBaiCho.setOnClickListener { (activity as? MainActivity)?.sangTheBai() }
-        b.theVoDanDo.setOnClickListener { hoiDocVo() }
         // Nhan giu the canh bao hay dong bao hong la chep ca doan, de dan cho Claude Code
         // luc go loi: cau bao hong co khi mang nguyen van loi cua Firestore.
         b.chuCanhBao.setOnLongClickListener { chepChu(b.chuCanhBao, "Đã chép dòng cảnh báo.") }
@@ -211,11 +202,6 @@ class BangFragment : Fragment() {
             ve()
             noiLaiNeuCo(tt)
         }
-        ngheDanDo = Kho.ngheDanDo(ct) { vo ->
-            if (_b == null) return@ngheDanDo
-            voDanDo = vo
-            veVoDanDo()
-        }
         ngheNhacBai = Kho.ngheNhacBai(ct) { ds ->
             if (_b == null) return@ngheNhacBai
             veNhacBai(ds)
@@ -236,7 +222,6 @@ class BangFragment : Fragment() {
         tay.removeCallbacks(hoiDuPhong)
         hoiKhiCoBanDau = false
         ngheTrangThai?.remove()
-        ngheDanDo?.remove()
         ngheNhacBai?.remove()
         ngheLenh?.remove()
         super.onStop()
@@ -890,27 +875,6 @@ class BangFragment : Fragment() {
     // ------------------------------------------------------------ vo dan do
 
     /**
-     * The vo dan do, chi hien khi may tren tablet doc khong duoc va con da gui anh sang.
-     *
-     * Tu 30/9/2026 day la duong duy nhat doc trang vo do: cham bai khong dung vo nua. Doc
-     * xong thi con co danh sach de soat, va tablet nhac bai theo tung dong.
-     *
-     * Chua co ma anh (tablet chua gui xong tin vo dan do) thi an: khong co anh thi Claude
-     * khong co gi de doc.
-     */
-    private fun veVoDanDo() {
-        val vo = voDanDo
-        if (vo == null || !vo.chuaDoc || vo.fileId.isEmpty()) {
-            b.theVoDanDo.visibility = View.GONE
-            return
-        }
-        b.chuVoDanDo.text = getString(
-            R.string.bang_vo_chup_luc, getString(R.string.child_name), Dinh.lucNgan(vo.chupLuc)
-        )
-        b.theVoDanDo.visibility = View.VISIBLE
-    }
-
-    /**
      * The "Bài dặn dò sắp tới": moi buoi mot khoi, buoi som truoc. Tablet tinh han va nhac
      * Le Hoa tu hom truoc buoi do (30/9/2026); o day chi de Ba Huy thay cung danh sach.
      */
@@ -926,112 +890,6 @@ class BangFragment : Fragment() {
                 }
             }
         }
-    }
-
-    private fun hoiDocVo() {
-        val vo = voDanDo ?: return
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Vở dặn dò chưa đọc")
-            .setMessage(
-                "Nhờ Claude đọc: mở app Claude với ảnh trang vở và lời nhờ chép sẵn.\n\n" +
-                    "Dán kết quả: Claude trả lời xong thì chép câu trả lời, quay lại đây bấm nút này.\n\n" +
-                    "Đọc xong thì tablet nhắc bài theo vở này."
-            )
-            .setPositiveButton("Nhờ Claude đọc") { _, _ -> nhoClaudeDocVo(vo) }
-            .setNeutralButton("Dán kết quả") { _, _ -> danKetQuaDocVo(vo) }
-            .setNegativeButton(R.string.huy, null)
-            .show()
-    }
-
-    /** Tai anh trang vo ve roi mo app Claude, giong nut Nho Claude cham o man bai. */
-    private fun nhoClaudeDocVo(vo: VoDaSoat) {
-        val ct = requireContext()
-        val token = Nha.token(ct)
-        if (token.isBlank()) {
-            Dinh.noi(ct, "Chưa đặt token bot nên không lấy được ảnh. Vào tab Cài đặt để đặt.")
-            return
-        }
-        Dinh.noi(ct, "Đang lấy ảnh vở…")
-        viewLifecycleOwner.lifecycleScope.launch {
-            val anh = TaiAnh.lay(ct, token, vo.fileId)
-            if (anh == null) {
-                Dinh.noi(ct, "Không lấy được ảnh vở. Kiểm tra mạng rồi thử lại.")
-                return@launch
-            }
-            NhoClaude.mo(ct, listOf(anh), NhoClaude.loiNhoDocVo(vo, Nha.tenCon(ct)))
-            Dinh.noi(ct, "Đã chép sẵn lời nhờ. Ô chat còn trống thì giữ vào ô đó rồi dán.")
-        }
-    }
-
-    /**
-     * Doc ket qua Claude doc vo tu bo nho tam, hoi lai, roi gui lenh DOCVO sang tablet.
-     *
-     * Claude khong doc ra ngay thi tam lay ngay chup, y nhu may doc thieu ngay ben tablet:
-     * con mo vo ra sua duoc, va hop thoai noi ro de Ba Huy biet.
-     */
-    private fun danKetQuaDocVo(vo: VoDaSoat) {
-        val ct = requireContext()
-        val chu = chuBoNhoTam()
-        fun bao(tieuDe: String, noi: String) {
-            MaterialAlertDialogBuilder(ct).setTitle(tieuDe).setMessage(noi)
-                .setPositiveButton("Đã hiểu", null).show()
-        }
-        if (NhoClaude.laLoiNho(chu)) {
-            return bao(
-                "Đây là lời nhờ, chưa phải kết quả",
-                "Bộ nhớ tạm đang giữ lời nhờ gửi Claude. Trong app Claude, bấm chép câu trả lời " +
-                    "của Claude rồi quay lại đây bấm nút này."
-            )
-        }
-        val ket = NhoClaude.docKetQuaDocVo(chu) ?: return bao(
-            "Chưa thấy kết quả đọc vở",
-            "Trong app Claude, bấm chép câu trả lời có khối JSON ở cuối, rồi quay lại đây bấm nút này."
-        )
-        if (ket.vo.isNotEmpty() && ket.vo != vo.chupLuc.toString()) {
-            return bao(
-                "Kết quả của tấm vở khác",
-                "Kết quả này của một tấm vở chụp lúc khác. Nhờ Claude đọc lại đúng tấm đang chờ."
-            )
-        }
-        if (ket.cacDong.isEmpty()) {
-            return bao("Claude không thấy dặn dò nào", "Không có gì để gửi sang tablet.")
-        }
-        val ngayVo = ket.ngay?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
-        val ngay = ngayVo ?: Instant.ofEpochMilli(vo.chupLuc).atZone(ZoneId.systemDefault()).toLocalDate()
-        val bai = ket.cacDong.filter { it.laBaiTap }
-        val khac = ket.cacDong.filterNot { it.laBaiTap }
-        val noi = buildString {
-            append("Vở ngày ${ngay.dayOfMonth}/${ngay.monthValue}")
-            if (ngayVo == null) append(" (Claude không đọc được ngày, tạm lấy ngày chụp)")
-            append(".\n\n")
-            if (bai.isEmpty()) {
-                append("Cô không giao bài tập nào.")
-            } else {
-                append("Bài phải làm:")
-                bai.forEach { append("\n• ").append(it.chu) }
-            }
-            if (khac.isNotEmpty()) {
-                append("\n\nDặn dò khác:")
-                khac.forEach { append("\n· ").append(it.chu) }
-            }
-            append("\n\n${getString(R.string.child_name)} thấy danh sách này trên tablet và soát ")
-            append("lại được. Tablet nhắc từng dòng trước tiết sau của môn đó.")
-        }
-        MaterialAlertDialogBuilder(ct)
-            .setTitle("Kết quả Claude đọc vở")
-            .setMessage(noi)
-            .setNegativeButton(R.string.huy, null)
-            .setPositiveButton("Gửi cho tablet") { _, _ ->
-                gui(
-                    Lenh.DOC_VO,
-                    giaTri = mapOf(
-                        "chupLuc" to vo.chupLuc,
-                        "ngay" to ngay.toString(),
-                        "cacDong" to ket.cacDong.map { mapOf("chu" to it.chu, "bai" to it.laBaiTap) }
-                    )
-                )
-            }
-            .show()
     }
 
     // ----------------------------------------------------------- tin cua co

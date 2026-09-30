@@ -13,7 +13,6 @@ import vn.huytl.bangdieukhien.data.CauCham
 import vn.huytl.bangdieukhien.data.CauClaude
 import vn.huytl.bangdieukhien.data.KetQuaCham
 import vn.huytl.bangdieukhien.data.KhaiBai
-import vn.huytl.bangdieukhien.data.VoDaSoat
 import vn.huytl.bangdieukhien.data.XuCau
 
 /**
@@ -405,14 +404,6 @@ class NhoClaudeTest {
                 .toList()
             assertTrue(sot.joinToString(" | "), sot.isEmpty())
         }
-        // Loi nho doc vo cung goi ten.
-        listOf(NhoClaude.loiNhoDocVo(chiCoAnh, "Lê Hòa")).forEach { goc ->
-            val chu = goc.replace("con số", "")
-            val sot = chuCon.findAll(chu)
-                .map { chu.substring(maxOf(0, it.range.first - 20), minOf(chu.length, it.range.last + 20)) }
-                .toList()
-            assertTrue(sot.joinToString(" | "), sot.isEmpty())
-        }
     }
 
     /**
@@ -532,96 +523,6 @@ class NhoClaudeTest {
         val ket = NhoClaude.docKetQua(chu)!!
         assertEquals("b77", ket.bai)
         assertEquals(listOf("2.28", "2.33a"), ket.cac.map { it.ma })
-    }
-
-    // ------------------------------------------------------- vo dan do tren hop/dando
-
-    @Test
-    fun doc_ban_vo_con_soat_tu_firestore() {
-        val v = VoDaSoat.doc(
-            mapOf(
-                "ngay" to " 2026-09-23 ",
-                "cacBai" to listOf("Toán: bài 2.28", " ", 5),
-                "dongKhac" to listOf("Mang sách vở"),
-                "fileId" to "fv"
-            )
-        )!!
-        assertEquals("2026-09-23", v.ngay)
-        assertEquals(listOf("Toán: bài 2.28"), v.cacBai)
-        assertEquals(listOf("Mang sách vở"), v.dongKhac)
-        assertEquals("fv", v.fileId)
-        // Bai khong dung ban soat, hay ban thieu ngay.
-        assertNull(VoDaSoat.doc(null))
-        assertNull(VoDaSoat.doc(mapOf("cacBai" to listOf("bài 2"))))
-        assertEquals("", VoDaSoat.doc(mapOf("ngay" to "2026-09-23"))!!.fileId)
-    }
-
-    // ------------------------------------------------------- vo chi co anh
-
-    private val chiCoAnh = VoDaSoat(
-        ngay = "2026-09-26", cacBai = emptyList(), fileId = "fv",
-        chuaDoc = true, chupLuc = 1_790_380_800_000L
-    )
-
-    @Test
-    fun loi_nho_doc_vo_chi_hoi_mot_buoi_va_kem_moc_chup() {
-        val chu = NhoClaude.loiNhoDocVo(chiCoAnh, "Lê Hòa")
-        assertTrue(chu.contains("Nhờ bạn đọc giúp một trang vở dặn dò của Lê Hòa"))
-        assertTrue(chu.contains("Chỉ đọc MỘT buổi: buổi có ngày gần ngày chụp nhất mà không sau ngày chụp"))
-        assertTrue(chu.contains("\"la_bai_tap\": true chỉ khi"))
-        assertTrue(chu.contains("{\"vo\":\"1790380800000\","))
-        // Loi nho nam san trong bo nho tam: dan nham thi khong duoc thanh ket qua.
-        assertTrue(NhoClaude.laLoiNho(chu))
-        assertNull(NhoClaude.docKetQuaDocVo(chu))
-    }
-
-    @Test
-    fun doc_ket_qua_claude_doc_vo() {
-        val ket = NhoClaude.docKetQuaDocVo(
-            """
-            Buổi ngày 25/9: Toán làm bài 2.28 trang 47 (bài tập), KHTN mang sách vở.
-            ```json
-            {"vo":1790380800000,"ngay":"2026-09-25","cac_dong":[
-              {"chu":"Toán: làm bài {2.28} trang 47","la_bai_tap":true},
-              {"chu":"KHTN: mang sách vở","la_bai_tap":false},
-              {"chu":"NV: soạn bài","la_bai_tap":"true"},
-              {"chu":"  ","la_bai_tap":true}]}
-            ```
-            """.trimIndent()
-        )!!
-        assertEquals("1790380800000", ket.vo)
-        assertEquals("2026-09-25", ket.ngay)
-        // "la_bai_tap" viet thanh chu thi bo dong do, y nhu "dung" o ket qua cham.
-        assertEquals(listOf("Toán: làm bài {2.28} trang 47", "KHTN: mang sách vở"), ket.cacDong.map { it.chu })
-        assertEquals(listOf(true, false), ket.cacDong.map { it.laBaiTap })
-        // Mang rong that la Claude khong thay dan do nao, khac voi khong co ket qua.
-        assertTrue(NhoClaude.docKetQuaDocVo("""{"ngay":"2026-09-25","cac_dong":[]}""")!!.cacDong.isEmpty())
-
-        val khongNgay = NhoClaude.docKetQuaDocVo("""{"ngay":null,"cac_dong":[{"chu":"Toán: bài 1","la_bai_tap":true}]}""")!!
-        assertNull(khongNgay.ngay)
-        assertEquals("", khongNgay.vo)
-        // Ket qua cham bai khong phai ket qua doc vo, va nguoc lai.
-        assertNull(NhoClaude.docKetQuaDocVo("""{"ket_qua":[{"ma":"1","dung":true}]}"""))
-        assertNull(NhoClaude.docKetQua("""{"cac_dong":[{"chu":"Toán","la_bai_tap":true}]}"""))
-    }
-
-    @Test
-    fun doc_vo_dan_do_cua_ngay_tu_firestore() {
-        val v = VoDaSoat.doc(
-            mapOf(
-                "ngay" to "2026-09-26", "cacBai" to emptyList<String>(), "fileId" to "fv",
-                "chuaDoc" to true, "nguon" to "CLAUDE", "chupLuc" to 5_000L, "luc" to 6_000L
-            )
-        )!!
-        assertTrue(v.chuaDoc)
-        assertEquals(VoDaSoat.NGUON_CLAUDE, v.nguon)
-        assertEquals(5_000L, v.chupLuc)
-        assertEquals(6_000L, v.luc)
-        // Ban cu cua tablet chua co ba truong nay: la ban da soat.
-        val cu = VoDaSoat.doc(mapOf("ngay" to "2026-09-23", "cacBai" to listOf("bài 2")))!!
-        assertFalse(cu.chuaDoc)
-        assertEquals(VoDaSoat.NGUON_CON, cu.nguon)
-        assertEquals(cu, cu.daDoc)
     }
 
     // ---------------------------------------------------- null va ma cau lech

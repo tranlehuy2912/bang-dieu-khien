@@ -947,6 +947,9 @@ class BangFragment : Fragment() {
     /**
      * The "Bài dặn dò sắp tới": moi buoi mot khoi, buoi som truoc. Tablet tinh han va nhac
      * Le Hoa tu hom truoc buoi do (30/9/2026); o day chi de Ba Huy thay cung danh sach.
+     *
+     * Moi dong mot dau "•", bai tap hay dan do khac cung vay (Ba Huy chon 30/9/2026, ca ben
+     * tablet). Bai tap van dung truoc.
      */
     private fun veNhacBai(ds: List<NhacBaiBuoi>) {
         b.theNhacBai.visibility = if (ds.isEmpty()) View.GONE else View.VISIBLE
@@ -955,7 +958,7 @@ class BangFragment : Fragment() {
             buildString {
                 append(buoi.ten.replaceFirstChar { it.uppercase() })
                 (buoi.cacBai + buoi.dongKhac).forEach { d ->
-                    append('\n').append(if (d.bai) "• " else "· ").append(d.chu)
+                    append("\n• ").append(d.chu)
                     Dinh.ngayNgan(d.ngayVo)?.let { append(" (vở ").append(it).append(')') }
                 }
             }

@@ -46,6 +46,13 @@ data class TrangThai(
      * do cung khong hieu lenh [Lenh.CAP_QUY], bam vao chi duoc cau "Không hiểu lệnh".
      */
     val quyGio: Int? = null,
+    /**
+     * Cac de thi in san trong tablet va tinh trang tung de, xem [Duong.F_DE_THI].
+     *
+     * null la tablet ban cu chua co de thi: man Bang an ca hang "Đề thi thử", vi tablet do
+     * khong hieu lenh [Lenh.MO_DE_THI].
+     */
+    val deThi: List<DeThiTT>? = null,
     val cheDoBaBat: Boolean = false,
     val cheDoBaHetLuc: Long = 0L,
     val quyenTroGiup: Boolean = true,
@@ -117,6 +124,7 @@ data class TrangThai(
                 phutConLai = (d.getLong(Duong.F_PHUT_CON_LAI) ?: 0L).toInt(),
                 soBaiCho = (d.getLong(Duong.F_SO_BAI_CHO) ?: 0L).toInt(),
                 quyGio = d.getLong(Duong.F_QUY_GIO)?.toInt()?.coerceAtLeast(0),
+                deThi = DeThiTT.docDanhSach(d.get(Duong.F_DE_THI)),
                 cheDoBaBat = cheDoBa?.get("bat") as? Boolean ?: false,
                 cheDoBaHetLuc = (cheDoBa?.get("hetLuc") as? Number)?.toLong() ?: 0L,
                 quyenTroGiup = quyen?.get("trogiup") as? Boolean ?: true,
@@ -136,6 +144,53 @@ data class TrangThai(
                 traLoiCho = (d.get(Duong.F_TRA_LOI) as? Map<*, *>)
                     ?.get(Duong.F_AI) as? String ?: Nguoi.BA_HUY
             )
+        }
+    }
+}
+
+/**
+ * Mot de thi in san ben tablet, doc tu [Duong.F_DE_THI] cua hop/trangthai.
+ *
+ * @param den Unit cuoi de cham toi: tablet tu mo de khi lop hoc toi Unit do.
+ * @param tt tinh trang: [KHOA], [SAN], [MO], [DANG], [XONG].
+ * @param sao diem lan nop gan nhat, -1 khi chua nop lan nao.
+ */
+data class DeThiTT(
+    val ma: String,
+    val ten: String,
+    val den: Int,
+    val tt: String,
+    val sao: Int,
+    val toiDa: Int
+) {
+    val daNop: Boolean get() = sao >= 0 && toiDa > 0
+
+    companion object {
+        const val KHOA = "KHOA"
+        const val SAN = "SAN"
+        const val MO = "MO"
+        const val DANG = "DANG"
+        const val XONG = "XONG"
+
+        /**
+         * Doc mang de thi. null khi truong vang (tablet ban cu); phan tu thieu ma thi bo.
+         * Tach khoi [TrangThai.doc] de test doc duoc ma khong can Firestore.
+         */
+        fun docDanhSach(tho: Any?): List<DeThiTT>? {
+            val ds = tho as? List<*> ?: return null
+            return ds.mapNotNull { x ->
+                val m = x as? Map<*, *> ?: return@mapNotNull null
+                val ma = (m["ma"] as? String)?.trim().orEmpty()
+                if (ma.isEmpty()) return@mapNotNull null
+                DeThiTT(
+                    ma = ma,
+                    ten = (m["ten"] as? String)?.ifBlank { null } ?: ma,
+                    den = (m["den"] as? Number)?.toInt() ?: 0,
+                    tt = (m["tt"] as? String).orEmpty(),
+                    sao = (m["sao"] as? Number)?.toInt() ?: -1,
+                    toiDa = (m["toiDa"] as? Number)?.toInt() ?: -1
+                )
+            }
         }
     }
 }

@@ -78,6 +78,11 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │     phutConLai    hạn mức ngày còn lại
 │     soBaiCho      mấy bài đang chờ duyệt
 │     viecNha       tên các việc nhà chưa xong, để hiểu vì sao tablet đang khoá
+│     deThi[]       { ma, ten, den, tt, sao, toiDa }: các đề thi in sẵn trong tablet (từ
+│                   30/09/2026), cho hàng "Đề thi thử Tiếng Anh" của tab Giờ chơi. den là
+│                   Unit cuối đề chạm tới, tablet tự mở đề khi lớp học tới đó; tt là
+│                   KHOA|SAN|MO|DANG|XONG; sao, toiDa là điểm lần nộp gần nhất, -1 khi
+│                   chưa nộp. Vắng là tablet bản cũ
 │     cheDoBa       { bat, hetLuc }
 │     quyen         { trogiup, quantri, noi, pin }
 │     appTruocMat   tên app đang trên màn hình, LUÔN là chuỗi; đi kèm appTruocMatTu
@@ -141,6 +146,8 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │            XUCAU       Ba Huy tự chấm câu Claude đọc chưa chắc (29/09/2026)
 │            BOSUA       bỏ câu sai khỏi danh sách cần sửa của con, không cộng
 │                        phút (30/09/2026)
+│            MODETHI     mở một đề thi in sẵn cho con, mã đề ở chu (30/09/2026).
+│                        Tablet mở cả đề chưa tới phạm vi Unit
 │     phut, baiId, chu, giaTri
 │     tao    epoch ms theo đồng hồ máy gửi. Tablet dùng trường này để xếp lệnh
 │            và bỏ lệnh quá nửa tiếng. taoLuc (server timestamp) chỉ Bảng điều

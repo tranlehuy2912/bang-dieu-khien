@@ -110,6 +110,7 @@ object Dinh {
             ?: "cấp hết quỹ giờ chơi"
         Lenh.XU_CAU -> "xử câu chưa chắc"
         Lenh.BO_SUA -> "bỏ câu khỏi danh sách cần sửa"
+        Lenh.MO_DE_THI -> "mở đề thi thử"
         else -> l.kieu.lowercase(VN)
     }
 

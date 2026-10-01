@@ -610,13 +610,13 @@ class BaiActivity : AppCompatActivity() {
      * Ket qua Claude la ban cham dau tien cua bai nay, vi may chua cham.
      *
      * Khac duong cham lai o cho tablet tinh phut theo CA ban nay, khong chi nhung cau
-     * khac may. Nen hop thoai ke ra nhung cho lam tablet chua tu cong gio, de Ba Huy
-     * biet truoc la se phai bam Duyet: cau Claude doc chua chac. Cau con khai ma Claude
-     * bo sot thi tablet ghi la chua thay bai lam.
+     * khac may. Nen hop thoai ke ra nhung cho lam tablet chua tu cong gio: cau Claude doc
+     * chua chac (tu 29/9/2026 cac cau nay nam o the "Câu cần Ba Huy xem" dau man bai de
+     * cham tay, hay bam Duyet). Cau con khai ma Claude bo sot thi tablet ghi la chua thay
+     * bai lam.
      *
-     * Lan nop co trang vo dan do thi ke ra Claude doc vo ra gi, vi 45 phut tron goi
-     * dua vao dung ba thu do. Ba Huy nhin mot dong la biet Claude doc dung hay nham.
-     * Lan nop dung ban vo con soat thi ke lai danh sach do, kem cho Claude thay lech.
+     * Truoc 30/9/2026 hop thoai con ke Claude doc vo dan do ra gi, vi tron goi 45 phut dua
+     * vao do. Bo tron goi thi bo luon phan nay: cham bai khong dung vo nua.
      */
     private fun hoiChamMoi(bai: Bai, ket: NhoClaude.KetQuaDan) {
         val dung = ket.cac.count { it.chac && it.dung }

@@ -6,7 +6,7 @@ App thứ ba trong nhà:
 |---|---|---|
 | **Nộp bài** (`nop-bai`) | tablet Lê Hòa | chụp bài, khoá máy, canh giờ chơi |
 | **Việc nhà của Lê Hòa** (`cho-gio-choi`) | điện thoại bà nội | giao việc nhà. Trước 26/09/2026 app tên Cho giờ chơi, có sáu nút cho giờ |
-| **Bảng điều khiển** (`bang-dieu-khien`) | điện thoại Ba Huy | duyệt bài, xem, chỉnh, giao việc nhà; thay phần lệnh Telegram |
+| **Bảng điều khiển** (`bang-dieu-khien`) | điện thoại Ba Huy | duyệt bài, nhờ Claude chấm, xem, chỉnh, cấp quỹ giờ chơi, giao việc nhà; thay phần lệnh Telegram |
 
 ## Vì sao không đi bằng Telegram
 
@@ -46,14 +46,18 @@ máy chủ vào APK — mất điện thoại là mất khoá).
 Chỗ nghe là **`GuardAccessibilityService`**: nó vốn đã chạy 24/7 vì Android giữ
 nó sống, kể cả khi cổng đang khoá và mọi service khác đã tắt. Gắn một listener
 Firestore vào đó là lệnh tới trong dưới một giây, mà không thêm một tiến trình
-nền nào.
+nền nào. `ApprovalService` (service Telegram) cũng gọi `DongBo.batDau`, phòng khi dịch
+vụ trợ năng đang tắt.
 
 ## Sơ đồ dữ liệu
 
 Một quy tắc giữ cho mọi thứ không rối: **mỗi document chỉ một bên được ghi.**
 
 Ngoại lệ có chủ ý: hai trường `chamClaude` và `anKhoiDanhSach` trong `bai/` do Bảng
-điều khiển ghi, và tablet xoá `hop/viecnha` khi một đợt việc đã khép. Tên
+điều khiển ghi; `ghep/{uid}` do máy xin vào tạo, bên kết nạp ghi thêm `trangThai`; khi
+cài lại tablet thì điện thoại Ba Huy giữ cửa, ghi `maGhep`, `maGhepHetHan` lên `nha/` rồi
+tự thêm uid của tablet vào `uids` (`Kho` bên này, `DongBo.xinVaoNha` bên tablet); và
+tablet xoá `hop/viecnha` khi một đợt việc đã khép. Tên
 trường đầy đủ nằm ở `Duong.kt` (ba bản giống nhau); sơ đồ dưới đây mà lệch với
 file đó thì `Duong.kt` đúng.
 
@@ -67,6 +71,8 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │
 ├── ghep/{uid}                  máy xin vào nhà, tablet kết nạp
 │     { ma, luc, ai }           ai = bahuy | banoi, quyết vào uids hay uidsPhu
+│     trangThai                 OK | SAI, bên kết nạp ghi sau khi so mã (tablet, hay điện
+│                               thoại Ba Huy lúc ghép ngược khi cài lại tablet)
 │
 ├── hop/trangthai               ◄── chỉ TABLET ghi
 │     cong          LOCKED|PENDING|GRANTED|ACTIVE|PAUSED
@@ -75,7 +81,9 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │                   (điện thoại tự trừ từ ketThucLuc)
 │     tongPhienMs   cả phiên dài bao nhiêu ms, đứng yên suốt phiên, để vẽ thanh chạy
 │     phutDaDuyet   hôm nay đã duyệt bao nhiêu phút
-│     phutConLai    hạn mức ngày còn lại
+│     phutConLai    TRAN_NGAY (215, tổng các trần riêng) trừ phutDaDuyet. Từ 29/09/2026
+│                   chỉ để hiện, không chặn duyệt hay cấp giờ
+│     quyGio        số phút trong quỹ giờ chơi (29/09/2026), cho nút cấp quỹ ở tab Giờ chơi
 │     soBaiCho      mấy bài đang chờ duyệt
 │     viecNha       tên các việc nhà chưa xong, để hiểu vì sao tablet đang khoá
 │     deThi[]       { ma, ten, den, tt, sao, toiDa }: các đề thi in sẵn trong tablet (từ
@@ -103,7 +111,8 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │     gioiHanApp    { goi: số phút mỗi ngày }, mục "Giờ riêng từng app". Lệnh CAIDAT
 │                   gioiHanApp chỉ đổi các app có trong map gửi đi, 0 là bỏ. Bảng
 │                   điều khiển sửa được từ 27/09/2026, mỗi lần một app
-│     appChan, appAi, và các con số giờ
+│     appChan, appAi, khoaCaiDat, gioNgu, gioDay, và tranPhutMoiNgay (vẫn ghi dù trần
+│                   chung đã bỏ ngày 29/09/2026, để Bảng điều khiển bản cũ không hỏng)
 ├── hop/danhsachapp             ◄── chỉ TABLET ghi (app đang cài, để chọn từ xa)
 ├── hop/dando                   ◄── bỏ từ 30/09/2026, tablet chỉ còn xoá document này.
 │                                   Từng giữ vở dặn dò của buổi vừa học; máy không đọc được
@@ -136,16 +145,23 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │            CHOGOAPP    tắt quản trị thiết bị để gỡ app
 │            PING        hỏi tablet ngay, tablet đẩy một bản trạng thái đầy đủ
 │                        và sổ dùng app
-│            SUACHAM     sửa bản chấm đã có theo kết quả Claude chấm lại
+│            SUACHAM     sửa bản chấm đã có theo kết quả Claude chấm lại. giaTri là
+│                        [{ ma, de, soDong }]; câu đúng mà vẫn thiếu số dòng thì tablet
+│                        chưa ghi, câu còn chờ sửa (29/09/2026)
 │            CHAMBAI     bản chấm đầu tiên do Claude chấm. Từ 28/09/2026 là đường chấm
-│                        duy nhất: tablet không tự chấm nữa
+│                        duy nhất: tablet không tự chấm nữa. giaTri là { cac }, mỗi câu
+│                        { ma, dung, chac, conViet, goiY, soDong, de, dang, loaiLoi }
 │            TINCO       tin của cô giáo, không bị bỏ vì quá cũ
 │            DOCVO       bỏ từ 30/09/2026 (từng là kết quả Claude đọc tấm vở máy không
 │                        đọc được); tablet trả lời là không nhận nữa
-│            CAPQUY      cấp giờ từ quỹ giờ chơi (29/09/2026)
-│            XUCAU       Ba Huy tự chấm câu Claude đọc chưa chắc (29/09/2026)
+│            CAPQUY      cấp giờ từ quỹ giờ chơi (29/09/2026); thiếu phut hay 0 là cấp
+│                        hết quỹ
+│            XUCAU       Ba Huy tự xử câu Claude đọc chưa chắc hay chấm đúng mà không ghi
+│                        số dòng (29/09/2026): Đúng kèm số dòng, Sai, hay Chụp lại.
+│                        giaTri giống CHAMBAI: gửi lại nguyên bản Claude, chỉ đổi các câu
+│                        vừa xử
 │            BOSUA       bỏ câu sai khỏi danh sách cần sửa của con, không cộng
-│                        phút (30/09/2026)
+│                        phút (30/09/2026). giaTri là [{ ma, de }]
 │            MODETHI     mở một đề thi in sẵn cho con, mã đề ở chu (30/09/2026).
 │                        Tablet mở cả đề chưa tới phạm vi Unit
 │     phut, baiId, chu, giaTri
@@ -174,13 +190,24 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 ├── bai/{baiId}                 ◄── TABLET ghi, riêng chamClaude và anKhoiDanhSach do
 │                                   Bảng điều khiển ghi
 │     luc, trangThai CHO|DUYET|TUCHOI|HUY, soPhut, messageId
-│             HUY là con tự huỷ để chụp lại. Sang ngày mới tablet bỏ bài chưa duyệt
-│             khỏi hàng chờ mà không đổi trangThai, nên bài nộp hôm trước còn ghi CHO
-│             là bài đã hết chờ; Bảng điều khiển hiện nó là "Quá ngày"
-│     anh[]   { fileId, khau: DAN_DO|DE_BAI|BAI_GIAI }
+│             HUY là con tự huỷ để chụp lại, hoặc tablet tự huỷ bài cũ sai hết khi con
+│             nộp lại câu sai của chính bài đó (28/09/2026). Sang ngày mới tablet bỏ bài
+│             chưa duyệt khỏi hàng chờ mà không đổi trangThai, nên bài nộp hôm trước còn
+│             ghi CHO là bài đã hết chờ; Bảng điều khiển hiện nó là "Quá ngày"
+│     lyDo    lý do Ba Huy không duyệt, đi cùng TUCHOI (30/09/2026). Tablet chép từ chu
+│             của lệnh TUCHOI hay từ /tuchoi bên Telegram; màn Bài đã chấm trên tablet
+│             hiện cho Lê Hòa. Không có lý do thì không có trường này
+│     congLuc bài chấm xong trong giờ ngủ: lúc tablet sẽ cộng soPhut, tức lúc hết giờ
+│             ngủ. Đi cùng DUYET; cộng xong tablet xoá trường này
+│     anh[]   { fileId, khau: DAN_DO|DE_BAI|BAI_GIAI }. DAN_DO chỉ còn ở bài nộp trước
+│             30/09/2026, bài mới chỉ có DE_BAI và BAI_GIAI
 │             (Bảng điều khiển đọc được cả DANDO|DEBAI|BAIGIAI)
 │     cham    bản chấm tablet ghi sau khi tính phút theo kết quả Claude (bài nộp
-│             trước 28/09/2026 thì có thể là bản của máy chấm trên tablet)
+│             trước 28/09/2026 thì có thể là bản của máy chấm trên tablet):
+│             { mon, tomTat, phutDeNghi, cac[], canXem[] }. canXem là các câu tablet
+│             chưa tự cấp giờ được (29/09/2026): { ma, maClaude, lyDo CHUA_CHAC|
+│             THIEU_DONG, canSoDong, soDong }; Bảng điều khiển hiện chúng ở thẻ "Câu cần
+│             Ba Huy xem" và gửi lệnh XUCAU
 │     khai    các câu con khai trước khi chụp, kèm đề:
 │             { tenNguon, bai, mon, onTap, suaBai, cac[] }. suaBai chỉ có ở lần con
 │             nộp lại các câu sai của một bài (nút "Nộp lại N câu sai" trên thẻ bài ở
@@ -190,11 +217,15 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │     danDo   (chỉ bài nộp trước 30/09/2026, lúc còn trọn gói 45 phút)
 │             vở dặn dò của ngày, khi lần nộp không chụp trang vở: { ngay,
 │             cacBai[], dongKhac[], fileId, chuaDoc, nguon, chupLuc }. Ảnh trang vở
-│             cũng nằm cuối anh[] với khau DAN_DO. Claude chấm theo đúng ngày và danh
-│             sách này; chuaDoc là chỉ có ảnh, Claude đọc ảnh lúc chấm và tablet giữ
-│             lại lần đọc đầu tiên
-│     chamClaude  kết quả Claude chấm lại mà Ba Huy dán vào: { luc, cac[] }.
-│             Nằm cạnh cham, không ghi đè lên nó
+│             cũng nằm cuối anh[] với khau DAN_DO. Lúc đó Claude chấm theo đúng ngày và
+│             danh sách này; chuaDoc là chỉ có ảnh, Claude đọc ảnh lúc chấm và tablet
+│             giữ lại lần đọc đầu tiên
+│     chamClaude  kết quả Claude chấm mà Ba Huy dán vào: { luc, chinh, cac[], goi }.
+│             Từ 28/09/2026 thường là bản chấm đầu tiên (chinh = true): Bảng điều khiển
+│             ghi nó rồi gửi lệnh CHAMBAI. goi là nguyên giaTri đã gửi kèm lệnh, để thẻ
+│             "Câu cần Ba Huy xem" gửi lại qua XUCAU; lệnh XUCAU ghi đè goi, cac và thêm
+│             xuLuc. Dán lại kết quả Claude là ghi đè cả trường. Nằm cạnh cham, không
+│             ghi đè lên nó
 │     anKhoiDanhSach  true khi Ba Huy bấm Xoá ở tab Bài, false khi bấm Khôi phục
 │             trong tấm "Bài đã xoá". Chỉ ẩn khỏi danh sách bên điện thoại; document
 │             vẫn còn vì trang Bài đã chấm trên tablet đọc nó
@@ -317,6 +348,55 @@ của máy bà. Máy bà còn chạy bản cũ thì bấm nút giờ sẽ bị F
 một lượt mỗi ngày bên tablet (`LuotBaNoi`) vẫn còn trong code nhưng không còn lệnh nào
 của máy bà tới được đó.
 
+## Các tab của Bảng điều khiển
+
+Sáu tab ở `ui/MainActivity`. Tab đang ẩn bị hạ về `CREATED` để listener Firestore được
+gỡ trong `onStop`.
+
+- **Giờ chơi** (`BangFragment`, id `tab_bang`): trạng thái tablet và đồng hồ, cho thêm
+  hay bớt giờ, quỹ giờ chơi với nút cấp quỹ (`CAPQUY`), hàng "Đề thi thử Tiếng Anh"
+  (`MODETHI`), thẻ "Bài dặn dò sắp tới", các lệnh tablet chưa lấy kèm nút Rút lại. Mở tab
+  là gửi `PING`.
+- **Bài tập** (`BaiFragment`, màn bài `BaiActivity`): danh sách bài, ảnh tải từ Telegram,
+  nút "Nhờ Claude chấm" và ô dán kết quả, thẻ "Câu cần Ba Huy xem" (`XUCAU`), nút bỏ câu
+  sai khỏi danh sách cần sửa (`BOSUA`), duyệt hay không duyệt kèm lý do.
+- **Việc nhà** (`ViecNhaFragment`): giao, bấm xong, bỏ việc như máy bà, và nút "Sửa danh
+  sách" (`hop/danhsachviec`).
+- **Nhật ký** (`NhatKyFragment`): nhật ký trong ngày (`nhatky/`), câu Lê Hòa hỏi AI
+  (`hoiai/`), và màn Thời gian dùng app (`SuDungActivity`, đọc `hop/sudung`).
+- **Lịch học** (`LichFragment`): thời khoá biểu cả tuần, xem mục "Thời khoá biểu chép
+  sang".
+- **Cài đặt** (`CaiDatFragment`): cấu hình tablet qua lệnh `CAIDAT`, token bot để tải ảnh,
+  ghép máy và ghép ngược khi cài lại tablet.
+
+Tab Nhắn bỏ ngày 27/09/2026, xem "Lê Hòa nhắn tin bằng Telegram thật".
+
+## Nhờ Claude chấm
+
+Từ 28/09/2026 tablet không tự chấm. Một bài đi như sau:
+
+1. Lê Hòa chụp rồi gửi trên tablet. Tablet gửi ảnh lên Telegram, ghi `bai/{id}` kèm `khai`
+   (các câu con khai, có đề) và nhắn Ba Huy.
+2. Ở màn bài, Ba Huy bấm "Nhờ Claude chấm". `NhoClaude` gói ảnh, đề từng câu và lời dặn,
+   chia sẻ sang app Claude trên điện thoại. Không gửi token.
+3. Claude trả một khối JSON kèm mã bài. Ba Huy dán vào màn bài, `NhoClaude.docKetQua` đọc
+   ra. Claude hay bọc khối trong code fence hay viết thêm chữ trước sau, nên đoạn đọc này có
+   `NhoClaudeTest`.
+4. Bảng điều khiển ghi `chamClaude` rồi gửi lệnh `CHAMBAI`. Tablet tính phút theo luật, bỏ
+   câu đã trả giờ theo sổ cái, cấp giờ, ghi sổ, báo Telegram, rồi ghi `cham`.
+5. Câu Claude đọc chưa chắc, hay chấm đúng mà không ghi số dòng, thì tablet chưa cấp giờ
+   cho câu đó và ghi nó vào `cham.canXem`. Ba Huy xử từng câu ở thẻ "Câu cần Ba Huy xem"
+   (Đúng kèm số dòng, Sai, Chụp lại), gửi `XUCAU`, và tablet chấm lại cả bài theo đúng
+   đường của `CHAMBAI`.
+6. Lần chấm trước nhầm thì dán kết quả Claude chấm lại, đi lệnh `SUACHAM`. Câu sai không
+   muốn bắt con sửa nữa thì bấm bỏ, đi lệnh `BOSUA`, không cộng phút.
+
+Lần con nộp lại câu sai của một bài (`khai.suaBai`) thì lời nhờ chỉ cho chấm câu trong
+danh sách, và tablet bỏ mọi câu ngoài danh sách. Lần nộp thường thì lời nhờ dặn Claude
+chấm thêm câu thấy trong ảnh mà con không khai. Câu thêm như vậy được ghi sổ theo chữ của
+đề, nên một câu đã trả giờ mà lọt vào ảnh có thể được cộng lần nữa. Ba Huy chốt ngày
+01/10/2026 coi như một lần ôn tập, không sửa.
+
 ## Lê Hòa nhắn tin bằng Telegram thật
 
 Từ 27/09/2026 Lê Hòa có tài khoản Telegram riêng trên tablet. Nút "Nhắn cho ba Huy"
@@ -349,9 +429,18 @@ thì lần nối sau xoá tiếp); lúc app khởi động thì xoá các câu c
 
 ## Telegram còn lại gì
 
-Còn nguyên cho Ba Huy. Đường Telegram vẫn nhận lệnh như cũ, vẫn gửi ảnh, vẫn báo.
-Nếu điện thoại hết pin, mất máy, hay Firestore trục trặc, mở Telegram lên là điều
-khiển được như hôm nay. Firestore là đường đi hàng ngày, Telegram là đường lui.
+Còn cho Ba Huy, nhưng không còn ngang với Bảng điều khiển. Telegram vẫn gửi ảnh, vẫn
+báo, và nhận các lệnh trong bảng `/trogiup`: duyệt, không duyệt, cho, bớt, cấp quỹ
+(`/quy`), dừng, tiếp, khoá, xem trạng thái và nhật ký, soạn tập, và mấy lệnh phòng hờ.
+Không có lệnh nào để chấm bài, sửa chấm, xử câu, bỏ câu sai, mở đề thi, giao việc nhà
+hay đổi cài đặt; bảng ghi "sửa trong app". Từ 28/09/2026 tablet không tự chấm, nên điện
+thoại hết pin hay mất máy thì bài chỉ còn duyệt tay bằng `/duyet`.
+
+Telegram cũng chậm hơn trước (`ApprovalService.nhipNgheMs`). Lúc cổng khoá mà đường
+Firestore còn sống, tablet chỉ hỏi Telegram 5 phút một lần, ban đêm 10 phút; màn hình tắt
+mà không đang chơi cũng 5 phút. Lệnh gõ bên đó có thể chờ chừng ấy mới chạy. Đường
+Firestore chết thì ban ngày tablet quay về nghe Telegram liên tục. Firestore là đường đi
+hàng ngày, Telegram là đường lui.
 
 Máy bà nội thì không còn đường Telegram nào: hộp thư mô tả nhóm đã gỡ hẳn, cùng
 với `HopThuBaNoi` bên tablet và toàn bộ phần chống đọc trùng tự dựng của nó.

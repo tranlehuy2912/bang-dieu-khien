@@ -448,8 +448,9 @@ object Kho {
         val n = nha(context) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
         val noi = mutableMapOf<String, Any>(
             Duong.F_KIEU to kieu,
-            // May nay la cua Ba Huy, khong gioi han lenh nao. May ba noi go lenh
-            // thi gui Nguoi.BA_NOI, va tablet chi nhan moi lenh cho gio.
+            // May nay la cua Ba Huy, khong gioi han lenh nao. May ba noi thi khong con go
+            // lenh nao: tu 26/9/2026 luat dong cua lenh/ cua uidsPhu, va tablet tu choi moi
+            // lenh co ai = Nguoi.BA_NOI.
             Duong.F_AI to Nguoi.BA_HUY,
             // Gio may chu gui kem gio may chu: tablet lay cai nay de bo lenh go tu
             // hom qua, con dong ho hai may thi khong bao gio khop nhau tuyet doi.

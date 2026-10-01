@@ -57,10 +57,11 @@ data class TrangThai(
      */
     val quyGio: Int? = null,
     /**
-     * Cac de thi in san trong tablet va tinh trang tung de, xem [Duong.F_DE_THI].
+     * Cac de thi in san trong tablet va tinh trang tung de, xem [DeThiTT.doc].
      *
-     * null la tablet ban cu chua co de thi: man Bang an ca hang "Đề thi thử", vi tablet do
-     * khong hieu lenh [Lenh.MO_DE_THI].
+     * Tu 1/10/2026 la de cua ca ba mon, doc tu [Duong.F_CAC_DE_THI]. Tablet ban truoc ngay do
+     * chi gui [Duong.F_DE_THI], toan de Tieng Anh. null la tablet ban cu hon nua, chua co de
+     * thi: man Bang an het cac hang "Đề thi thử", vi tablet do khong hieu lenh [Lenh.MO_DE_THI].
      */
     val deThi: List<DeThiTT>? = null,
     val cheDoBaBat: Boolean = false,
@@ -157,7 +158,7 @@ data class TrangThai(
                 doanChoiTu = d.getLong(Duong.F_DOAN_CHOI_TU) ?: 0L,
                 soBaiCho = (d.getLong(Duong.F_SO_BAI_CHO) ?: 0L).toInt(),
                 quyGio = d.getLong(Duong.F_QUY_GIO)?.toInt()?.coerceAtLeast(0),
-                deThi = DeThiTT.docDanhSach(d.get(Duong.F_DE_THI)),
+                deThi = DeThiTT.doc(d.get(Duong.F_CAC_DE_THI), d.get(Duong.F_DE_THI)),
                 cheDoBaBat = cheDoBa?.get("bat") as? Boolean ?: false,
                 cheDoBaHetLuc = (cheDoBa?.get("hetLuc") as? Number)?.toLong() ?: 0L,
                 quyenTroGiup = quyen?.get("trogiup") as? Boolean ?: true,
@@ -193,19 +194,43 @@ data class SoNgay(val daChoi: Int, val con: Int, val conKiem: Int) {
 }
 
 /**
- * Mot de thi in san ben tablet, doc tu [Duong.F_DE_THI] cua hop/trangthai.
+ * Mot de thi in san ben tablet, doc tu [Duong.F_CAC_DE_THI] cua hop/trangthai (tablet ban cu:
+ * [Duong.F_DE_THI]). Cac hang "Đề thi thử <môn>" o tab Gio choi ve tu day, xem
+ * [vn.huytl.bangdieukhien.ui.HangDeThi].
  *
- * @param den Unit cuoi de cham toi: tablet tu mo de khi lop hoc toi Unit do.
- * @param tt tinh trang: [KHOA], [SAN], [MO], [DANG], [XONG].
+ * VI SAO PHAM VI LA CHU (1/10/2026). Truoc ngay do tablet chi co de Tieng Anh, moi de kem so
+ * Unit cuoi de cham toi (truong den), va man Bang tu ghep "tới Unit N". De Toan, KHTN mo theo
+ * moc "Lớp đã học tới" cua tung phan (Dai so, Hinh hoc; Hoa, Li, Sinh), moc do chi tablet biet,
+ * nen tablet viet san [phamVi] va [thieu]; may nay chi hien, khong tu tinh lai luat mo de. Ban
+ * doc deThi cu doi so Unit thanh [phamVi] ngay luc doc, nen lop nay khong con truong den: hai
+ * kieu du lieu cua tablet ra cung mot kieu tren man Bang.
+ *
+ * @param tt tinh trang: [KHOA] chua toi pham vi, [SAN] mo duoc, [MO] dang mo ma con chua bat
+ *   dau, [DANG] dang lam, [XONG] da nop va khong dang mo.
+ * @param mon ten mon day du nhu tablet gui: "Toán", "Khoa học tự nhiên", "Tiếng Anh". Rong la
+ *   tablet khong ghi.
+ * @param phamVi pham vi cua de: "Đại số tới Bài 9, Hình học tới Bài 14", "tới Unit 3". Rong la
+ *   khong biet.
+ * @param thieu phan lop chua hoc toi khi [KHOA]: "Hình học mới tới Bài 12, đề cần Bài 14",
+ *   nhieu phan noi bang "; ". Rong khi khong khoa, va luon rong voi tablet ban cu.
  * @param sao diem lan nop gan nhat, -1 khi chua nop lan nao.
+ * @param nopLuc luc nop lan gan nhat (ms), 0 khi chua nop, hay tablet ban cu khong gui.
+ * @param phut gio lam bai cua de, 0 khi tablet ban cu khong gui.
+ * @param doRong do rong pham vi tablet tinh (so Unit cua de Anh, tong so bai cac phan cua de
+ *   Toan, KHTN), de chon de hep nhat cho dong "Mở khi ...". -1 khi khong biet.
  */
 data class DeThiTT(
     val ma: String,
     val ten: String,
-    val den: Int,
     val tt: String,
-    val sao: Int,
-    val toiDa: Int
+    val mon: String = "",
+    val phamVi: String = "",
+    val thieu: String = "",
+    val sao: Int = -1,
+    val toiDa: Int = -1,
+    val nopLuc: Long = 0L,
+    val phut: Int = 0,
+    val doRong: Int = -1
 ) {
     val daNop: Boolean get() = sao >= 0 && toiDa > 0
 
@@ -216,26 +241,69 @@ data class DeThiTT(
         const val DANG = "DANG"
         const val XONG = "XONG"
 
+        /** Mon cua moi de trong [Duong.F_DE_THI]: truong do chi co de Tieng Anh. */
+        const val MON_ANH = "Tiếng Anh"
+
         /**
-         * Doc mang de thi. null khi truong vang (tablet ban cu); phan tu thieu ma thi bo.
+         * Doc hai truong de thi cua hop/trangthai: [Duong.F_CAC_DE_THI] truoc, vang (hay khong
+         * phai mang) thi [Duong.F_DE_THI] cua tablet ban cu. null khi vang ca hai: tablet chua
+         * co de thi nao. Phan tu thieu ma thi bo.
+         *
+         * cacDeThi la mang rong van la tablet moi, khong lui ve deThi: tablet moi lay deThi tu
+         * chinh danh sach do (chi giu de Tieng Anh), nen ben nay rong thi ben kia cung rong.
+         *
          * Tach khoi [TrangThai.doc] de test doc duoc ma khong can Firestore.
          */
-        fun docDanhSach(tho: Any?): List<DeThiTT>? {
-            val ds = tho as? List<*> ?: return null
-            return ds.mapNotNull { x ->
+        fun doc(cacDeThi: Any?, deThi: Any?): List<DeThiTT>? =
+            docCacDeThi(cacDeThi) ?: docDeThiCu(deThi)
+
+        /** Mang { ma, mon, ten, phamVi, tt, thieu, sao, toiDa, nopLuc, phut, doRong }, tu 1/10/2026. */
+        private fun docCacDeThi(tho: Any?): List<DeThiTT>? =
+            (tho as? List<*>)?.mapNotNull { x ->
                 val m = x as? Map<*, *> ?: return@mapNotNull null
-                val ma = (m["ma"] as? String)?.trim().orEmpty()
+                val ma = chu(m["ma"])
                 if (ma.isEmpty()) return@mapNotNull null
                 DeThiTT(
                     ma = ma,
-                    ten = (m["ten"] as? String)?.ifBlank { null } ?: ma,
-                    den = (m["den"] as? Number)?.toInt() ?: 0,
-                    tt = (m["tt"] as? String).orEmpty(),
+                    ten = chu(m["ten"]).ifEmpty { ma },
+                    tt = chu(m["tt"]),
+                    mon = chu(m["mon"]),
+                    phamVi = chu(m["phamVi"]),
+                    thieu = chu(m["thieu"]),
                     sao = (m["sao"] as? Number)?.toInt() ?: -1,
-                    toiDa = (m["toiDa"] as? Number)?.toInt() ?: -1
+                    toiDa = (m["toiDa"] as? Number)?.toInt() ?: -1,
+                    nopLuc = (m["nopLuc"] as? Number)?.toLong()?.coerceAtLeast(0L) ?: 0L,
+                    phut = (m["phut"] as? Number)?.toInt()?.coerceAtLeast(0) ?: 0,
+                    doRong = (m["doRong"] as? Number)?.toInt() ?: -1
                 )
             }
-        }
+
+        /**
+         * Mang { ma, ten, den, tt, sao, toiDa } cua tablet ban cu (30/9/2026): toan de Tieng
+         * Anh, den la Unit cuoi de cham toi. Doi den thanh [phamVi] "tới Unit N", dung chu tablet
+         * moi viet cho de Tieng Anh, de man Bang khong phai biet hai kieu. Ban cu khong gui thieu,
+         * nopLuc, phut.
+         */
+        private fun docDeThiCu(tho: Any?): List<DeThiTT>? =
+            (tho as? List<*>)?.mapNotNull { x ->
+                val m = x as? Map<*, *> ?: return@mapNotNull null
+                val ma = chu(m["ma"])
+                if (ma.isEmpty()) return@mapNotNull null
+                val den = (m["den"] as? Number)?.toInt() ?: 0
+                DeThiTT(
+                    ma = ma,
+                    ten = chu(m["ten"]).ifEmpty { ma },
+                    tt = chu(m["tt"]),
+                    mon = MON_ANH,
+                    phamVi = if (den > 0) "tới Unit $den" else "",
+                    sao = (m["sao"] as? Number)?.toInt() ?: -1,
+                    toiDa = (m["toiDa"] as? Number)?.toInt() ?: -1,
+                    // De Anh: do rong la so Unit, nhu tablet tinh.
+                    doRong = if (den > 0) den else -1
+                )
+            }
+
+        private fun chu(v: Any?): String = (v as? String)?.trim().orEmpty()
     }
 }
 

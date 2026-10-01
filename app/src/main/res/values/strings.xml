@@ -60,7 +60,10 @@
     <!-- Quy gio choi (29/9/2026): phut lam tren may ma tran rieng cua phan do cat. -->
     <string name="bang_quy_gio">Quỹ giờ chơi</string>
     <string name="bang_cap_quy">Cấp từ quỹ</string>
-    <string name="bang_de_thi">Đề thi thử Tiếng Anh</string>
+    <!-- Hang de thi thu, tu 1/10/2026 moi mon mot hang: tieu de "Đề thi thử <môn>" ghep trong
+         HangDeThi nen khong con chuoi bang_de_thi. Nut cua hang mo danh sach de cua mon do; nut
+         "Mở đề" nam trong hop hoi lai, bam moi gui lenh. -->
+    <string name="bang_xem_de_thi">Xem đề</string>
     <string name="bang_mo_de_thi">Mở đề</string>
     <string name="bang_pin">Pin %1$d%%</string>
     <string name="bang_pin_sac">Đang sạc %1$d%%</string>

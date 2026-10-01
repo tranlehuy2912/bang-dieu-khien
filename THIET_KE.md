@@ -91,11 +91,24 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │     quyGio        số phút trong quỹ giờ chơi (29/09/2026), cho nút cấp quỹ ở tab Giờ chơi
 │     soBaiCho      mấy bài đang chờ duyệt
 │     viecNha       tên các việc nhà chưa xong, để hiểu vì sao tablet đang khoá
-│     deThi[]       { ma, ten, den, tt, sao, toiDa }: các đề thi in sẵn trong tablet (từ
-│                   30/09/2026), cho hàng "Đề thi thử Tiếng Anh" của tab Giờ chơi. den là
-│                   Unit cuối đề chạm tới, tablet tự mở đề khi lớp học tới đó; tt là
-│                   KHOA|SAN|MO|DANG|XONG; sao, toiDa là điểm lần nộp gần nhất, -1 khi
-│                   chưa nộp. Vắng là tablet bản cũ
+│     cacDeThi[]    { ma, mon, ten, phamVi, tt, thieu, sao, toiDa, nopLuc, phut, doRong }:
+│                   các đề
+│                   thi in sẵn của cả ba môn (01/10/2026), theo thứ tự các bộ đề trong
+│                   tablet, cho các hàng "Đề thi thử <môn>" của tab Giờ chơi (mỗi môn một
+│                   hàng). tt là KHOA|SAN|MO|DANG|XONG. phamVi, thieu là chữ tablet viết
+│                   sẵn ("Đại số tới Bài 9, Hình học tới Bài 14", "tới Unit 3"; "Hình học
+│                   mới tới Bài 12, đề cần Bài 14", nhiều phần nối bằng "; ", rỗng khi không
+│                   khoá), vì đề Toán, KHTN mở theo mốc "Lớp đã học tới" của từng phần mà chỉ
+│                   tablet biết. sao, toiDa là điểm lần nộp gần nhất, -1 khi chưa nộp;
+│                   nopLuc là lúc nộp lần gần nhất (ms), 0 khi chưa nộp; phut là giờ làm
+│                   bài; doRong là độ rộng phạm vi (số Unit, hay tổng số bài các phần), để
+│                   chọn đề hẹp nhất cho dòng "Mở khi lớp học ...". Vắng là tablet bản cũ,
+│                   Bảng điều khiển đọc deThi
+│     deThi[]       { ma, ten, den, tt, sao, toiDa }: kiểu cũ (30/09/2026). Từ 01/10/2026
+│                   chỉ còn đề Tiếng Anh, tablet gửi tiếp cho Bảng điều khiển bản cũ. den là
+│                   Unit cuối đề chạm tới. Bảng điều khiển mới chỉ đọc trường này khi vắng
+│                   cacDeThi, coi mọi đề là Tiếng Anh, phạm vi "tới Unit <den>". Vắng cả hai
+│                   là tablet chưa có đề thi
 │     cheDoBa       { bat, hetLuc }
 │     quyen         { trogiup, quantri, noi, pin }
 │     appTruocMat   tên app đang trên màn hình, LUÔN là chuỗi; đi kèm appTruocMatTu
@@ -167,8 +180,9 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │                        vừa xử
 │            BOSUA       bỏ câu sai khỏi danh sách cần sửa của con, không cộng
 │                        phút (30/09/2026). giaTri là [{ ma, de }]
-│            MODETHI     mở một đề thi in sẵn cho con, mã đề ở chu (30/09/2026).
-│                        Tablet mở cả đề chưa tới phạm vi Unit
+│            MODETHI     mở một đề thi in sẵn cho con, mã đề ở chu (30/09/2026), lấy
+│                        từ cacDeThi (tablet bản cũ: deThi). Tablet mở cả đề lớp chưa
+│                        học tới phạm vi
 │     phut, baiId, chu, giaTri
 │     tao    epoch ms theo đồng hồ máy gửi. Tablet dùng trường này để xếp lệnh
 │            và bỏ lệnh quá nửa tiếng. taoLuc (server timestamp) chỉ Bảng điều
@@ -359,9 +373,11 @@ Sáu tab ở `ui/MainActivity`. Tab đang ẩn bị hạ về `CREATED` để li
 gỡ trong `onStop`.
 
 - **Giờ chơi** (`BangFragment`, id `tab_bang`): trạng thái tablet và đồng hồ, cho thêm
-  hay bớt giờ, quỹ giờ chơi với nút cấp quỹ (`CAPQUY`), hàng "Đề thi thử Tiếng Anh"
-  (`MODETHI`), thẻ "Bài dặn dò sắp tới", các lệnh tablet chưa lấy kèm nút Rút lại. Mở tab
-  là gửi `PING`.
+  hay bớt giờ, quỹ giờ chơi với nút cấp quỹ (`CAPQUY`), các hàng đề thi thử (từ
+  01/10/2026 mỗi môn một hàng: "Đề thi thử Toán", "Đề thi thử KHTN", "Đề thi thử Tiếng
+  Anh", môn không có đề thì không có hàng; nút "Xem đề" liệt kê tình trạng từng đề, chọn
+  một đề thì hỏi lại rồi gửi `MODETHI`), thẻ "Bài dặn dò sắp tới", các lệnh tablet chưa
+  lấy kèm nút Rút lại. Mở tab là gửi `PING`.
 - **Bài tập** (`BaiFragment`, màn bài `BaiActivity`): danh sách bài, ảnh tải từ Telegram,
   nút "Nhờ Claude chấm" và ô dán kết quả, thẻ "Câu cần Ba Huy xem" (`XUCAU`), nút bỏ câu
   sai khỏi danh sách cần sửa (`BOSUA`), duyệt hay không duyệt kèm lý do.

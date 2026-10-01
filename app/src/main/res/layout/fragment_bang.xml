@@ -443,51 +443,17 @@
                         android:text="@string/bang_cap_quy" />
                 </LinearLayout>
 
-                <!-- Hang de thi thu (30/9/2026): tom tat de nao dang mo, da lam may de, va nut mo
-                     mot de cho Le Hoa. Tablet ban cu khong gui danh sach de thi thi ca hang an. -->
+                <!-- Cac hang de thi thu (1/10/2026): moi mon mot hang item_de_thi, thu tu Toan,
+                     KHTN, Tieng Anh, mon khong co de thi khong co hang. BangFragment.veDeThi dung
+                     hang bang code vi so mon di theo du lieu tablet gui. Truoc ngay do cho nay la
+                     mot hang Tieng Anh ve san (30/9/2026). Tablet ban cu khong gui danh sach de
+                     thi thi ca khoi an. -->
                 <LinearLayout
-                    android:id="@+id/hangDeThi"
+                    android:id="@+id/hopDeThi"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:baselineAligned="false"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:visibility="gone">
-
-                    <LinearLayout
-                        android:id="@+id/khoiDeThi"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            style="@style/Chu.Nho"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/bang_de_thi" />
-
-                        <TextView
-                            android:id="@+id/chuDeThi"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/ink"
-                            android:textSize="15sp"
-                            android:text="@string/bang_gach" />
-                    </LinearLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/nutMoDeThi"
-                        style="@style/Nut.Phien"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="16dp"
-                        android:paddingRight="16dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
-                        android:text="@string/bang_mo_de_thi" />
-                </LinearLayout>
+                    android:orientation="vertical"
+                    android:visibility="gone" />
 
                 <!-- Lenh dang tren duong di, hay vua hong. Nam cuoi the, ngay duoi cac
                      nut vua bam.

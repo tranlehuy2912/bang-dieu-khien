@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mot hang "De thi thu <mon>" o tab Gio choi (1/10/2026): tieu de va dong tom tat ben trai,
+     nut Xem de ben phai. BangFragment.veDeThi dung moi mon mot hang vao hopDeThi, chu lay tu
+     HangDeThi.
+
+     Chep dung kieu hang de thi Tieng Anh ve san truoc ngay do (cung kieu hang Quy gio choi ngay
+     tren): Chu.Nho cho tieu de, chu ink 15sp cho dong tom tat, nut Nut.Phien le 16dp. Them le
+     phai 8dp cho khoi chu: dong tom tat gio co khi dai ("Mo khi Dai so toi Bai 9, Hinh hoc toi
+     Bai 14") va xuong dong, khong cho chu cham vien nut. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    android:baselineAligned="false"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <LinearLayout
+        android:id="@+id/khoiDeThi"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tieuDeDeThi"
+            style="@style/Chu.Nho"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/chuDeThi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/ink"
+            android:textSize="15sp"
+            android:text="@string/bang_gach" />
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/nutXemDe"
+        style="@style/Nut.Phien"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="@string/bang_xem_de_thi" />
+</LinearLayout>

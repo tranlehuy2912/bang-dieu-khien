@@ -32,6 +32,7 @@ import vn.huytl.bangdieukhien.data.DeThiTT
 import vn.huytl.bangdieukhien.data.TrangThai
 import vn.huytl.bangdieukhien.data.NhacBaiBuoi
 import vn.huytl.bangdieukhien.databinding.FragmentBangBinding
+import vn.huytl.bangdieukhien.databinding.ItemDeThiBinding
 
 /**
  * Tab Gio choi, man chinh: liec mot cai la biet tablet dang the nao, va bam duoc ngay.
@@ -58,6 +59,13 @@ class BangFragment : Fragment() {
 
     /** Khoi lenh dang cho da ve voi nhung dong nao, de khong dung lai view moi giay. */
     private var daVeLenhCho = ""
+
+    /**
+     * Cac hang "Đề thi thử <môn>" dang tren man hinh, theo ten mon, dung thu tu hien. Xem
+     * [veDeThi]. Giu lai de chi dung lai view khi danh sach mon doi, va de [khoaNut] tat duoc
+     * nut cua tung hang.
+     */
+    private var cacHangDeThi: Map<String, ItemDeThiBinding> = emptyMap()
 
     private var moiNhat: TrangThai? = null
 
@@ -153,7 +161,7 @@ class BangFragment : Fragment() {
         b.cho45.setOnClickListener { cho(45) }
         b.choKhac.setOnClickListener { hoiSoPhut() }
         b.nutCapQuy.setOnClickListener { hoiCapQuy() }
-        b.nutMoDeThi.setOnClickListener { hoiMoDeThi() }
+        // Nut "Xem đề" cua tung mon gan luc dung hang, xem [veDeThi].
 
         b.nutDung.setOnClickListener {
             // Mot nut cho ca hai chieu: dang choi thi dung, dang dung thi tiep.
@@ -234,6 +242,9 @@ class BangFragment : Fragment() {
         // chu ky cu thi [veLenhCho] thay danh sach khong doi va bo qua: doi tab qua lai
         // luc co lenh dang cho la mat dong do va nut Rut lai.
         daVeLenhCho = ""
+        // Cung ly do: cac hang de thi thuoc view cu. Giu lai thi [veDeThi] thay mon khong doi,
+        // khong dung hang vao view moi, va chu cung nut ghi vao nhung hang khong con tren man.
+        cacHangDeThi = emptyMap()
         _b = null
         super.onDestroyView()
     }
@@ -327,7 +338,7 @@ class BangFragment : Fragment() {
         b.khoiTrangThai.alpha = doDam
         b.khoiHanMuc.alpha = doDam
         b.khoiQuy.alpha = doDam
-        b.khoiDeThi.alpha = doDam
+        // Phan chu cac hang de thi mo di o [veDeThi]: hang co the vua dung lai o do.
 
         val (chu, mau, mauNhat) = when {
             // Viec nha xet truoc ca che do Ba: dang khoa vi viec nha thi moi thu
@@ -364,8 +375,9 @@ class BangFragment : Fragment() {
 
         veNgay(tt)
         // Sau vong bat nut o tren: nut cap tu quy tat khi quy trong, khong bat lai mu quang.
+        // Nut "Xem đề" cua tung mon dung bang code nen khong nam trong vong do, [veDeThi] bat.
         veQuy(tt)
-        veDeThi(tt)
+        veDeThi(tt, doDam)
 
         // Ten tung viec theo tablet. The o tab Viec nha doc document chung, co khi di truoc
         // tablet vai giay; con dong nay noi vi sao tablet dang khoa.
@@ -786,72 +798,84 @@ class BangFragment : Fragment() {
         if (dangGuiLenh) khoaNut()
     }
 
-    /** Tat het nut bam duoc trong luc mot lenh dang tren duong di. */
+    /**
+     * Tat het nut bam duoc trong luc mot lenh dang tren duong di, va luc chua co ban trang thai
+     * nao. Ke ca nut "Xem đề" cua tung mon (1/10/2026): nut do dung bang code o [veDeThi], khong
+     * co ten trong binding, nen phai di qua [cacHangDeThi].
+     */
     private fun khoaNut() {
         listOf(
-            b.cho15, b.cho30, b.cho45, b.choKhac, b.nutCapQuy, b.nutMoDeThi,
+            b.cho15, b.cho30, b.cho45, b.choKhac, b.nutCapQuy,
             b.nutDung, b.nutBot, b.nutDongMay, b.nutKhoa, b.nutMoMay, b.nutTinCo
         ).forEach { it.isEnabled = false }
+        cacHangDeThi.values.forEach { it.nutXemDe.isEnabled = false }
     }
 
     /**
-     * Hang "Đề thi thử Tiếng Anh": de nao dang mo, da lam may de, va nut mo mot de cho con.
-     * An khi tablet chua gui danh sach de thi ([TrangThai.deThi] null): ban cu, khong hieu lenh
-     * [Lenh.MO_DE_THI].
+     * Cac hang "Đề thi thử <môn>" (1/10/2026): moi mon mot hang, thu tu Toan, KHTN, Tieng Anh,
+     * mon khong co de thi khong co hang. Moi hang mot dong tom tat va nut "Xem đề" mo danh sach
+     * de cua mon do; chu lay tu [HangDeThi]. An het khi tablet chua gui danh sach de thi
+     * ([TrangThai.deThi] null): ban cu, khong hieu lenh [Lenh.MO_DE_THI].
      *
-     * Goi sau vong bat nut cua [ve] va truoc [veDuongLenh], y nhu [veQuy].
-     */
-    private fun veDeThi(tt: TrangThai) {
-        val ds = tt.deThi
-        if (ds.isNullOrEmpty()) {
-            b.hangDeThi.visibility = View.GONE
-            return
-        }
-        b.hangDeThi.visibility = View.VISIBLE
-        val mo = ds.firstOrNull { it.tt == DeThiTT.MO || it.tt == DeThiTT.DANG }
-        val daLam = ds.count { it.daNop }
-        b.chuDeThi.text = listOfNotNull(
-            mo?.let { "${it.ten} " + if (it.tt == DeThiTT.DANG) "đang làm" else "đang mở" },
-            "Đã làm $daLam/${ds.size} đề"
-        ).joinToString(" · ")
-        b.nutMoDeThi.isEnabled = true
-    }
-
-    /**
-     * Chon mot de thi de mo cho Le Hoa, roi gui lenh [Lenh.MO_DE_THI].
+     * Truoc ngay do chi co mot hang Tieng Anh ve san trong layout. Nay so hang di theo du lieu
+     * nen dung bang code tu item_de_thi, nhung chi dung lai khi danh sach mon doi: ham nay chay
+     * moi lan Firestore goi lai (pin tablet tut mot phan tram cung la mot lan), ma dung lai view
+     * thi nut dang bam do bi thay giua chung, y nhu [veLenhCho].
      *
-     * Moi de mot dong kem tinh trang tablet bao ve. De dang mo thi khong gui gi. De chua toi
-     * pham vi Unit hay de da lam thi hoi lai mot cau truoc khi gui: tablet van mo, nhung Ba
-     * Huy nen biet minh dang mo mot de con chua hoc toi, hay mot de con da lam roi.
+     * Goi sau vong bat nut cua [ve] va truoc [veDuongLenh], y nhu [veQuy]: nut cua hang nao cung
+     * bat o day, ke ca hang vua dung, roi lenh dang gui thi [khoaNut] tat lai. Phan chu mo di khi
+     * tablet khong tra loi ([doDam]), nut van bam duoc, nhu hang quy.
      */
-    private fun hoiMoDeThi() {
-        val ds = moiNhat?.deThi.orEmpty()
-        if (ds.isEmpty()) return
-        val dong = ds.map { d ->
-            d.ten + " · " + when (d.tt) {
-                DeThiTT.MO -> "đang mở"
-                DeThiTT.DANG -> "đang làm"
-                DeThiTT.XONG -> "đã làm ${d.sao}/${d.toiDa} ★"
-                DeThiTT.SAN -> "chưa làm"
-                else -> "tự mở khi học tới Unit ${d.den}"
+    private fun veDeThi(tt: TrangThai, doDam: Float) {
+        val cac = HangDeThi.theoMon(tt.deThi.orEmpty())
+        if (cac.map { it.mon } != cacHangDeThi.keys.toList()) {
+            val lop = LayoutInflater.from(requireContext())
+            b.hopDeThi.removeAllViews()
+            cacHangDeThi = cac.associate { m ->
+                val h = ItemDeThiBinding.inflate(lop, b.hopDeThi, false)
+                // Bam thi doc lai danh sach luc bam, theo ten mon, khong giu danh sach luc dung
+                // hang: hang chi dung lai khi mon doi, con tinh trang tung de doi luon.
+                h.nutXemDe.setOnClickListener { hoiMoDeThi(m.mon) }
+                b.hopDeThi.addView(h.root)
+                m.mon to h
             }
-        }.toTypedArray()
+        }
+        b.hopDeThi.visibility = if (cac.isEmpty()) View.GONE else View.VISIBLE
+        cac.forEach { m ->
+            val h = cacHangDeThi[m.mon] ?: return@forEach
+            h.tieuDeDeThi.text = HangDeThi.tieuDe(m.mon)
+            h.chuDeThi.text = HangDeThi.tomTat(m.cac)
+            h.khoiDeThi.alpha = doDam
+            h.nutXemDe.isEnabled = true
+        }
+    }
+
+    /**
+     * Danh sach de cua mot mon, moi de mot dong kem tinh trang tablet bao ve; chon mot de thi
+     * hoi lai roi gui lenh [Lenh.MO_DE_THI].
+     *
+     * De dang mo thi khong gui gi. Moi de con lai deu hoi lai mot cau truoc khi gui, xem
+     * [HangDeThi.hoiLai]: tablet mo ca de lop chua hoc toi, nen Ba Huy nen biet minh dang mo mot
+     * de con chua hoc toi (de can toi dau, lop con thieu phan nao), hay mot de con da lam roi.
+     */
+    private fun hoiMoDeThi(mon: String) {
+        val ds = moiNhat?.deThi.orEmpty().filter { it.mon == mon }
+        if (ds.isEmpty()) return
+        val con = getString(R.string.child_name)
+        val dong = ds.map { HangDeThi.dong(it, con) }.toTypedArray()
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.bang_de_thi)
+            .setTitle(HangDeThi.tieuDe(mon))
             .setItems(dong) { _, i -> xacNhanMoDeThi(ds[i]) }
             .setNegativeButton(R.string.huy, null)
             .show()
     }
 
     private fun xacNhanMoDeThi(d: DeThiTT) {
-        val con = getString(R.string.child_name)
-        val noi = when (d.tt) {
-            DeThiTT.MO, DeThiTT.DANG -> return Dinh.noi(requireContext(), "${d.ten} đang mở trên tablet.")
-            DeThiTT.KHOA -> "Đề này chạm tới Unit ${d.den}, lớp chưa học tới đó. Vẫn mở cho $con?"
-            DeThiTT.XONG -> "$con đã làm đề này (${d.sao}/${d.toiDa} ★). Làm lại chỉ cộng phần sao " +
-                "hơn lần trước. Vẫn mở?"
-            else -> "Mở cho $con làm ngay. Đề nằm ở trang Luyện tập, $con bấm Bắt đầu thì đồng hồ mới chạy."
-        }
+        val noi = HangDeThi.hoiLai(d, getString(R.string.child_name))
+            ?: return Dinh.noi(
+                requireContext(),
+                "${d.ten} " + (if (d.tt == DeThiTT.DANG) "đang làm" else "đang mở") + " trên tablet."
+            )
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Mở ${d.ten}?")
             .setMessage(noi)

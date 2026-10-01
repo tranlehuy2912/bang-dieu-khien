@@ -26,8 +26,11 @@
     <color name="surface">#FFFFFF</color>
     <color name="canvas">#F4F6FA</color>
     <color name="line">#E1E5EC</color>
-    <!-- Khuc "da choi" cua thanh ngay (ThanhNgay), cung mau ben tablet: phut da tieu. -->
-    <color name="da_choi">#B4BAC4</color>
+    <!-- Hai khuc cua thanh ngay (ThanhNgay), cung mau ben tablet. Ba Huy chot ba mau co dinh
+         ngay 1/10/2026: trang (nen) la tong co the co, xam nhat la phut da kiem ma chua choi,
+         xanh duong la phut da choi. Khong doi theo trang thai cong. -->
+    <color name="da_choi">@color/brand</color>
+    <color name="con_giu">#C9CFD8</color>
 
     <color name="parent_tint">#5B4BC4</color>
     <color name="parent_soft">#EDEAFB</color>

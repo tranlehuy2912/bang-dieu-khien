@@ -411,9 +411,9 @@ class BangFragment : Fragment() {
      * So phut trong ngay: duoc choi, con kiem duoc, thanh ba khuc va mot dong chu cuoi.
      *
      * Tu 1/10/2026 khoi nay ve giong thanh ngay o man chinh tablet ([ThanhNgay]): so ben trai
-     * la "được chơi" (da choi cong dang giu, gom ca gio nguoi lon cho), xam la da choi, khuc
-     * mau la dang giu, trang la con kiem duoc. Truoc do ben trai la "Đã duyệt hôm nay", chi
-     * dem phut doi bang bai, nen ba cho 30 phut thi hai may noi hai con so khac nhau.
+     * la "được chơi" (da choi cong dang giu, gom ca gio nguoi lon cho); tren thanh xanh duong
+     * la da choi, xam nhat la dang giu, trang la con kiem duoc. Truoc do ben trai la "Đã duyệt
+     * hôm nay", chi dem phut doi bang bai, nen ba cho 30 phut thi hai may noi hai so khac nhau.
      *
      * Tu 29/9/2026 tablet bo tran chung (truoc la 135 phut): [TrangThai.phutConLai] la tong
      * tran rieng cua cac phan tru so da duyet, chi de xem. Dong chu cuoi ghi ro tong do, de
@@ -434,7 +434,7 @@ class BangFragment : Fragment() {
             b.nhanDuocChoi.setText(R.string.bang_da_duyet_ngay)
             b.duocChoi.text = Dinh.phut(tt.phutDaDuyet)
             b.conLaiNgay.text = Dinh.phut(tt.phutConLai)
-            ThanhNgay.ve(b.khungNgay, b.phanDaChoi, b.phanCon, 0, tt.phutDaDuyet, tranBai, R.color.wait)
+            ThanhNgay.ve(b.khungNgay, b.phanDaChoi, b.phanCon, 0, tt.phutDaDuyet, tranBai)
             b.chuThichNgay.visibility = View.GONE
             b.chuTranNgay.visibility = if (tt.quyGio != null) View.VISIBLE else View.GONE
             b.chuTranNgay.text =
@@ -443,12 +443,11 @@ class BangFragment : Fragment() {
             return
         }
 
-        val mauCon = ThanhNgay.mauCon(tt.cong)
         b.nhanDuocChoi.setText(R.string.bang_duoc_choi_ngay)
         b.duocChoi.text = Dinh.phut(so.duoc)
         b.conLaiNgay.text = Dinh.phut(so.conKiem)
-        ThanhNgay.ve(b.khungNgay, b.phanDaChoi, b.phanCon, so.daChoi, so.con, so.tong, mauCon)
-        val chuThich = ThanhNgay.chuThich(requireContext(), so, mauCon)
+        ThanhNgay.ve(b.khungNgay, b.phanDaChoi, b.phanCon, so.daChoi, so.con, so.tong)
+        val chuThich = ThanhNgay.chuThich(requireContext(), so)
         b.chuThichNgay.text = chuThich
         b.chuThichNgay.visibility = if (chuThich.isEmpty()) View.GONE else View.VISIBLE
         // So da duyet bang bai van can cho Ba Huy (bai lam ra bao nhieu gio), nhung khong

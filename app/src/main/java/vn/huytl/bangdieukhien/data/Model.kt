@@ -38,6 +38,16 @@ data class TrangThai(
      * chan bang tran cua no ben tablet. Tablet cu hon thi day la tran chung tru di.
      */
     val phutConLai: Int = 0,
+    /**
+     * So ms con da choi that hom nay, tinh toi dau doan dang chay, xem [Duong.F_DA_CHOI_MS].
+     *
+     * null la tablet ban cu chua gui truong nay: luc do khoi so lieu trong ngay hien kieu
+     * "Đã duyệt hôm nay" nhu truoc 1/10/2026, vi khong co so da choi thi khong ve duoc thanh
+     * ba khuc.
+     */
+    val daChoiMs: Long? = null,
+    /** Luc doan phien dang chay bat dau, theo gio tablet. 0 la khong co doan nao chay. */
+    val doanChoiTu: Long = 0L,
     val soBaiCho: Int = 0,
     /**
      * So phut trong "Quỹ giờ chơi" cua tablet, xem [Duong.F_QUY_GIO].
@@ -90,6 +100,27 @@ data class TrangThai(
         else -> conLaiMs
     }
 
+    /**
+     * Ba khuc cua thanh ngay, tinh dung nhu ThanhNgay ben tablet (1/10/2026). null la tablet
+     * ban cu, xem [daChoiMs].
+     *
+     * Doan dang chay tu cong tu [doanChoiTu], va khong dai qua moc ket thuc: phien het luc
+     * [ketThucLuc] ma tablet chua kip day ban moi thi phan sau do khong phai la choi. Da choi
+     * lam tron xuong, dang giu lam tron len, nhu ben tablet, de hai so cong lai dung bang
+     * phieu.
+     */
+    fun soNgay(bayGio: Long = System.currentTimeMillis()): SoNgay? {
+        val daGom = daChoiMs ?: return null
+        val doan = if (cong == Cong.DANG_CHOI && doanChoiTu > 0L) {
+            (bayGio - doanChoiTu).coerceIn(0L, (ketThucLuc - doanChoiTu).coerceAtLeast(0L))
+        } else 0L
+        return SoNgay(
+            daChoi = ((daGom + doan) / 60_000L).toInt(),
+            con = ((conLaiBayGio(bayGio) + 59_999L) / 60_000L).toInt(),
+            conKiem = phutConLai
+        )
+    }
+
     fun coCanhBao(): Boolean = !quyenTroGiup || !quyenQuanTri || !quyenNoi || !coPin
 
     companion object {
@@ -122,6 +153,8 @@ data class TrangThai(
                     .mapNotNull { it as? String },
                 phutDaDuyet = (d.getLong(Duong.F_PHUT_DA_DUYET) ?: 0L).toInt(),
                 phutConLai = (d.getLong(Duong.F_PHUT_CON_LAI) ?: 0L).toInt(),
+                daChoiMs = d.getLong(Duong.F_DA_CHOI_MS)?.coerceAtLeast(0L),
+                doanChoiTu = d.getLong(Duong.F_DOAN_CHOI_TU) ?: 0L,
                 soBaiCho = (d.getLong(Duong.F_SO_BAI_CHO) ?: 0L).toInt(),
                 quyGio = d.getLong(Duong.F_QUY_GIO)?.toInt()?.coerceAtLeast(0),
                 deThi = DeThiTT.docDanhSach(d.get(Duong.F_DE_THI)),
@@ -146,6 +179,17 @@ data class TrangThai(
             )
         }
     }
+}
+
+/**
+ * So phut cua ba khuc thanh ngay: da choi, dang giu ([con]), con kiem them duoc bang bai.
+ *
+ * [duoc] la "được chơi", gom ca gio nguoi lon cho; [tong] la ca thanh. Kiem 45 phut, ba cho
+ * 30, choi 30 thi daChoi 30, con 45, duoc 75, tong 75 + 170 = 245 (vi du Ba Huy dua 1/10/2026).
+ */
+data class SoNgay(val daChoi: Int, val con: Int, val conKiem: Int) {
+    val duoc: Int get() = daChoi + con
+    val tong: Int get() = duoc + conKiem
 }
 
 /**

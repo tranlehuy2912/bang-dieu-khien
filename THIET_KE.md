@@ -83,6 +83,11 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │     phutDaDuyet   hôm nay đã duyệt bao nhiêu phút
 │     phutConLai    TRAN_NGAY (215, tổng các trần riêng) trừ phutDaDuyet. Từ 29/09/2026
 │                   chỉ để hiện, không chặn duyệt hay cấp giờ
+│     daChoiMs      số ms đã chơi thật hôm nay, tính tới đầu đoạn đang chạy (01/10/2026).
+│                   Điện thoại tự cộng đoạn đang chạy từ doanChoiTu, như cách nó tự trừ
+│                   từ ketThucLuc. Cộng với phần đang giữ là số "được chơi" của thanh
+│                   ngày, gồm cả giờ người lớn cho. Không có trường này là tablet bản cũ
+│     doanChoiTu    epoch ms đoạn phiên đang chạy bắt đầu (0 = không có đoạn nào chạy)
 │     quyGio        số phút trong quỹ giờ chơi (29/09/2026), cho nút cấp quỹ ở tab Giờ chơi
 │     soBaiCho      mấy bài đang chờ duyệt
 │     viecNha       tên các việc nhà chưa xong, để hiểu vì sao tablet đang khoá

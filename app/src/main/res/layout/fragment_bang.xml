@@ -233,13 +233,16 @@
                     android:layout_marginTop="20dp"
                     android:background="@color/line" />
 
-                <!-- So phut trong ngay, ngay tren hang nut cho gio. So da duyet ben trai, trung
-                     phan thanh da day; so con kiem duoc ben phai, trung phan thanh con trong.
+                <!-- So phut trong ngay, ngay tren hang nut cho gio. Ben trai la so duoc choi
+                     (da choi cong dang giu, gom ca gio nguoi lon cho), trung hai khuc mau cua
+                     thanh; ben phai la so con kiem duoc, trung phan trang. Thanh ve giong thanh
+                     ngay o man chinh tablet tu 1/10/2026, xem ThanhNgay.
 
-                     Tu 29/9/2026 hai so nay chi de xem: tablet bo tran chung 135 phut, moi phan
-                     co tran rieng, va ben phai la tong cac tran do (215) tru so da duyet. Dong
-                     chu duoi thanh noi ro con so tong, de khong ai doc ra mot han muc chan nut
-                     Duyet. Tablet ban cu khong co dong nay, xem BangFragment.veNgay. -->
+                     Ben phai chi de xem: tu 29/9/2026 tablet bo tran chung 135 phut, moi phan co
+                     tran rieng, va so do la tong cac tran (215) tru so da duyet. Dong chu cuoi
+                     noi ro so da duyet bang bai va con so tong, de khong ai doc ra mot han muc
+                     chan nut Duyet. Tablet ban cu chua gui so da choi thi ca khoi hien nhu truoc,
+                     xem BangFragment.veNgay. -->
                 <LinearLayout
                     android:id="@+id/khoiHanMuc"
                     android:layout_width="match_parent"
@@ -260,13 +263,14 @@
                             android:orientation="vertical">
 
                             <TextView
+                                android:id="@+id/nhanDuocChoi"
                                 style="@style/Chu.Nho"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/bang_da_duyet_ngay" />
+                                android:text="@string/bang_duoc_choi_ngay" />
 
                             <TextView
-                                android:id="@+id/daDuyet"
+                                android:id="@+id/duocChoi"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:textColor="@color/ink"
@@ -299,15 +303,32 @@
                         </LinearLayout>
                     </LinearLayout>
 
-                    <com.google.android.material.progressindicator.LinearProgressIndicator
-                        android:id="@+id/thanhNgay"
-                        style="@style/Thanh"
+                    <LinearLayout
+                        android:id="@+id/khungNgay"
+                        android:layout_width="match_parent"
+                        android:layout_height="8dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/nen_thanh_ngay"
+                        android:orientation="horizontal">
+
+                        <View
+                            android:id="@+id/phanDaChoi"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent" />
+
+                        <View
+                            android:id="@+id/phanCon"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/chuThichNgay"
+                        style="@style/Chu.Nho"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        app:indicatorColor="@color/wait"
-                        app:trackCornerRadius="3dp"
-                        app:trackThickness="6dp" />
+                        android:layout_marginTop="6dp"
+                        android:visibility="gone" />
 
                     <TextView
                         android:id="@+id/chuTranNgay"

@@ -26,6 +26,8 @@
     <color name="surface">#FFFFFF</color>
     <color name="canvas">#F4F6FA</color>
     <color name="line">#E1E5EC</color>
+    <!-- Khuc "da choi" cua thanh ngay (ThanhNgay), cung mau ben tablet: phut da tieu. -->
+    <color name="da_choi">#B4BAC4</color>
 
     <color name="parent_tint">#5B4BC4</color>
     <color name="parent_soft">#EDEAFB</color>

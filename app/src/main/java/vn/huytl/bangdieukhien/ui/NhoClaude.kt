@@ -123,9 +123,10 @@ object NhoClaude {
      * Loi nho khi Claude la nguoi cham duy nhat.
      *
      * De tung cau lay tu [KhaiBai] tablet ghi luc con nop, vi khong co ban cham nao de
-     * chep de ra. Claude phai tra them hai thu may van tu dem: so dong lam bai, vi
-     * tablet tinh phut theo so dong, va o lan on tap, bai co viet muc do khong. Cau
-     * ngoai danh sach thi them de va dang bai, vi dang bai quyet gia cau do.
+     * chep de ra. Claude phai tra them mot thu may van tu dem: so dong lam bai, vi
+     * tablet tinh phut theo so dong. (Truoc 27/9/2026 con hoi bai on co viet muc do khong;
+     * tu 2/10/2026 khong con lan nop on chup anh.) Cau ngoai danh sach thi them de va dang
+     * bai, vi dang bai quyet gia cau do.
      *
      * Truoc 30/9/2026 lan nop co vo dan do thi hoi them ngay trong vo, cac bai co giao, con
      * da lam het chua, de tablet tinh tron goi 45 phut. Bo tron goi thi bo ca doan do.

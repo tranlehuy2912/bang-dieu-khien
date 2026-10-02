@@ -147,7 +147,6 @@ class NhoClaudeTest {
         tenNguon = "SGK Toán 8 — tập một",
         bai = "trang 47",
         mon = "Toán",
-        onTap = false,
         cac = listOf(
             KhaiBai.Cau("2.28", "toan8t1:2.28", "Đa thức x^2 − 9x + 8 được phân tích thành", "TRAC_NGHIEM"),
             KhaiBai.Cau("2.33a", "toan8t1:2.33a", "Rút gọn (2x + 5y)^2 − (2x − 5y)^2", "CAU_NHO")
@@ -256,15 +255,6 @@ class NhoClaudeTest {
         assertNull(NhoClaude.docKetQua(chu))
     }
 
-    @Test
-    fun loi_nho_on_tap_khong_con_hoi_mau_muc() {
-        // Ba Huy bo luat bai on phai viet but do ngay 27/9/2026.
-        val chu = NhoClaude.loiNho(baiChuaCham(khai.copy(onTap = true)), "Lê Hòa")
-        assertFalse(chu.contains("mực đỏ"))
-        assertFalse(chu.contains("muc_do"))
-        assertNull(NhoClaude.docKetQua(chu))
-    }
-
     // ------------------------------------------------------ nop lai cau sai
 
     /** Lan nop lai cac cau sai cua mot bai, xem [KhaiBai.suaBai]. */
@@ -272,7 +262,6 @@ class NhoClaudeTest {
         tenNguon = "SBT Toán 8 tập một",
         bai = "sửa bài lúc 11:18",
         mon = "Toán",
-        onTap = false,
         cac = listOf(
             KhaiBai.Cau("2.19b", "sbttoan8t1:2.19b", "Tính nhanh x^3 − 9x^2 + 27x − 27 tại x = 103.", "CAU_NHO"),
             KhaiBai.Cau("câu 3", "", "She ___ (go) to school every day.", "")
@@ -395,8 +384,7 @@ class NhoClaudeTest {
         )
         val chuCon = Regex("""(?<![\p{L}_"])[Cc]on(?![\p{L}_"])""")
         listOf(
-            chamLai, baiChuaCham(khai), baiChuaCham(null), baiChuaCham(khai.copy(onTap = true)),
-            baiCoVo()
+            chamLai, baiChuaCham(khai), baiChuaCham(null), baiCoVo()
         ).forEach { bai ->
             val chu = NhoClaude.loiNho(bai, "Lê Hòa").replace("con số", "")
             val sot = chuCon.findAll(chu)

@@ -458,12 +458,14 @@ data class CauClaude(
  *
  * Co cai nay thi loi nho gui Claude co de bai ngay ca khi tablet khong tu cham.
  * Xem [Duong.F_KHAI].
+ *
+ * Truong onTap (lan nop la on lai bai chup anh) bo ngay 2/10/2026 cung duong on chup anh
+ * tren tablet. Truoc do lop nay doc no ma khong cho nao dung.
  */
 data class KhaiBai(
     val tenNguon: String,
     val bai: String,
     val mon: String,
-    val onTap: Boolean,
     val cac: List<Cau>,
     /**
      * Lan nop nay la nop lai cac cau sai cua bai nao (ma bai). Rong la bai moi.
@@ -662,7 +664,6 @@ data class Bai(
                 tenNguon = m["tenNguon"] as? String ?: "",
                 bai = m["bai"] as? String ?: "",
                 mon = m["mon"] as? String ?: "",
-                onTap = m["onTap"] as? Boolean ?: false,
                 cac = cac,
                 suaBai = m["suaBai"] as? String ?: ""
             )

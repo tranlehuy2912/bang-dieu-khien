@@ -81,7 +81,7 @@ class ChuBanChamTest {
                 )
             ),
             khai = KhaiBai(
-                tenNguon = "SBT Toán 8", bai = "Bài 7", mon = "Toán", onTap = false,
+                tenNguon = "SBT Toán 8", bai = "Bài 7", mon = "Toán",
                 cac = listOf(KhaiBai.Cau(ma = "2.28", cauId = "t8.2.28", de = "Giải phương trình", dang = ""))
             )
         )

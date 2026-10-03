@@ -49,7 +49,7 @@ class LichHocTest {
         assertTrue(toi.dangHoc)
         assertEquals(3, toi.tiet)
         assertEquals("Chiều nay", LichHoc.tenBuoi(toi, now))
-        assertEquals("Tiết 3: Giáo dục công dân · tan 17:00", LichHoc.chiTiet(toi))
+        assertEquals("Tiết 3: Âm nhạc · tan 17:00", LichHoc.chiTiet(toi))
 
         // Tiet 3 bat dau 14:15, tiet 4 luc 15:30: 15:10 la ra choi sau tiet 3.
         assertEquals(3, LichHoc.buoiToi(luc(2026, 9, 29, 15, 10))!!.tiet)

@@ -4,14 +4,20 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import vn.huytl.bangdieukhien.data.Buoi
+import vn.huytl.bangdieukhien.data.LichMau
 import vn.huytl.bangdieukhien.data.NgayNghi
 import vn.huytl.bangdieukhien.ui.LichHoc.Hang
 import java.util.Calendar
 
 /** Tab Lich hoc: buoi toi, tuan dang xem, hang cua luoi, chu tren the. */
 class LichHocTest {
+
+    /** Tinh theo lich: chay tren ban lich dung yen, xem [LichMau]. */
+    @get:Rule
+    val lich = LichMau.Rule()
 
     private fun luc(nam: Int, thang: Int, ngay: Int, gio: Int, phut: Int = 0): Calendar =
         NgayNghi.calendarCua(nam, thang, ngay, gio, phut)

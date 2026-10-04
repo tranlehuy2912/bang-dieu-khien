@@ -11,10 +11,10 @@ import java.util.Calendar
  * nhung hang nao, ten mon viet gon cho vua o. Tach khoi [LichFragment] de test tren may
  * tinh.
  *
- * Lich lay tu [ThoiKhoaBieu] va [NgayNghi], hai file chep y het tu tablet, khong doc qua
- * Firestore. Ben tablet lich nam thang trong code, doi lich la cai lai app, nen cai lai
- * app nay cung luc la hai may hien cung mot lich. tools/kiem-duong.sh ben nop-bai so hai
- * ban.
+ * Lich lay tu [ThoiKhoaBieu] va [NgayNghi], hai file chep y het tu tablet. Tu 4/10/2026 so
+ * lieu cua hai file do la ban lich nhan tu Firestore (xem BanLich), cung document tablet
+ * dang nghe, nen hai may hien cung mot lich ma khong phai cai lai app.
+ * tools/kiem-duong.sh ben nop-bai so cac ban chep.
  */
 object LichHoc {
 

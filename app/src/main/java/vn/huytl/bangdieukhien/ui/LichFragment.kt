@@ -15,8 +15,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.Fragment
+import com.google.firebase.firestore.ListenerRegistration
 import vn.huytl.bangdieukhien.R
 import vn.huytl.bangdieukhien.data.Buoi
+import vn.huytl.bangdieukhien.data.Kho
+import vn.huytl.bangdieukhien.data.LichDangDung
 import vn.huytl.bangdieukhien.data.NgayNghi
 import vn.huytl.bangdieukhien.data.ThoiKhoaBieu
 import vn.huytl.bangdieukhien.databinding.FragmentLichBinding
@@ -31,8 +34,9 @@ import kotlin.math.abs
  * ke net dut, chu mau cho nam mon chinh, to nen cac o cua buoi toi. Khac ben do o cho o
  * hep hon nhieu: ten mon dai viet gon ([LichHoc.tenNgan]), nhan giu o do thi hien ten du.
  *
- * Khong nghe Firestore: lich nam trong app, xem [LichHoc]. Tab dang mo thi ve lai moi
- * phut, vi the buoi toi phai doi dung luc vao hoc, tan hoc.
+ * Lich nghe tu Firestore tu 4/10/2026 (xem [LichDangDung]): ban moi toi thi ve lai ngay, mat
+ * mang thi dung ban luu trong may. Tab dang mo thi ve lai moi phut, vi the buoi toi phai doi
+ * dung luc vao hoc, tan hoc.
  */
 class LichFragment : Fragment() {
 
@@ -41,6 +45,8 @@ class LichFragment : Fragment() {
 
     /** Cac o co ten mon hay ten ky nghi cua lan ve vua roi, xem [datCoChu]. */
     private val oChu = mutableListOf<TextView>()
+
+    private var ngheLich: ListenerRegistration? = null
 
     private val nhip = Runnable {
         if (_b == null) return@Runnable
@@ -55,11 +61,18 @@ class LichFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
+        val ct = requireContext()
+        LichDangDung.napTuMay(ct)
         ve()
         henPhutSau()
+        ngheLich = Kho.ngheLich(ct) { json ->
+            if (_b != null && LichDangDung.nhan(ct, json) is LichDangDung.KetQua.Doi) ve()
+        }
     }
 
     override fun onStop() {
+        ngheLich?.remove()
+        ngheLich = null
         b.root.removeCallbacks(nhip)
         super.onStop()
     }

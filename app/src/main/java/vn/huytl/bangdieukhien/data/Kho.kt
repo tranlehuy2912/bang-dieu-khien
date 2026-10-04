@@ -229,6 +229,22 @@ object Kho {
             else khi(TrangThai.doc(snap), null, snap?.metadata?.isFromCache == true)
         }
 
+    /**
+     * Nghe lich hoc cua nha nay, xem [Duong.LICH_HOC]. [khi] nhan chuoi JSON trong truong
+     * [Duong.F_JSON]; chua co document hay doc hong thi khong goi, tab Lich hoc dung ban dang co.
+     */
+    fun ngheLich(context: Context, khi: (String) -> Unit): ListenerRegistration? {
+        val ma = Nha.maNha(context)
+        if (ma.isEmpty()) return null
+        return db(context)?.collection(Duong.LICH_HOC)?.document(ma)?.addSnapshotListener { snap, loi ->
+            if (loi != null) {
+                Log.w(TAG, "nghe lich hong: ${loi.message}")
+                return@addSnapshotListener
+            }
+            snap?.getString(Duong.F_JSON)?.let(khi)
+        }
+    }
+
     fun ngheCaiDat(context: Context, khi: (CaiDat?) -> Unit): ListenerRegistration? =
         hop(context, Duong.D_CAI_DAT)?.addSnapshotListener { snap, loi ->
             if (loi == null) khi(CaiDat.doc(snap))

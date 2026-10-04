@@ -118,5 +118,17 @@ service cloud.firestore {
         allow read, write: if laNguoiNha(nhaId);
       }
     }
+
+    // Lich hoc cua mot nha (thoi khoa bieu va ngay nghi), tu 4/10/2026. Document mang dung
+    // ma nha, mot truong "json".
+    //
+    // Dat ngoai /nha/{nhaId} vi cua chung o tren cho nguoi nha GHI moi thu ben trong, ma
+    // Firestore cho qua khi co mot luat nao cho phep: dat lich trong do thi tablet cua Le Hoa
+    // sua duoc lich de khoi bi chan. O day khong may nao ghi duoc. Claude Code ghi qua
+    // Firebase console bang tai khoan cua Ba Huy, console khong di qua luat nay.
+    match /lichhoc/{nhaId} {
+      allow read: if laNguoiNha(nhaId);
+      allow write: if false;
+    }
   }
 }

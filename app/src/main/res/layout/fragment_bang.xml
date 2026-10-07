@@ -443,6 +443,53 @@
                         android:text="@string/bang_cap_quy" />
                 </LinearLayout>
 
+                <!-- Hang "Netflix trên laptop" (7/10/2026): so phut laptop con, nut cap them. An
+                     khi laptop chua noi vao nha (chua co document laptop/{maNha}). So nay laptop
+                     ghi, khong qua tablet, nen khong mo di khi tablet khong tra loi. -->
+                <LinearLayout
+                    android:id="@+id/hangLaptop"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/Chu.Nho"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/bang_laptop" />
+
+                        <TextView
+                            android:id="@+id/soLaptop"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/ink"
+                            android:textSize="17sp"
+                            android:textStyle="bold"
+                            android:text="@string/bang_gach" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/nutCapLaptop"
+                        style="@style/Nut.Phien"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="16dp"
+                        android:paddingRight="16dp"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:text="@string/bang_cap_laptop" />
+                </LinearLayout>
+
                 <!-- Cac hang de thi thu (1/10/2026): moi mon mot hang item_de_thi, thu tu Toan,
                      KHTN, Tieng Anh, mon khong co de thi khong co hang. BangFragment.veDeThi dung
                      hang bang code vi so mon di theo du lieu tablet gui. Truoc ngay do cho nay la

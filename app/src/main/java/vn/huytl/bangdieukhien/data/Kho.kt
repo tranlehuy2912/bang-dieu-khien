@@ -245,6 +245,46 @@ object Kho {
         }
     }
 
+    /**
+     * Nghe laptop xem Netflix cua nha nay (7/10/2026), xem [Duong.LAPTOP]. null la laptop
+     * chua noi vao nha, the Gio choi an hang Netflix.
+     */
+    fun ngheLaptop(context: Context, khi: (TinhTrangLaptop?) -> Unit): ListenerRegistration? {
+        val ma = Nha.maNha(context)
+        if (ma.isEmpty()) return null
+        return db(context)?.collection(Duong.LAPTOP)?.document(ma)?.addSnapshotListener { snap, loi ->
+            if (loi != null) {
+                Log.w(TAG, "nghe laptop hong: ${loi.message}")
+                return@addSnapshotListener
+            }
+            khi(TinhTrangLaptop.doc(snap))
+        }
+    }
+
+    /**
+     * Ba Huy cho them [phut] phut Netflix, khong tru phut choi cua tablet (anh Huy chon
+     * 7/10/2026). Ghi mot phieu vao laptop/{maNha}/cap; laptop hoi cho do moi phut, cong gio
+     * roi xoa phieu. Phieu het hieu luc luc nua dem, nhu phieu con doi tren tablet.
+     */
+    fun capNetflix(context: Context, phut: Int, xong: (KetQua) -> Unit) {
+        val ma = Nha.maNha(context)
+        val noi = db(context)?.takeIf { ma.isNotEmpty() }?.collection(Duong.LAPTOP)?.document(ma)
+            ?: return xong(KetQua.Hong(THIEU_FIREBASE))
+        noi.collection(Duong.CAP).add(
+            mapOf(
+                Duong.F_PHUT to phut,
+                Duong.F_PHUT_CHOI to 0,
+                Duong.F_AI to Nguoi.BA_HUY,
+                Duong.F_TAO_LUC to System.currentTimeMillis()
+            )
+        )
+            .addOnSuccessListener { xong(KetQua.Xong) }
+            .addOnFailureListener {
+                Log.w(TAG, "cap netflix hong", it)
+                xong(KetQua.Hong(loiNguoiDoc(it)))
+            }
+    }
+
     fun ngheCaiDat(context: Context, khi: (CaiDat?) -> Unit): ListenerRegistration? =
         hop(context, Duong.D_CAI_DAT)?.addSnapshotListener { snap, loi ->
             if (loi == null) khi(CaiDat.doc(snap))

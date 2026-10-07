@@ -130,5 +130,39 @@ service cloud.firestore {
       allow read: if laNguoiNha(nhaId);
       allow write: if false;
     }
+
+    // Laptop xem Netflix cua Le Hoa (7/10/2026). Document mang dung ma nha, truong uidLaptop
+    // la uid dang nhap an danh cua chuong trinh chay ngam tren laptop.
+    //
+    // Dat ngoai /nha/{nhaId} vi laptop khong phai nguoi nha: cho no vao uids la cho no ghi
+    // moi thu trong nha, ke ca lenh cho tablet. O day no chi doc ghi duoc document nay va
+    // cac phieu cap ben duoi. Document do Claude Code lap qua Firebase console (ghi uidLaptop),
+    // khong app nao lap hay xoa duoc, va laptop khong tu doi uidLaptop duoc.
+    //
+    // laNguoiNha dung TRUOC laLaptop: document chua co thi get() trong laLaptop tra null,
+    // cham .data la ca bieu thuc bao loi. Nguoi nha doc duoc ca khi chua co laptop, de
+    // tablet va Bang dieu khien biet ma an nut.
+    function laLaptop(nhaId) {
+      return request.auth != null
+        && request.auth.uid == get(/databases/$(database)/documents/laptop/$(nhaId))
+             .data.get('uidLaptop', '');
+    }
+
+    match /laptop/{nhaId} {
+      allow read: if laNguoiNha(nhaId) || laLaptop(nhaId);
+      allow update: if laLaptop(nhaId)
+        && request.resource.data.uidLaptop == resource.data.uidLaptop;
+      allow create, delete: if false;
+
+      // Phieu cap gio Netflix. Nguoi nha tao (tablet khi Le Hoa doi phut choi, Bang dieu
+      // khien khi Ba Huy cho them), laptop doc roi xoa sau khi cong gio. Khong ai sua phieu.
+      match /cap/{id} {
+        allow create: if laNguoiNha(nhaId)
+          && request.resource.data.phut is int
+          && request.resource.data.phut > 0
+          && request.resource.data.phut <= 600;
+        allow read, delete: if laNguoiNha(nhaId) || laLaptop(nhaId);
+      }
+    }
   }
 }

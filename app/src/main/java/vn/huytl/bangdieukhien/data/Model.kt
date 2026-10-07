@@ -746,7 +746,12 @@ data class CaiDat(
     val appCatMang: List<String> = emptyList(),
     val appAi: List<String> = emptyList(),
     /** Gio rieng tung app: goi -> so phut moi ngay. App khong co trong nay la khong dat. */
-    val gioiHanApp: Map<String, Int> = emptyMap()
+    val gioiHanApp: Map<String, Int> = emptyMap(),
+    /**
+     * Mot phut choi doi duoc may phut Netflix tren laptop (7/10/2026). null la tablet ban
+     * cu, chua co muc nay: man Cai dat an dong do.
+     */
+    val tiLeNetflix: Int? = null
 ) {
     companion object {
         fun doc(d: DocumentSnapshot?): CaiDat? {
@@ -764,7 +769,37 @@ data class CaiDat(
                 appCatMang = (d.get("appCatMang") as? List<String>).orEmpty(),
                 appAi = (d.get("appAi") as? List<String>).orEmpty(),
                 gioiHanApp = (d.get("gioiHanApp") as? Map<String, Number>)
-                    .orEmpty().mapValues { it.value.toInt() }
+                    .orEmpty().mapValues { it.value.toInt() },
+                tiLeNetflix = d.getLong("tiLeNetflix")?.toInt()
+            )
+        }
+    }
+}
+
+/**
+ * Tinh trang laptop xem Netflix, doc tu laptop/{maNha} (7/10/2026, xem [Duong.LAPTOP]).
+ *
+ * Laptop chi ghi khi co gi doi. Luc con dang xem thi [ketThucLuc] la luc het gio va may nay
+ * tu dem lui, nhu the Gio choi; luc khong ai dung thi [conLaiMs] dung yen.
+ */
+data class TinhTrangLaptop(
+    val ketThucLuc: Long,
+    val conLaiMs: Long,
+    val dangDung: Boolean,
+    val capNhatLuc: Long
+) {
+    fun conLai(bayGio: Long = System.currentTimeMillis()): Long =
+        if (ketThucLuc > 0L) (ketThucLuc - bayGio).coerceAtLeast(0L) else conLaiMs
+
+    companion object {
+        /** null la laptop chua noi vao nha: chua co document, hay chua co uid laptop. */
+        fun doc(d: DocumentSnapshot?): TinhTrangLaptop? {
+            if (d == null || !d.exists() || d.getString(Duong.F_UID_LAPTOP).isNullOrEmpty()) return null
+            return TinhTrangLaptop(
+                ketThucLuc = d.getLong(Duong.F_KET_THUC_LUC) ?: 0L,
+                conLaiMs = d.getLong(Duong.F_CON_LAI_MS) ?: 0L,
+                dangDung = d.getBoolean(Duong.F_DANG_DUNG) ?: false,
+                capNhatLuc = d.getLong(Duong.F_CAP_NHAT_LUC) ?: 0L
             )
         }
     }

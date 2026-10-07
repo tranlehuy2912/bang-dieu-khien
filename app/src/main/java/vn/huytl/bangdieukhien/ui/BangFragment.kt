@@ -30,6 +30,7 @@ import vn.huytl.bangdieukhien.data.Nguoi
 import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.data.DeThiTT
 import vn.huytl.bangdieukhien.data.TrangThai
+import vn.huytl.bangdieukhien.data.TinhTrangLaptop
 import vn.huytl.bangdieukhien.data.NhacBaiBuoi
 import vn.huytl.bangdieukhien.databinding.FragmentBangBinding
 import vn.huytl.bangdieukhien.databinding.ItemDeThiBinding
@@ -53,6 +54,10 @@ class BangFragment : Fragment() {
     private var ngheTrangThai: ListenerRegistration? = null
     private var ngheNhacBai: ListenerRegistration? = null
     private var ngheLenh: ListenerRegistration? = null
+    private var ngheLaptop: ListenerRegistration? = null
+
+    /** Laptop xem Netflix, null la chua noi vao nha. Xem [veLaptop]. */
+    private var laptop: TinhTrangLaptop? = null
 
     /** Lenh may nay da go ma tablet chua lay, cu nhat truoc. Xem [veLenhCho]. */
     private var lenhCho: List<LenhCho> = emptyList()
@@ -138,6 +143,7 @@ class BangFragment : Fragment() {
             // Lenh qua ba giay moi hien, qua nua tieng thi doi chu: ca hai moc deu la
             // gio troi qua chu khong phai Firestore doi, nen phai xet lai moi giay.
             veLenhCho()
+            veLaptop()
             // Qua han cho ma tablet van im: ve lai dung mot lan de cham doi mau va
             // dong canh bao moc len. Khong ve moi giay - khong co gi doi nua.
             if (khongDap() != daBaoKhongDap) {
@@ -161,6 +167,7 @@ class BangFragment : Fragment() {
         b.cho45.setOnClickListener { cho(45) }
         b.choKhac.setOnClickListener { hoiSoPhut() }
         b.nutCapQuy.setOnClickListener { hoiCapQuy() }
+        b.nutCapLaptop.setOnClickListener { hoiCapLaptop() }
         // Nut "Xem đề" cua tung mon gan luc dung hang, xem [veDeThi].
 
         b.nutDung.setOnClickListener {
@@ -221,6 +228,11 @@ class BangFragment : Fragment() {
             lenhCho = ds
             veLenhCho()
         }
+        ngheLaptop = Kho.ngheLaptop(ct) { l ->
+            if (_b == null) return@ngheLaptop
+            laptop = l
+            veLaptop()
+        }
         // Lang nghe o tren hoi tablet khi ban dau tien tu may chu ve. Xem [hoiKhiCoBanDau].
         hoiKhiCoBanDau = true
         tay.postDelayed(hoiDuPhong, CHO_BAN_DAU_MS)
@@ -234,6 +246,7 @@ class BangFragment : Fragment() {
         ngheTrangThai?.remove()
         ngheNhacBai?.remove()
         ngheLenh?.remove()
+        ngheLaptop?.remove()
         super.onStop()
     }
 
@@ -885,6 +898,49 @@ class BangFragment : Fragment() {
     }
 
     /**
+     * Hang "Netflix trên laptop" (7/10/2026). Chay moi giay tu [nhip]: luc con dang xem,
+     * laptop chi ghi moc het gio mot lan, may nay tu dem lui.
+     */
+    private fun veLaptop() {
+        val l = laptop
+        if (l == null) {
+            b.hangLaptop.visibility = View.GONE
+            return
+        }
+        b.hangLaptop.visibility = View.VISIBLE
+        val con = l.conLai()
+        b.soLaptop.text = when {
+            con <= 0L -> "Hết phút"
+            l.dangDung && l.ketThucLuc > 0L -> "Đang xem, còn ${Dinh.dongHo(con)}"
+            else -> "Còn ${Dinh.doDai(con)}"
+        }
+    }
+
+    /**
+     * Ba Huy cho them phut Netflix, khong tru phut choi cua tablet (anh Huy chon 7/10/2026).
+     * Phieu ghi thang vao laptop/{maNha}/cap, khong qua tablet; laptop nhan trong vong mot
+     * phut neu dang mo. Phut chi dung trong ngay.
+     */
+    private fun hoiCapLaptop() {
+        val cac = MUC_CAP_LAPTOP.map { Dinh.phut(it) }.toTypedArray()
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Cho thêm phút Netflix")
+            .setItems(cac) { _, i ->
+                val phut = MUC_CAP_LAPTOP[i]
+                Kho.capNetflix(requireContext(), phut) { kq ->
+                    val ct = context ?: return@capNetflix
+                    Dinh.noi(
+                        ct,
+                        if (kq is Kho.KetQua.Hong) kq.viSao
+                        else "Đã gửi ${Dinh.phut(phut)} Netflix, laptop nhận trong khoảng một phút."
+                    )
+                }
+            }
+            .setNegativeButton(R.string.huy, null)
+            .show()
+    }
+
+    /**
      * Cap gio tu "Quỹ giờ chơi": hoi bao nhieu, roi gui lenh [Lenh.CAP_QUY].
      *
      * Chi hien cac muc khong qua so dang co trong quy, cong mot dong cap het. Cap het thi
@@ -1098,6 +1154,9 @@ class BangFragment : Fragment() {
          * ngay; muc nao lon hon so trong quy thi an.
          */
         private val MUC_CAP_QUY = listOf(15, 30, 45, 60)
+
+        /** So phut Netflix Ba Huy cho them, xem [hoiCapLaptop]. */
+        private val MUC_CAP_LAPTOP = listOf(15, 30, 60)
 
         /** Cho ban trang thai tu may chu toi da bay lau roi van hoi tablet. */
         private const val CHO_BAN_DAU_MS = 5_000L

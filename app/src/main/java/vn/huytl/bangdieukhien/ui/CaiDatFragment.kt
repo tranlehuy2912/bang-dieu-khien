@@ -106,7 +106,15 @@ class CaiDatFragment : Fragment() {
             },
             muc("Giờ dậy", Dinh.gio(c.gioDay), "Trước giờ này máy vẫn khoá") {
                 hoiGio(c.gioDay) { guiCaiDat("gioDay", it) }
-            }
+            },
+            // Ti le doi phut choi sang Netflix tren laptop (7/10/2026). Tablet ban cu khong gui
+            // truong nay thi an muc.
+            *listOfNotNull(c.tiLeNetflix?.let { tiLe ->
+                muc("Đổi sang Netflix", "1 phút chơi = $tiLe phút",
+                    "Lê Hòa đổi phút chơi tablet lấy phút xem trên laptop") {
+                    hoiTiLe(tiLe) { guiCaiDat("tiLeNetflix", it) }
+                }
+            }).toTypedArray()
         ))
 
         b.than.addView(tieu("Ứng dụng"))
@@ -257,6 +265,21 @@ class CaiDatFragment : Fragment() {
         Kho.guiLenh(requireContext(), Lenh.CAI_DAT, chu = ten, giaTri = giaTri) { kq ->
             if (kq is Kho.KetQua.Hong) Dinh.noi(requireContext(), kq.viSao)
         }
+    }
+
+    /** Chon ti le doi Netflix, 1 den 5 phut cho moi phut choi (tablet nhan toi 10). */
+    private fun hoiTiLe(dangLa: Int, xong: (Int) -> Unit) {
+        val cac = (1..5).toList()
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("1 phút chơi đổi được")
+            .setSingleChoiceItems(
+                cac.map { "$it phút Netflix" }.toTypedArray(), cac.indexOf(dangLa)
+            ) { d, i ->
+                d.dismiss()
+                xong(cac[i])
+            }
+            .setNegativeButton(R.string.huy, null)
+            .show()
     }
 
     private fun hoiGio(dangLa: Int, xong: (Int) -> Unit) {

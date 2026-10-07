@@ -168,7 +168,8 @@ class BangFragment : Fragment() {
         b.choKhac.setOnClickListener { hoiSoPhut() }
         b.nutCapQuy.setOnClickListener { hoiCapQuy() }
         b.nutCapLaptop.setOnClickListener { hoiCapLaptop() }
-        b.nutWebLaptop.setOnClickListener { doiWebLaptop() }
+        // Nut "Mở web" / "Khoá web" cua laptop chuyen sang tab Cai dat (7/10/2026), xem
+        // CaiDatFragment.doiWebLaptop.
         // Nut "Xem đề" cua tung mon gan luc dung hang, xem [veDeThi].
 
         b.nutDung.setOnClickListener {
@@ -828,8 +829,9 @@ class BangFragment : Fragment() {
     /**
      * Cac hang "Đề thi thử <môn>" (1/10/2026): moi mon mot hang, thu tu Toan, KHTN, Tieng Anh,
      * mon khong co de thi khong co hang. Moi hang mot dong tom tat va nut "Xem đề" mo danh sach
-     * de cua mon do; chu lay tu [HangDeThi]. An het khi tablet chua gui danh sach de thi
-     * ([TrangThai.deThi] null): ban cu, khong hieu lenh [Lenh.MO_DE_THI].
+     * de cua mon do; chu lay tu [HangDeThi]. An ca the theDeThi khi khong co de nao, ke ca khi
+     * tablet chua gui danh sach de thi ([TrangThai.deThi] null): ban cu, khong hieu lenh
+     * [Lenh.MO_DE_THI]. The rieng nay co tu 7/10/2026, truoc do cac hang nam trong the chinh.
      *
      * Truoc ngay do chi co mot hang Tieng Anh ve san trong layout. Nay so hang di theo du lieu
      * nen dung bang code tu item_de_thi, nhung chi dung lai khi danh sach mon doi: ham nay chay
@@ -854,7 +856,7 @@ class BangFragment : Fragment() {
                 m.mon to h
             }
         }
-        b.hopDeThi.visibility = if (cac.isEmpty()) View.GONE else View.VISIBLE
+        b.theDeThi.visibility = if (cac.isEmpty()) View.GONE else View.VISIBLE
         cac.forEach { m ->
             val h = cacHangDeThi[m.mon] ?: return@forEach
             h.tieuDeDeThi.text = HangDeThi.tieuDe(m.mon)
@@ -901,24 +903,17 @@ class BangFragment : Fragment() {
     /**
      * Hang "Netflix trên laptop" (7/10/2026). Chay moi giay tu [nhip]: luc con dang xem,
      * laptop chi ghi moc het gio mot lan, may nay tu dem lui.
+     *
+     * Hang mo, khoa web tung nam ngay duoi hang nay; chieu 7/10/2026 anh Huy chuyen no sang tab
+     * Cai dat thanh muc "Firefox chỉ được mở Netflix", xem CaiDatFragment.
      */
     private fun veLaptop() {
         val l = laptop
         if (l == null) {
             b.hangLaptop.visibility = View.GONE
-            b.hangWebLaptop.visibility = View.GONE
             return
         }
         b.hangLaptop.visibility = View.VISIBLE
-        b.hangWebLaptop.visibility = View.VISIBLE
-        b.chuWebLaptop.text = when {
-            l.moWeb && l.webDangMo -> "Web đang mở. Mở lại Firefox thì mới theo."
-            l.moWeb && l.dangDung -> "Lê Hòa đang dùng laptop nên web vẫn khoá."
-            l.moWeb -> "Đang chờ laptop mở web."
-            l.webDangMo -> "Đang chờ laptop khoá web."
-            else -> "Web khoá, Firefox chỉ vào Netflix."
-        }
-        b.nutWebLaptop.text = if (l.moWeb) "Khoá web" else "Mở web"
         val con = l.conLai()
         b.soLaptop.text = when {
             con <= 0L -> "Hết phút"
@@ -949,15 +944,6 @@ class BangFragment : Fragment() {
             }
             .setNegativeButton(R.string.huy, null)
             .show()
-    }
-
-    /** Bat tat [Duong.F_MO_WEB] cua laptop. Khong hoi lai: bam lan nua la doi nguoc. */
-    private fun doiWebLaptop() {
-        val l = laptop ?: return
-        Kho.datMoWeb(requireContext(), !l.moWeb) { kq ->
-            val ct = context ?: return@datMoWeb
-            if (kq is Kho.KetQua.Hong) Dinh.noi(ct, kq.viSao)
-        }
     }
 
     /**

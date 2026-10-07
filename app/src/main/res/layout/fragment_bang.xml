@@ -490,47 +490,10 @@
                         android:text="@string/bang_cap_laptop" />
                 </LinearLayout>
 
-                <!-- Mo hay khoa web tren laptop (7/10/2026). Mac dinh Firefox ca may chi vao
-                     Netflix; nut nay go luat do cho Ba Huy dung, khong co han. -->
-                <LinearLayout
-                    android:id="@+id/hangWebLaptop"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:baselineAligned="false"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:visibility="gone">
-
-                    <TextView
-                        android:id="@+id/chuWebLaptop"
-                        style="@style/Chu.Nho"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/nutWebLaptop"
-                        style="@style/Nut.Phien"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="16dp"
-                        android:paddingRight="16dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp" />
-                </LinearLayout>
-
-                <!-- Cac hang de thi thu (1/10/2026): moi mon mot hang item_de_thi, thu tu Toan,
-                     KHTN, Tieng Anh, mon khong co de thi khong co hang. BangFragment.veDeThi dung
-                     hang bang code vi so mon di theo du lieu tablet gui. Truoc ngay do cho nay la
-                     mot hang Tieng Anh ve san (30/9/2026). Tablet ban cu khong gui danh sach de
-                     thi thi ca khoi an. -->
-                <LinearLayout
-                    android:id="@+id/hopDeThi"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:visibility="gone" />
+                <!-- Hang mo hay khoa web tren laptop (co tu sang 7/10/2026) chuyen sang tab Cai
+                     dat chieu 7/10/2026, thanh muc Bat/Tat "Firefox chỉ được mở Netflix" trong
+                     nhom Laptop, xem CaiDatFragment. Cac hang de thi thu ra the rieng theDeThi
+                     ngay duoi the nay (anh Huy chon cung ngay). -->
 
                 <!-- Lenh dang tren duong di, hay vua hong. Nam cuoi the, ngay duoi cac
                      nut vua bam.
@@ -558,6 +521,32 @@
                     android:orientation="vertical"
                     android:visibility="gone" />
             </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- The de thi thu (anh Huy chon tach khoi the chinh ngay 7/10/2026): moi mon mot hang
+             item_de_thi, thu tu Toan, KHTN, Tieng Anh, mon khong co de thi khong co hang.
+             BangFragment.veDeThi dung hang bang code vi so mon di theo du lieu tablet gui. Tu
+             1/10 toi 7/10/2026 cac hang nay nam trong the chinh, truoc nua la mot hang Tieng Anh
+             ve san (30/9/2026). Tablet ban cu khong gui danh sach de thi thi ca the an.
+
+             Khong co le tren: hang nao cung le tren 16dp (item_de_thi), hang dau lam luon le tren
+             cua the. Lenh MODETHI vua gui van bao o chuGui cuoi the chinh, ngay tren the nay. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/theDeThi"
+            style="@style/The"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/hopDeThi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="16dp" />
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Viec nha chua xong: tablet dang khoa vi viec nha. Bam vao la sang tab Viec nha,

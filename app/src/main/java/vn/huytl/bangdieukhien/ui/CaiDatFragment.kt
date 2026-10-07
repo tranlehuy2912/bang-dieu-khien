@@ -22,6 +22,7 @@ import vn.huytl.bangdieukhien.data.CaiDat
 import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.Lenh
 import vn.huytl.bangdieukhien.data.Nha
+import vn.huytl.bangdieukhien.data.TinhTrangLaptop
 import vn.huytl.bangdieukhien.databinding.FragmentCaiDatBinding
 import vn.huytl.bangdieukhien.databinding.ItemMucBinding
 
@@ -40,11 +41,17 @@ class CaiDatFragment : Fragment() {
     private var ngheCaiDat: ListenerRegistration? = null
     private var ngheApp: ListenerRegistration? = null
 
+    /** Nghe laptop/{maNha} cho muc "Firefox chỉ được mở Netflix", xem [veNhomLaptop]. */
+    private var ngheLaptop: ListenerRegistration? = null
+
     /** Dang cho tablet vua cai lai app xin vao nha. Xem [noiLaiTablet]. */
     private var ngheXin: ListenerRegistration? = null
 
     private var caiDat: CaiDat? = null
     private var dsApp: List<AppTrenMay> = emptyList()
+
+    /** null la laptop chua noi vao nha (chua co document laptop/{maNha}). */
+    private var laptop: TinhTrangLaptop? = null
 
     /** Hop "Giờ riêng từng app" dang mo, va cach ve lai no khi tablet ghi so moi. */
     private var hopGioRieng: AlertDialog? = null
@@ -65,12 +72,17 @@ class CaiDatFragment : Fragment() {
             dsApp = it
             ve()
         }
+        ngheLaptop = Kho.ngheLaptop(requireContext()) {
+            laptop = it
+            ve()
+        }
         ve()
     }
 
     override fun onStop() {
         ngheCaiDat?.remove()
         ngheApp?.remove()
+        ngheLaptop?.remove()
         super.onStop()
     }
 
@@ -90,6 +102,7 @@ class CaiDatFragment : Fragment() {
 
         if (c == null) {
             b.than.addView(tieu("Tablet chưa gửi cấu hình sang. Chờ máy đó lên mạng một lần."))
+            veNhomLaptop(null)
             veMucMay()
             return
         }
@@ -106,16 +119,12 @@ class CaiDatFragment : Fragment() {
             },
             muc("Giờ dậy", Dinh.gio(c.gioDay), "Trước giờ này máy vẫn khoá") {
                 hoiGio(c.gioDay) { guiCaiDat("gioDay", it) }
-            },
-            // Ti le doi phut choi sang Netflix tren laptop (7/10/2026). Tablet ban cu khong gui
-            // truong nay thi an muc.
-            *listOfNotNull(c.tiLeNetflix?.let { tiLe ->
-                muc("Đổi sang Netflix", "1 phút chơi = $tiLe phút",
-                    "Lê Hòa đổi phút chơi tablet lấy phút xem trên laptop") {
-                    hoiTiLe(tiLe) { guiCaiDat("tiLeNetflix", it) }
-                }
-            }).toTypedArray()
+            }
+            // Muc "Đổi sang Netflix" o day tu sang toi chieu 7/10/2026, roi chuyen xuong nhom
+            // Laptop ngay duoi, xem [veNhomLaptop].
         ))
+
+        veNhomLaptop(c)
 
         b.than.addView(tieu("Ứng dụng"))
         b.than.addView(nhom(
@@ -168,6 +177,59 @@ class CaiDatFragment : Fragment() {
         // may cham nao de bat tat, bai nao cung cham bang Claude o tab Bai.
 
         veMucMay()
+    }
+
+    /**
+     * Nhom "Laptop" (anh Huy chon chieu 7/10/2026): ti le doi phut choi sang Netflix, va muc bat
+     * tat "Firefox chỉ được mở Netflix" (truoc do la hang chu kem nut "Mở web" / "Khoá web" o tab
+     * Gio choi, chu luc khoa la "Web khoá, Firefox chỉ vào Netflix.").
+     *
+     * Ti le la cai dat cua tablet, gui lenh CAIDAT nhu moi muc khac; tablet ban cu khong gui
+     * truong nay thi an muc. Muc Firefox thi ghi thang vao laptop/{maNha} qua [Kho.datMoWeb],
+     * khong qua tablet, nen van hien khi tablet chua gui cau hinh ([c] null); laptop chua noi
+     * vao nha thi an muc do. Khong con muc nao thi khong co nhom.
+     */
+    private fun veNhomLaptop(c: CaiDat?) {
+        val cac = listOfNotNull(
+            c?.tiLeNetflix?.let { tiLe ->
+                muc("Đổi sang Netflix", "1 phút chơi = $tiLe phút",
+                    "Lê Hòa đổi phút chơi tablet lấy phút xem trên laptop") {
+                    hoiTiLe(tiLe) { guiCaiDat("tiLeNetflix", it) }
+                }
+            },
+            laptop?.let { l ->
+                muc("Firefox chỉ được mở Netflix", if (l.moWeb) "Tắt" else "Bật", chuWeb(l)) {
+                    doiWebLaptop(l)
+                }
+            }
+        )
+        if (cac.isEmpty()) return
+        b.than.addView(tieu("Laptop"))
+        b.than.addView(nhom(*cac.toTypedArray()))
+    }
+
+    /**
+     * Dong nho duoi muc "Firefox chỉ được mở Netflix". Chu "Bật" / "Tắt" ben phai la dieu Ba Huy
+     * chon (truong moWeb), con dong nay la dieu laptop bao da lam (truong webDangMo). Hai dieu do
+     * lech nhau mot luc: laptop hoi Firestore moi phut, va khong mo web luc Le Hoa dang dung.
+     */
+    private fun chuWeb(l: TinhTrangLaptop): String = when {
+        l.moWeb && l.webDangMo -> "Web đang mở. Mở lại Firefox thì mới theo."
+        l.moWeb && l.dangDung -> "Lê Hòa đang dùng laptop nên web vẫn khoá."
+        l.moWeb -> "Đang chờ laptop mở web."
+        l.webDangMo -> "Đang chờ laptop khoá web."
+        else -> "Cả máy, kể cả tài khoản của Ba"
+    }
+
+    /**
+     * Bat tat web cua laptop. Khong hoi lai, giong muc "Khoá màn Cài đặt": bam lan nua la doi
+     * nguoc.
+     */
+    private fun doiWebLaptop(l: TinhTrangLaptop) {
+        Kho.datMoWeb(requireContext(), !l.moWeb) { kq ->
+            val ct = context ?: return@datMoWeb
+            if (kq is Kho.KetQua.Hong) Dinh.noi(ct, kq.viSao)
+        }
     }
 
     private fun chepMaNha() {

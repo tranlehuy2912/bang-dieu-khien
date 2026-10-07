@@ -373,11 +373,12 @@ Sáu tab ở `ui/MainActivity`. Tab đang ẩn bị hạ về `CREATED` để li
 gỡ trong `onStop`.
 
 - **Giờ chơi** (`BangFragment`, id `tab_bang`): trạng thái tablet và đồng hồ, cho thêm
-  hay bớt giờ, quỹ giờ chơi với nút cấp quỹ (`CAPQUY`), các hàng đề thi thử (từ
-  01/10/2026 mỗi môn một hàng: "Đề thi thử Toán", "Đề thi thử KHTN", "Đề thi thử Tiếng
-  Anh", môn không có đề thì không có hàng; nút "Xem đề" liệt kê tình trạng từng đề, chọn
-  một đề thì hỏi lại rồi gửi `MODETHI`), thẻ "Bài dặn dò sắp tới", các lệnh tablet chưa
-  lấy kèm nút Rút lại. Mở tab là gửi `PING`.
+  hay bớt giờ, quỹ giờ chơi với nút cấp quỹ (`CAPQUY`), hàng "Netflix trên laptop" (số
+  phút laptop còn, nút cấp thêm), thẻ đề thi thử ngay dưới thẻ chính (từ 01/10/2026 mỗi
+  môn một hàng: "Đề thi thử Toán", "Đề thi thử KHTN", "Đề thi thử Tiếng Anh", môn không
+  có đề thì không có hàng; nút "Xem đề" liệt kê tình trạng từng đề, chọn một đề thì hỏi
+  lại rồi gửi `MODETHI`; các hàng này nằm trong thẻ chính tới ngày 07/10/2026), thẻ "Bài
+  dặn dò sắp tới", các lệnh tablet chưa lấy kèm nút Rút lại. Mở tab là gửi `PING`.
 - **Bài tập** (`BaiFragment`, màn bài `BaiActivity`): danh sách bài, ảnh tải từ Telegram,
   nút "Nhờ Claude chấm" và ô dán kết quả, thẻ "Câu cần Ba Huy xem" (`XUCAU`), nút bỏ câu
   sai khỏi danh sách cần sửa (`BOSUA`), duyệt hay không duyệt kèm lý do.
@@ -387,7 +388,9 @@ gỡ trong `onStop`.
   (`hoiai/`), và màn Thời gian dùng app (`SuDungActivity`, đọc `hop/sudung`).
 - **Lịch học** (`LichFragment`): thời khoá biểu cả tuần, xem mục "Thời khoá biểu chép
   sang".
-- **Cài đặt** (`CaiDatFragment`): cấu hình tablet qua lệnh `CAIDAT`, token bot để tải ảnh,
+- **Cài đặt** (`CaiDatFragment`): cấu hình tablet qua lệnh `CAIDAT`, nhóm "Laptop" (tỉ lệ
+  đổi phút chơi sang Netflix, và mục Bật/Tắt "Firefox chỉ được mở Netflix" ghi thẳng
+  `laptop/{maNha}`, chuyển từ tab Giờ chơi sang ngày 07/10/2026), token bot để tải ảnh,
   ghép máy và ghép ngược khi cài lại tablet.
 
 Tab Nhắn bỏ ngày 27/09/2026, xem "Lê Hòa nhắn tin bằng Telegram thật".

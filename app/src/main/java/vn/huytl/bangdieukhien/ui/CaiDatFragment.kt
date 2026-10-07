@@ -120,8 +120,8 @@ class CaiDatFragment : Fragment() {
             muc("Giờ dậy", Dinh.gio(c.gioDay), "Trước giờ này máy vẫn khoá") {
                 hoiGio(c.gioDay) { guiCaiDat("gioDay", it) }
             }
-            // Muc "Đổi sang Netflix" o day tu sang toi chieu 7/10/2026, roi chuyen xuong nhom
-            // Laptop ngay duoi, xem [veNhomLaptop].
+            // Muc ti le doi Netflix (luc do ten "Đổi sang Netflix") o day tu sang toi chieu
+            // 7/10/2026, roi chuyen xuong nhom Laptop ngay duoi, xem [veNhomLaptop].
         ))
 
         veNhomLaptop(c)
@@ -192,8 +192,10 @@ class CaiDatFragment : Fragment() {
     private fun veNhomLaptop(c: CaiDat?) {
         val cac = listOfNotNull(
             c?.tiLeNetflix?.let { tiLe ->
-                muc("Đổi sang Netflix", "1 phút chơi = $tiLe phút",
-                    "Lê Hòa đổi phút chơi tablet lấy phút xem trên laptop") {
+                // Anh Huy doi chu ngay 7/10/2026: ten cu "Đổi sang Netflix", so cu "1 phút chơi =
+                // 2 phút" dai qua, dong nho cu "Lê Hòa đổi phút chơi tablet lấy phút xem trên
+                // laptop". Hop chon khi cham van hoi "1 phút chơi đổi được" N phút Netflix.
+                muc("Tỷ lệ đổi Netflix", "1:$tiLe", "Đổi phút chơi sang xem Netflix") {
                     hoiTiLe(tiLe) { guiCaiDat("tiLeNetflix", it) }
                 }
             },

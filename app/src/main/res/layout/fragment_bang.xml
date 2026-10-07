@@ -239,10 +239,14 @@
                      ngay o man chinh tablet tu 1/10/2026, xem ThanhNgay.
 
                      Ben phai chi de xem: tu 29/9/2026 tablet bo tran chung 135 phut, moi phan co
-                     tran rieng, va so do la tong cac tran (215) tru so da duyet. Dong chu cuoi
-                     noi ro so da duyet bang bai va con so tong, de khong ai doc ra mot han muc
-                     chan nut Duyet. Tablet ban cu chua gui so da choi thi ca khoi hien nhu truoc,
-                     xem BangFragment.veNgay. -->
+                     tran rieng, va so do la tong cac tran (215) tru so da duyet. Tablet ban cu
+                     chua gui so da choi thi ca khoi hien nhu truoc, xem BangFragment.veNgay.
+
+                     Chieu 7/10/2026 anh Huy bo cac chu giai thich: nhan "Được chơi hôm nay" tren
+                     so ben trai, nhan "Còn kiếm được" tren so ben phai, dong cuoi "Đã duyệt bằng
+                     bài N phút, tối đa M phút một ngày (tổng trần riêng của từng phần)", va nhan
+                     "Cho chơi ngay" tren hang nut ben duoi. Chi con so, thanh, va dong cham mau
+                     chuThichNgay (chi hien khi da choi hay con giu phut). -->
                 <LinearLayout
                     android:id="@+id/khoiHanMuc"
                     android:layout_width="match_parent"
@@ -263,13 +267,6 @@
                             android:orientation="vertical">
 
                             <TextView
-                                android:id="@+id/nhanDuocChoi"
-                                style="@style/Chu.Nho"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/bang_duoc_choi_ngay" />
-
-                            <TextView
                                 android:id="@+id/duocChoi"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -285,12 +282,6 @@
                             android:layout_weight="1"
                             android:gravity="end"
                             android:orientation="vertical">
-
-                            <TextView
-                                style="@style/Chu.Nho"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/bang_con_lai_ngay" />
 
                             <TextView
                                 android:id="@+id/conLaiNgay"
@@ -329,27 +320,13 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:visibility="gone" />
-
-                    <TextView
-                        android:id="@+id/chuTranNgay"
-                        style="@style/Chu.Nho"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:visibility="gone" />
                 </LinearLayout>
 
-                <TextView
-                    style="@style/Chu.Nho"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:text="@string/bang_cho_choi" />
-
+                <!-- Hang nut cho gio. Le tren 16dp thay cho nhan "Cho chơi ngay" (bo 7/10/2026). -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="16dp"
                     android:baselineAligned="false"
                     android:orientation="horizontal">
 

@@ -42,21 +42,12 @@
     <string name="bang_da_duyet">Đã duyệt, chưa bấm chơi</string>
     <string name="bang_cho_duyet">Đang chờ duyệt bài</string>
     <string name="bang_che_do_ba">Đang mở toàn bộ máy</string>
-    <!-- Tu 29/9/2026 tablet khong con tran chung moi ngay (truoc la 135 phut): moi phan co
-         tran rieng, va "con kiem duoc" la tong cac tran do tru phut da duyet, chi de xem.
-         Truoc ngay do nhan ben phai la "Còn lại hôm nay", doc nhu mot han muc chan nut Duyet.
-         Dong "Hạn mức hôm nay" khong con cho nao dung nen da bo. -->
-    <string name="bang_da_duyet_ngay">Đã duyệt hôm nay</string>
-    <string name="bang_con_lai_ngay">Còn kiếm được</string>
-    <string name="bang_tran_ngay">Tối đa %1$d phút một ngày, là tổng trần riêng của từng phần.</string>
-    <string name="bang_tran_ngay_du">Hôm nay đã đủ tổng trần riêng của các phần.</string>
-    <!-- Tu 1/10/2026, khi tablet gui so da choi: so ben trai la "được chơi" giong thanh ngay
-         ben tablet (da choi cong dang giu, gom ca gio nguoi lon cho). So da duyet bang bai
-         xuong dong chu cuoi. Ba chuoi tren chi con cho tablet ban cu. -->
-    <string name="bang_duoc_choi_ngay">Được chơi hôm nay</string>
-    <string name="bang_bai_ngay">Đã duyệt bằng bài %1$d phút, tối đa %2$d phút một ngày (tổng trần riêng của từng phần).</string>
-    <string name="bang_bai_ngay_du">Đã duyệt bằng bài %1$d phút, đã đủ tổng trần riêng của các phần.</string>
-    <string name="bang_cho_choi">Cho chơi ngay</string>
+    <!-- Chieu 7/10/2026 anh Huy bo cac chu giai thich cua khoi so trong ngay va hang nut cho
+         gio o tab Gio choi, nen bo luon cac chuoi bang_da_duyet_ngay ("Đã duyệt hôm nay"),
+         bang_duoc_choi_ngay ("Được chơi hôm nay"), bang_con_lai_ngay ("Còn kiếm được"),
+         bang_tran_ngay, bang_tran_ngay_du, bang_bai_ngay ("Đã duyệt bằng bài %1$d phút, tối đa
+         %2$d phút một ngày (tổng trần riêng của từng phần)."), bang_bai_ngay_du va bang_cho_choi
+         ("Cho chơi ngay"). Xem BangFragment.veNgay. -->
     <!-- Quy gio choi (29/9/2026): phut lam tren may ma tran rieng cua phan do cat. -->
     <string name="bang_quy_gio">Quỹ giờ chơi</string>
     <string name="bang_cap_quy">Cấp từ quỹ</string>

@@ -443,47 +443,34 @@ class BangFragment : Fragment() {
      * hôm nay", chi dem phut doi bang bai, nen ba cho 30 phut thi hai may noi hai so khac nhau.
      *
      * Tu 29/9/2026 tablet bo tran chung (truoc la 135 phut): [TrangThai.phutConLai] la tong
-     * tran rieng cua cac phan tru so da duyet, chi de xem. Dong chu cuoi ghi ro tong do, de
-     * "Còn kiếm được" khong bi doc thanh mot han muc chan nut Duyet nhu truoc day.
+     * tran rieng cua cac phan tru so da duyet, chi de xem.
      *
-     * Tong lay tu hai so tablet gui, khong viet cung 215 o day: tablet doi tran thi dong nay
-     * doi theo. Da duyet toi hay qua tong thi con lai la 0 va khong con suy ra duoc tong,
-     * nen luc do chi noi la da du.
+     * Chieu 7/10/2026 anh Huy bo het chu giai thich cua khoi nay: nhan "Được chơi hôm nay" (tablet
+     * ban cu: "Đã duyệt hôm nay"), nhan "Còn kiếm được", va dong cuoi "Đã duyệt bằng bài N phút,
+     * tối đa M phút một ngày (tổng trần riêng của từng phần)" (tablet ban cu: "Tối đa M phút
+     * một ngày..."). Dong cuoi do tung de "Còn kiếm được" khong bi doc thanh mot han muc chan nut
+     * Duyet, va de Ba Huy biet bai lam ra bao nhieu gio; gio chi con hai so, thanh va dong cham
+     * mau. Tong M lay tu hai so tablet gui, [tranBai], van dung de ve thanh cho tablet ban cu.
      *
-     * Tablet ban cu chua gui so da choi thi hien nhu truoc 1/10/2026. Ban cu hon nua (chua
-     * gui quyGio) van dung tran chung that, nen an dong chu: noi "tong tran rieng" voi may
-     * do la noi sai.
+     * Tablet ban cu chua gui so da choi thi hien nhu truoc 1/10/2026.
      */
     private fun veNgay(tt: TrangThai) {
         val tranBai = tt.phutDaDuyet + tt.phutConLai
         val so = tt.soNgay()
         if (so == null) {
-            b.nhanDuocChoi.setText(R.string.bang_da_duyet_ngay)
             b.duocChoi.text = Dinh.phut(tt.phutDaDuyet)
             b.conLaiNgay.text = Dinh.phut(tt.phutConLai)
             ThanhNgay.ve(b.khungNgay, b.phanDaChoi, b.phanCon, 0, tt.phutDaDuyet, tranBai)
             b.chuThichNgay.visibility = View.GONE
-            b.chuTranNgay.visibility = if (tt.quyGio != null) View.VISIBLE else View.GONE
-            b.chuTranNgay.text =
-                if (tt.phutConLai > 0) getString(R.string.bang_tran_ngay, tranBai)
-                else getString(R.string.bang_tran_ngay_du)
             return
         }
 
-        b.nhanDuocChoi.setText(R.string.bang_duoc_choi_ngay)
         b.duocChoi.text = Dinh.phut(so.duoc)
         b.conLaiNgay.text = Dinh.phut(so.conKiem)
         ThanhNgay.ve(b.khungNgay, b.phanDaChoi, b.phanCon, so.daChoi, so.con, so.tong)
         val chuThich = ThanhNgay.chuThich(requireContext(), so)
         b.chuThichNgay.text = chuThich
         b.chuThichNgay.visibility = if (chuThich.isEmpty()) View.GONE else View.VISIBLE
-        // So da duyet bang bai van can cho Ba Huy (bai lam ra bao nhieu gio), nhung khong
-        // con la con so to: no khong cong hay tru duoc voi hai khuc tren thanh, vi phut bi
-        // bot hay het han van nam trong so da duyet.
-        b.chuTranNgay.visibility = View.VISIBLE
-        b.chuTranNgay.text =
-            if (tt.phutConLai > 0) getString(R.string.bang_bai_ngay, tt.phutDaDuyet, tranBai)
-            else getString(R.string.bang_bai_ngay_du, tt.phutDaDuyet)
     }
 
     /**

@@ -901,8 +901,9 @@ class BangFragment : Fragment() {
     }
 
     /**
-     * Hang "Netflix trên laptop" (7/10/2026). Chay moi giay tu [nhip]: luc con dang xem,
-     * laptop chi ghi moc het gio mot lan, may nay tu dem lui.
+     * Hang "Xem Netflix" (7/10/2026; toi chieu hom do ten "Netflix trên laptop", anh Huy doi cho
+     * gon). Chay moi giay tu [nhip]: luc con dang xem, laptop chi ghi moc het gio mot lan, may nay
+     * tu dem lui.
      *
      * Hang mo, khoa web tung nam ngay duoi hang nay; chieu 7/10/2026 anh Huy chuyen no sang tab
      * Cai dat thanh muc "Firefox chỉ được mở Netflix", xem CaiDatFragment.
@@ -926,24 +927,62 @@ class BangFragment : Fragment() {
      * Ba Huy cho them phut Netflix, khong tru phut choi cua tablet (anh Huy chon 7/10/2026).
      * Phieu ghi thang vao laptop/{maNha}/cap, khong qua tablet; laptop nhan trong vong mot
      * phut neu dang mo. Phut chi dung trong ngay.
+     *
+     * Cac muc o [MUC_CAP_LAPTOP], dong cuoi "Phút khác" mo o go so ([hoiPhutKhacLaptop]); muc
+     * 45 phut va dong do anh Huy them chieu 7/10/2026.
      */
     private fun hoiCapLaptop() {
-        val cac = MUC_CAP_LAPTOP.map { Dinh.phut(it) }.toTypedArray()
+        val cac = (MUC_CAP_LAPTOP.map { Dinh.phut(it) } + "Phút khác").toTypedArray()
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Cho thêm phút Netflix")
             .setItems(cac) { _, i ->
-                val phut = MUC_CAP_LAPTOP[i]
-                Kho.capNetflix(requireContext(), phut) { kq ->
-                    val ct = context ?: return@capNetflix
-                    Dinh.noi(
-                        ct,
-                        if (kq is Kho.KetQua.Hong) kq.viSao
-                        else "Đã gửi ${Dinh.phut(phut)} Netflix, laptop nhận trong khoảng một phút."
-                    )
-                }
+                if (i < MUC_CAP_LAPTOP.size) capLaptop(MUC_CAP_LAPTOP[i]) else hoiPhutKhacLaptop()
             }
             .setNegativeButton(R.string.huy, null)
             .show()
+    }
+
+    /**
+     * Dong "Phút khác" cua [hoiCapLaptop]: go so phut, tu 1 toi [CAP_LAPTOP_TOI_DA] (anh Huy chon
+     * 7/10/2026). Tran do la tran luat Firestore dat cho phieu laptop/{maNha}/cap (phut > 0 va
+     * <= 600, xem firestore.rules): vuot thi phieu bi tu choi ma Ba Huy chi thay mot cau loi
+     * quyen, nen chan truoc o day. So sai thi bao ngay duoi o va khong dong hop, y nhu
+     * [hoiTinCo]: dong lai la mat so vua go.
+     */
+    private fun hoiPhutKhacLaptop() {
+        val ct = requireContext()
+        val o = EditText(ct).apply {
+            hint = "Số phút"
+            inputType = InputType.TYPE_CLASS_NUMBER
+            setPadding(48, 32, 48, 32)
+        }
+        val hop = MaterialAlertDialogBuilder(ct)
+            .setTitle("Cho thêm bao nhiêu phút?")
+            .setMessage("Từ 1 tới $CAP_LAPTOP_TOI_DA phút.")
+            .setView(o)
+            .setPositiveButton("Cho", null)
+            .setNegativeButton(R.string.huy, null)
+            .show()
+        hop.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener {
+            val phut = o.text.toString().trim().toIntOrNull()
+            if (phut == null || phut < 1 || phut > CAP_LAPTOP_TOI_DA) {
+                o.error = "Gõ một số từ 1 tới $CAP_LAPTOP_TOI_DA."
+            } else {
+                hop.dismiss()
+                capLaptop(phut)
+            }
+        }
+    }
+
+    private fun capLaptop(phut: Int) {
+        Kho.capNetflix(requireContext(), phut) { kq ->
+            val ct = context ?: return@capNetflix
+            Dinh.noi(
+                ct,
+                if (kq is Kho.KetQua.Hong) kq.viSao
+                else "Đã gửi ${Dinh.phut(phut)} Netflix, laptop nhận trong khoảng một phút."
+            )
+        }
     }
 
     /**
@@ -1161,8 +1200,14 @@ class BangFragment : Fragment() {
          */
         private val MUC_CAP_QUY = listOf(15, 30, 45, 60)
 
-        /** So phut Netflix Ba Huy cho them, xem [hoiCapLaptop]. */
-        private val MUC_CAP_LAPTOP = listOf(15, 30, 60)
+        /** So phut Netflix Ba Huy cho them, xem [hoiCapLaptop]. Muc 45 them chieu 7/10/2026. */
+        private val MUC_CAP_LAPTOP = listOf(15, 30, 45, 60)
+
+        /**
+         * So phut lon nhat go duoc o "Phút khác", xem [hoiPhutKhacLaptop]. Phai bang tran
+         * request.resource.data.phut <= 600 cua phieu cap trong firestore.rules.
+         */
+        private const val CAP_LAPTOP_TOI_DA = 600
 
         /** Cho ban trang thai tu may chu toi da bay lau roi van hoi tablet. */
         private const val CHO_BAN_DAU_MS = 5_000L

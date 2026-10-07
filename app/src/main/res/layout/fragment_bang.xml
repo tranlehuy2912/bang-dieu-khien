@@ -443,7 +443,8 @@
                         android:text="@string/bang_cap_quy" />
                 </LinearLayout>
 
-                <!-- Hang "Netflix trên laptop" (7/10/2026): so phut laptop con, nut cap them. An
+                <!-- Hang "Xem Netflix" (7/10/2026, ten dau la "Netflix trên laptop"): so phut
+                     laptop con, nut cap them (15, 30, 45, 60 phut hay go so khac). An
                      khi laptop chua noi vao nha (chua co document laptop/{maNha}). So nay laptop
                      ghi, khong qua tablet, nen khong mo di khi tablet khong tra loi. -->
                 <LinearLayout

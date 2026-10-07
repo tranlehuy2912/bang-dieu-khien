@@ -928,11 +928,11 @@ class BangFragment : Fragment() {
      * Phieu ghi thang vao laptop/{maNha}/cap, khong qua tablet; laptop nhan trong vong mot
      * phut neu dang mo. Phut chi dung trong ngay.
      *
-     * Cac muc o [MUC_CAP_LAPTOP], dong cuoi "Phút khác" mo o go so ([hoiPhutKhacLaptop]); muc
-     * 45 phut va dong do anh Huy them chieu 7/10/2026.
+     * Cac muc o [MUC_CAP_LAPTOP], dong cuoi "Khác" mo o go so ([hoiPhutKhacLaptop]); muc 45 phut
+     * va dong do anh Huy them chieu 7/10/2026, dong do luc dau ghi "Phút khác" roi anh doi ngay.
      */
     private fun hoiCapLaptop() {
-        val cac = (MUC_CAP_LAPTOP.map { Dinh.phut(it) } + "Phút khác").toTypedArray()
+        val cac = (MUC_CAP_LAPTOP.map { Dinh.phut(it) } + "Khác").toTypedArray()
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Cho thêm phút Netflix")
             .setItems(cac) { _, i ->
@@ -943,7 +943,7 @@ class BangFragment : Fragment() {
     }
 
     /**
-     * Dong "Phút khác" cua [hoiCapLaptop]: go so phut, tu 1 toi [CAP_LAPTOP_TOI_DA] (anh Huy chon
+     * Dong "Khác" cua [hoiCapLaptop]: go so phut, tu 1 toi [CAP_LAPTOP_TOI_DA] (anh Huy chon
      * 7/10/2026). Tran do la tran luat Firestore dat cho phieu laptop/{maNha}/cap (phut > 0 va
      * <= 600, xem firestore.rules): vuot thi phieu bi tu choi ma Ba Huy chi thay mot cau loi
      * quyen, nen chan truoc o day. So sai thi bao ngay duoi o va khong dong hop, y nhu
@@ -1204,7 +1204,7 @@ class BangFragment : Fragment() {
         private val MUC_CAP_LAPTOP = listOf(15, 30, 45, 60)
 
         /**
-         * So phut lon nhat go duoc o "Phút khác", xem [hoiPhutKhacLaptop]. Phai bang tran
+         * So phut lon nhat go duoc o dong "Khác", xem [hoiPhutKhacLaptop]. Phai bang tran
          * request.resource.data.phut <= 600 cua phieu cap trong firestore.rules.
          */
         private const val CAP_LAPTOP_TOI_DA = 600

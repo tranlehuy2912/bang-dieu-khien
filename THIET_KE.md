@@ -374,7 +374,7 @@ gỡ trong `onStop`.
 
 - **Giờ chơi** (`BangFragment`, id `tab_bang`): trạng thái tablet và đồng hồ, cho thêm
   hay bớt giờ, quỹ giờ chơi với nút cấp quỹ (`CAPQUY`), hàng "Xem Netflix" (số phút
-  laptop còn, nút "Cấp thêm" 15, 30, 45, 60 phút hay gõ số từ 1 tới 600 ở dòng "Phút khác"), thẻ đề thi thử ngay dưới thẻ chính (từ 01/10/2026 mỗi
+  laptop còn, nút "Cấp thêm" 15, 30, 45, 60 phút hay gõ số từ 1 tới 600 ở dòng "Khác"), thẻ đề thi thử ngay dưới thẻ chính (từ 01/10/2026 mỗi
   môn một hàng: "Đề thi thử Toán", "Đề thi thử KHTN", "Đề thi thử Tiếng Anh", môn không
   có đề thì không có hàng; nút "Xem đề" liệt kê tình trạng từng đề, chọn một đề thì hỏi
   lại rồi gửi `MODETHI`; các hàng này nằm trong thẻ chính tới ngày 07/10/2026), thẻ "Bài

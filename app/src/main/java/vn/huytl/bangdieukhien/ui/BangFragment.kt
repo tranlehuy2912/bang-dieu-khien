@@ -168,6 +168,7 @@ class BangFragment : Fragment() {
         b.choKhac.setOnClickListener { hoiSoPhut() }
         b.nutCapQuy.setOnClickListener { hoiCapQuy() }
         b.nutCapLaptop.setOnClickListener { hoiCapLaptop() }
+        b.nutWebLaptop.setOnClickListener { doiWebLaptop() }
         // Nut "Xem đề" cua tung mon gan luc dung hang, xem [veDeThi].
 
         b.nutDung.setOnClickListener {
@@ -905,9 +906,19 @@ class BangFragment : Fragment() {
         val l = laptop
         if (l == null) {
             b.hangLaptop.visibility = View.GONE
+            b.hangWebLaptop.visibility = View.GONE
             return
         }
         b.hangLaptop.visibility = View.VISIBLE
+        b.hangWebLaptop.visibility = View.VISIBLE
+        b.chuWebLaptop.text = when {
+            l.moWeb && l.webDangMo -> "Web đang mở. Mở lại Firefox thì mới theo."
+            l.moWeb && l.dangDung -> "Lê Hòa đang dùng laptop nên web vẫn khoá."
+            l.moWeb -> "Đang chờ laptop mở web."
+            l.webDangMo -> "Đang chờ laptop khoá web."
+            else -> "Web khoá, Firefox chỉ vào Netflix."
+        }
+        b.nutWebLaptop.text = if (l.moWeb) "Khoá web" else "Mở web"
         val con = l.conLai()
         b.soLaptop.text = when {
             con <= 0L -> "Hết phút"
@@ -938,6 +949,15 @@ class BangFragment : Fragment() {
             }
             .setNegativeButton(R.string.huy, null)
             .show()
+    }
+
+    /** Bat tat [Duong.F_MO_WEB] cua laptop. Khong hoi lai: bam lan nua la doi nguoc. */
+    private fun doiWebLaptop() {
+        val l = laptop ?: return
+        Kho.datMoWeb(requireContext(), !l.moWeb) { kq ->
+            val ct = context ?: return@datMoWeb
+            if (kq is Kho.KetQua.Hong) Dinh.noi(ct, kq.viSao)
+        }
     }
 
     /**

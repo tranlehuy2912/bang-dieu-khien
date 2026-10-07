@@ -490,6 +490,36 @@
                         android:text="@string/bang_cap_laptop" />
                 </LinearLayout>
 
+                <!-- Mo hay khoa web tren laptop (7/10/2026). Mac dinh Firefox ca may chi vao
+                     Netflix; nut nay go luat do cho Ba Huy dung, khong co han. -->
+                <LinearLayout
+                    android:id="@+id/hangWebLaptop"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:baselineAligned="false"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/chuWebLaptop"
+                        style="@style/Chu.Nho"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/nutWebLaptop"
+                        style="@style/Nut.Phien"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="16dp"
+                        android:paddingRight="16dp"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp" />
+                </LinearLayout>
+
                 <!-- Cac hang de thi thu (1/10/2026): moi mon mot hang item_de_thi, thu tu Toan,
                      KHTN, Tieng Anh, mon khong co de thi khong co hang. BangFragment.veDeThi dung
                      hang bang code vi so mon di theo du lieu tablet gui. Truoc ngay do cho nay la

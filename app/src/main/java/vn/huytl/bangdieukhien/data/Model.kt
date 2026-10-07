@@ -786,7 +786,11 @@ data class TinhTrangLaptop(
     val ketThucLuc: Long,
     val conLaiMs: Long,
     val dangDung: Boolean,
-    val capNhatLuc: Long
+    val capNhatLuc: Long,
+    /** Ba Huy da bam "Mở web" ([Duong.F_MO_WEB]). */
+    val moWeb: Boolean,
+    /** Laptop bao luat chan web dang go that ([Duong.F_WEB_DANG_MO]). */
+    val webDangMo: Boolean
 ) {
     fun conLai(bayGio: Long = System.currentTimeMillis()): Long =
         if (ketThucLuc > 0L) (ketThucLuc - bayGio).coerceAtLeast(0L) else conLaiMs
@@ -799,7 +803,9 @@ data class TinhTrangLaptop(
                 ketThucLuc = d.getLong(Duong.F_KET_THUC_LUC) ?: 0L,
                 conLaiMs = d.getLong(Duong.F_CON_LAI_MS) ?: 0L,
                 dangDung = d.getBoolean(Duong.F_DANG_DUNG) ?: false,
-                capNhatLuc = d.getLong(Duong.F_CAP_NHAT_LUC) ?: 0L
+                capNhatLuc = d.getLong(Duong.F_CAP_NHAT_LUC) ?: 0L,
+                moWeb = d.getBoolean(Duong.F_MO_WEB) ?: false,
+                webDangMo = d.getBoolean(Duong.F_WEB_DANG_MO) ?: false
             )
         }
     }

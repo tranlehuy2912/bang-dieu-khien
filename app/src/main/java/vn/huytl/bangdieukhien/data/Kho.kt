@@ -285,6 +285,23 @@ object Kho {
             }
     }
 
+    /**
+     * Mo hay khoa web tren laptop (7/10/2026): ghi [Duong.F_MO_WEB], truong duy nhat cua
+     * laptop/{maNha} ma nguoi nha duoc ghi. Laptop doc trong vong mot phut roi go hay dat
+     * luat chan web cua Firefox; Firefox phai mo lai moi theo luat moi.
+     */
+    fun datMoWeb(context: Context, mo: Boolean, xong: (KetQua) -> Unit) {
+        val ma = Nha.maNha(context)
+        val noi = db(context)?.takeIf { ma.isNotEmpty() }?.collection(Duong.LAPTOP)?.document(ma)
+            ?: return xong(KetQua.Hong(THIEU_FIREBASE))
+        noi.update(Duong.F_MO_WEB, mo)
+            .addOnSuccessListener { xong(KetQua.Xong) }
+            .addOnFailureListener {
+                Log.w(TAG, "doi mo web hong", it)
+                xong(KetQua.Hong(loiNguoiDoc(it)))
+            }
+    }
+
     fun ngheCaiDat(context: Context, khi: (CaiDat?) -> Unit): ListenerRegistration? =
         hop(context, Duong.D_CAI_DAT)?.addSnapshotListener { snap, loi ->
             if (loi == null) khi(CaiDat.doc(snap))

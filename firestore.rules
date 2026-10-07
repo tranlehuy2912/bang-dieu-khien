@@ -150,8 +150,12 @@ service cloud.firestore {
 
     match /laptop/{nhaId} {
       allow read: if laNguoiNha(nhaId) || laLaptop(nhaId);
-      allow update: if laLaptop(nhaId)
-        && request.resource.data.uidLaptop == resource.data.uidLaptop;
+      // Nguoi nha chi doi duoc moWeb (Ba Huy bam Mo web, Khoa web tren Bang dieu khien).
+      allow update: if (laLaptop(nhaId)
+          && request.resource.data.uidLaptop == resource.data.uidLaptop)
+        || (laNguoiNha(nhaId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['moWeb'])
+          && request.resource.data.moWeb is bool);
       allow create, delete: if false;
 
       // Phieu cap gio Netflix. Nguoi nha tao (tablet khi Le Hoa doi phut choi, Bang dieu

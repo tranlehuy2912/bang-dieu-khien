@@ -35,15 +35,9 @@ object ViecNha {
         val tongPhut: Int get() = cac.sumOf { it.phut }
         val ke: String get() = cac.joinToString(", ") { it.ten }
 
-        /**
-         * Tablet chac chan da bo qua dot nay.
-         *
-         * Tablet bo mot dot no chua tung thay ma luc da cu hon [Duong.QUA_CU_MS]. Xong
-         * het ma van nam do lau hon the nghia la luc bam xong tablet dang tat, va no se
-         * khong tu cong nua. Phai bam Gui lai de ghi lai moc luc.
-         */
-        fun tabletDaBoQua(bayGio: Long = System.currentTimeMillis()): Boolean =
-            xongHet && luc > 0L && bayGio - luc > Duong.QUA_CU_MS
+        // Truoc 8/10/2026 co ham tabletDaBoQua: tablet bo dot chua tung thay ma cu hon nua
+        // tieng, nen xong het ma nam do lau hon the thi phai bam Gui lai. Tu ngay do tablet
+        // nhan dot do du tre bao lau (anh Huy chot), ham do bo.
 
         fun xong(ten: String, bayGio: Long) =
             copy(luc = bayGio, cac = cac.map { if (it.ten == ten) it.copy(xong = true) else it })
@@ -53,7 +47,10 @@ object ViecNha {
         /** Danh sach rong la cach noi "bo het" voi tablet. Tablet thay thi xoa document. */
         fun boHet(bayGio: Long) = copy(luc = bayGio, cac = emptyList())
 
-        /** Chi doi moc luc, de tablet dang bo qua vi qua cu thi nhan lai. */
+        /**
+         * Chi doi moc luc: ghi lai document de tablet doc lai. Truoc 8/10/2026 nut Gui lai la
+         * cach duy nhat de tablet nhan dot da qua nua tieng; nay chi con de huc tablet doc lai.
+         */
         fun guiLai(bayGio: Long) = copy(luc = bayGio)
     }
 

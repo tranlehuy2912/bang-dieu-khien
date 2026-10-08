@@ -1,8 +1,6 @@
 package vn.huytl.bangdieukhien.ui
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,17 +21,8 @@ class ViecNhaFragment : Fragment() {
 
     private var khoi: KhoiViecNha? = null
 
-    /**
-     * Canh "tablet bo qua" tinh theo gio, khong theo Firestore, nen phai xet lai deu dan.
-     * Xem [KhoiViecNha.moiGiay].
-     */
-    private val tay = Handler(Looper.getMainLooper())
-    private val nhip = object : Runnable {
-        override fun run() {
-            khoi?.moiGiay()
-            tay.postDelayed(this, 1000L)
-        }
-    }
+    // Nhip moi giay de doi chu sang canh "tablet bo qua" bo ngay 8/10/2026, cung luc tablet
+    // khong bo dot viec nha cu nua.
 
     override fun onCreateView(i: LayoutInflater, c: ViewGroup?, s: Bundle?): View {
         _b = FragmentViecNhaBinding.inflate(i, c, false)
@@ -47,11 +36,9 @@ class ViecNhaFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         khoi?.batNghe()
-        tay.post(nhip)
     }
 
     override fun onStop() {
-        tay.removeCallbacks(nhip)
         khoi?.goNghe()
         super.onStop()
     }

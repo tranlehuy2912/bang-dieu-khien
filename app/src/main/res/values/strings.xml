@@ -127,7 +127,6 @@
     <string name="viec_dang_lam">%1$s giao %2$d việc, tổng %3$s.</string>
     <!-- %1$s la luc bam gan nhat, ke ca lan bam Gui lai, khong phai luc xong viec. -->
     <string name="viec_cho_nhan">Đã xong hết, đang chờ tablet nhận để cộng %2$d phút. Lần bấm gần nhất lúc %1$s.</string>
-    <string name="viec_bi_bo_qua">Đã xong hết nhưng tablet chưa nhận, nên chưa cộng %2$d phút. Lần bấm gần nhất lúc %1$s, đã quá %3$s nên tablet sẽ bỏ qua.</string>
     <string name="viec_xong">Xong</string>
     <string name="viec_bo">Bỏ</string>
     <string name="viec_da_xong">Đã xong</string>

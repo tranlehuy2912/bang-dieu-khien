@@ -114,18 +114,8 @@ class ViecNhaTest {
         assertEquals(d.cac, guiLai.cac)
     }
 
-    @Test
-    fun tablet_bo_qua_chi_khi_xong_het_va_qua_nua_tieng() {
-        val bayGio = 10_000_000L
-        val cu = bayGio - Duong.QUA_CU_MS - 1
-        assertTrue(dot(viec("Quét nhà", 10, true), luc = cu).tabletDaBoQua(bayGio))
-        // Con viec chua xong: tablet dang khoa hay chua nhan, khong phai chuyen bo qua.
-        assertFalse(dot(viec("Quét nhà", 10, false), luc = cu).tabletDaBoQua(bayGio))
-        // Moi xong: tablet con nhan duoc.
-        assertFalse(dot(viec("Quét nhà", 10, true), luc = bayGio - 60_000L).tabletDaBoQua(bayGio))
-        // Khong co moc luc thi khong ket luan gi.
-        assertFalse(dot(viec("Quét nhà", 10, true), luc = 0L).tabletDaBoQua(bayGio))
-    }
+    // Ca "tablet_bo_qua_chi_khi_xong_het_va_qua_nua_tieng" bo ngay 8/10/2026: tablet khong bo
+    // dot viec nha cu nua (anh Huy chot), nen Dot.tabletDaBoQua cung bo.
 
     @Test
     fun doc_danh_sach_chung() {

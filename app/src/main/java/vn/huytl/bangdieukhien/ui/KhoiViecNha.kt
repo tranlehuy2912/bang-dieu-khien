@@ -67,9 +67,6 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentViecNhaBinding
      */
     private var conSong = true
 
-    /** Lan ve gan nhat co ve canh "tablet bo qua" khong. Xem [moiGiay]. */
-    private var daVeBoQua = false
-
     init {
         b.nutSuaViec.setOnClickListener { hoiSuaDanhSach() }
         ve()
@@ -109,17 +106,9 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentViecNhaBinding
         ngheDanhSach = null
     }
 
-    /**
-     * Goi moi giay tu [ViecNhaFragment], trong luc tab Viec nha dang mo.
-     *
-     * Canh "tablet bo qua" tinh theo gio: dot xong het nam do qua nua tieng. Khong co
-     * nhip nay thi man mo san luc moc do di qua van ghi "dang cho tablet nhan", vi
-     * khong co gi tren Firestore doi de ve lai.
-     */
-    fun moiGiay() {
-        val d = dot ?: return
-        if (conSong && d.xongHet && d.tabletDaBoQua() != daVeBoQua) ve()
-    }
+    // Truoc 8/10/2026 co ham moiGiay, ViecNhaFragment goi moi giay de doi chu sang canh
+    // "tablet se bo qua" khi dot xong het nam do qua nua tieng. Tablet khong bo dot cu nua
+    // (anh Huy chot), nen canh do va nhip moi giay bo.
 
     /** Man hinh bo view. Tu day khong ve gi nua. */
     fun bo() {
@@ -194,25 +183,20 @@ class KhoiViecNha(private val ct: Context, private val b: FragmentViecNhaBinding
     /**
      * Dang co dot viec: tung viec voi nut Xong va Bo.
      *
-     * Xong het ma document con do nghia la tablet chua nhan. Qua nua tieng thi tablet
-     * se khong tu nhan nua, va dong chu doi mau de Ba Huy bam Gui lai.
+     * Xong het ma document con do nghia la tablet chua nhan: tablet tat hay mat mang, co
+     * mang lai la tu nhan va cong gio, tre bao lau cung vay (tu 8/10/2026; truoc do qua nua
+     * tieng thi tablet bo qua va dong chu doi mau de Ba Huy bam Gui lai).
      */
     private fun veDot(d: ViecNha.Dot) {
         val choNhan = d.xongHet
-        val boQua = d.tabletDaBoQua()
-        daVeBoQua = boQua
         val nguoi = if (d.ai == Nguoi.BA_HUY) ct.getString(R.string.parent_name) else "Bà nội"
         veChu(
             when {
                 loi.isNotEmpty() -> loi
-                boQua -> ct.getString(
-                    R.string.viec_bi_bo_qua, Dinh.lucNgan(d.luc), d.tongPhut,
-                    Dinh.phut((Duong.QUA_CU_MS / 60_000L).toInt())
-                )
                 choNhan -> ct.getString(R.string.viec_cho_nhan, Dinh.lucNgan(d.luc), d.tongPhut)
                 else -> ct.getString(R.string.viec_dang_lam, nguoi, d.cac.size, Dinh.phut(d.tongPhut))
             },
-            canhBao = loi.isNotEmpty() || boQua
+            canhBao = loi.isNotEmpty()
         )
         val lop = LayoutInflater.from(ct)
         d.cac.forEach { v ->

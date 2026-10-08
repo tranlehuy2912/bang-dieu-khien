@@ -203,7 +203,8 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 ├── hop/viecnha                 ◄── MÁY BÀ NỘI và BẢNG ĐIỀU KHIỂN ghi, bằng transaction;
 │                                   tablet xoá khi đợt đã khép
 │     maPhien   8 chữ số hex. Đổi mã là giao đợt mới, không phải sửa đợt đang chạy
-│     luc       lúc bấm lần cuối, để tablet bỏ đợt nó chưa thấy mà đã quá nửa tiếng
+│     luc       lúc bấm lần cuối. Trước 08/10/2026 tablet bỏ đợt nó chưa thấy mà đã quá
+│               nửa tiếng; từ ngày đó tablet nhận đợt dù trễ bao lâu
 │     viec[]    { ten, phut, xong }
 │     ai        người giao đợt này, bahuy | banoi. Thiếu là banoi (máy bà bản cũ).
 │               Chỉ để tablet gọi đúng người, không mở quyền gì

@@ -153,8 +153,9 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 ├── lenh/{id}                   ◄── ĐIỆN THOẠI ghi, tablet đọc rồi xoá
 │                                   Bảng điều khiển nghe cả hàng này: lệnh còn nằm đó là
 │                                   tablet chưa lấy, tab Giờ chơi hiện ra kèm nút Rút lại
-│                                   (xoá document trước khi tablet lấy). Quá 30 phút thì
-│                                   ghi là tablet sẽ bỏ qua
+│                                   (xoá document trước khi tablet lấy). Từ 08/10/2026
+│                                   tablet làm mọi lệnh dù trễ bao lâu (trước đó bỏ lệnh
+│                                   quá 30 phút)
 │     kieu   DUYET TUCHOI CHO BOT DUNG TIEP KHOA MOMAY DONGMAY XOAPIN CAIDAT
 │            NHAN        bỏ từ 27/09/2026 cùng khung chat trong app; tablet mới trả
 │                        lời "Không hiểu lệnh NHAN"
@@ -184,9 +185,13 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │                        từ cacDeThi (tablet bản cũ: deThi). Tablet mở cả đề lớp chưa
 │                        học tới phạm vi
 │     phut, baiId, chu, giaTri
-│     tao    epoch ms theo đồng hồ máy gửi. Tablet dùng trường này để xếp lệnh
-│            và bỏ lệnh quá nửa tiếng. taoLuc (server timestamp) chỉ Bảng điều
-│            khiển ghi, tablet không đọc
+│     tao    epoch ms theo đồng hồ máy gửi. Tablet dùng trường này để làm các lệnh
+│            đúng thứ tự bấm (cho 30 rồi bớt 30 tới trễ một lúc vẫn ra 0 phút); từ
+│            08/10/2026 không còn bỏ lệnh quá nửa tiếng. taoLuc (server timestamp)
+│            chỉ Bảng điều khiển ghi, tablet không đọc
+│     BOT    từ 08/10/2026 bớt được lúc nào như CHO: tablet trừ vào phiên đang chơi,
+│            phần đang tạm dừng hay phiếu chưa bắt đầu; không giữ phút nào thì không
+│            làm gì. Bảng điều khiển gửi số phút gõ ở nút "Bớt" (bản trước: 15)
 │     ai     bahuy | banoi. Từ 26/09/2026 luật không cho máy bà tạo lệnh nào
 │
 ├── hop/danhsachviec            ◄── BẢNG ĐIỀU KHIỂN ghi, máy bà đọc
@@ -252,8 +257,10 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 ├── socai/{cauId}_{luc}         ◄── chỉ TABLET ghi, mỗi lần chấm một câu là một document
 │                               sổ cái, để cài lại app thì kéo về được (keoSoVe)
 │
-├── nhatky/{yyyy-MM-dd}         ◄── chỉ TABLET ghi, gộp cả ngày vào một document
-└── hoiai/{yyyy-MM-dd}          ◄── chỉ TABLET ghi. Mảng dong, mỗi câu một phần tử
+├── nhatky/{yyyy-MM-dd}         ◄── chỉ TABLET ghi, gộp cả ngày vào một document, không
+│                                   giới hạn số dòng (trước 08/10/2026: 40). Giữ 7 ngày
+│                                   kể cả hôm nay, tablet tự xoá ngày cũ hơn mỗi ngày một lần
+└── hoiai/{yyyy-MM-dd}          ◄── chỉ TABLET ghi, giữ 7 ngày như nhatky/. Mảng dong, mỗi câu một phần tử
                                 "dd/MM HH:mm  [app]  câu". Chỗ con xuống dòng ghi thành
                                 " ↵ " (từ 28/09/2026), điện thoại đổi lại khi vẽ thẻ
 ```
@@ -372,8 +379,10 @@ của máy bà tới được đó.
 Sáu tab ở `ui/MainActivity`. Tab đang ẩn bị hạ về `CREATED` để listener Firestore được
 gỡ trong `onStop`.
 
-- **Giờ chơi** (`BangFragment`, id `tab_bang`): trạng thái tablet và đồng hồ, cho thêm
-  hay bớt giờ, quỹ giờ chơi với nút cấp quỹ (`CAPQUY`), hàng "Xem Netflix" (số phút
+- **Giờ chơi** (`BangFragment`, id `tab_bang`): trạng thái tablet và đồng hồ, hàng cho
+  thêm 15', 30', 45', "Khác" (vài mức sẵn và dòng "Khác" gõ 1 tới 600 phút) và nút "Bớt"
+  đỏ ở cuối hàng (gõ số phút; từ 08/10/2026, thay nút "Bớt 15'" chỉ hiện lúc đang chơi),
+  quỹ giờ chơi với nút cấp quỹ (`CAPQUY`), hàng "Xem Netflix" (số phút
   laptop còn, nút "Cấp thêm" 15, 30, 45, 60 phút hay gõ số từ 1 tới 600 ở dòng "Khác"), thẻ đề thi thử ngay dưới thẻ chính (từ 01/10/2026 mỗi
   môn một hàng: "Đề thi thử Toán", "Đề thi thử KHTN", "Đề thi thử Tiếng Anh", môn không
   có đề thì không có hàng; nút "Xem đề" liệt kê tình trạng từng đề, chọn một đề thì hỏi
@@ -384,8 +393,10 @@ gỡ trong `onStop`.
   sai khỏi danh sách cần sửa (`BOSUA`), duyệt hay không duyệt kèm lý do.
 - **Việc nhà** (`ViecNhaFragment`): giao, bấm xong, bỏ việc như máy bà, và nút "Sửa danh
   sách" (`hop/danhsachviec`).
-- **Nhật ký** (`NhatKyFragment`): nhật ký trong ngày (`nhatky/`), câu Lê Hòa hỏi AI
-  (`hoiai/`), và màn Thời gian dùng app (`SuDungActivity`, đọc `hop/sudung`).
+- **Nhật ký** (`NhatKyFragment`): nhật ký (`nhatky/`), câu Lê Hòa hỏi AI (`hoiai/`), và
+  màn Thời gian dùng app (`SuDungActivity`, đọc `hop/sudung`). Từ 08/10/2026 hàng nút 7
+  ngày ở đầu tab như màn Thời gian dùng app, đổi ngày thì cả ba thẻ đổi theo; tab đang mở
+  qua nửa đêm thì tự sang ngày mới.
 - **Lịch học** (`LichFragment`): thời khoá biểu cả tuần, xem mục "Thời khoá biểu chép
   sang".
 - **Cài đặt** (`CaiDatFragment`): cấu hình tablet qua lệnh `CAIDAT`, nhóm "Laptop" (tỉ lệ

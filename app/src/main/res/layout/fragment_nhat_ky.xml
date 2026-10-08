@@ -19,8 +19,8 @@
         android:paddingTop="16dp"
         android:paddingBottom="16dp">
 
-        <!-- Dong dau, cung co voi dong ten con o tab Gio choi. Ngay ben phai: qua nua
-             dem ma tab van mo thi biet so dang xem la cua ngay nao. -->
+        <!-- Dong dau, cung co voi dong ten con o tab Gio choi: ten ngay dang xem ("Hôm nay",
+             "Hôm qua", "Thứ hai 06/10"), ngay ben phai. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -29,6 +29,7 @@
             android:paddingBottom="12dp">
 
             <TextView
+                android:id="@+id/tieuDeNgay"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -45,8 +46,25 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
-        <!-- Nhat ky hom nay. Dai toi bon muoi dong, nen chi hien may dong moi nhat, bam
-             Xem ca ngay moi mo het. -->
+        <!-- Bay ngay gan nhat (8/10/2026, anh Huy muon xem nhu trang "Thời gian dùng app"):
+             doi ngay o day thi ca ba the ben duoi doi theo. Tablet giu nhat ky va so hoi AI
+             tren Firestore dung bay ngay roi tu xoa. Ngang chu khong doc, nhu trang kia. -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:clipToPadding="false"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/hangNgay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+
+        <!-- Nhat ky cua ngay dang xem. Tu 8/10/2026 khong gioi han so dong, nen chi hien
+             may dong moi nhat, bam Xem ca ngay moi mo het. -->
         <com.google.android.material.card.MaterialCardView
             style="@style/The"
             android:layout_width="match_parent"

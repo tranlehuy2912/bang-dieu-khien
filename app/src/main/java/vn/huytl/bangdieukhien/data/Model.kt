@@ -817,28 +817,24 @@ data class AppTrenMay(val goi: String, val ten: String)
 /**
  * Mot lenh may nay da go ma tablet chua lay. Xem [Kho.ngheLenhCho].
  *
- * Tablet lam xong lenh nao la xoa document do, ke ca lenh qua cu no bo qua. Nen lenh
- * con nam trong hang tuc la tablet chua nhan: dang mat mang, dang tat may, hay chi la
- * mot hai giay chua kip.
+ * Tablet lam xong lenh nao la xoa document do. Nen lenh con nam trong hang tuc la tablet
+ * chua nhan: dang mat mang, dang tat may, hay chi la mot hai giay chua kip.
  *
  * VI SAO PHAI HIEN RA. Firestore nhan lenh xong la nut tren man Bang sang lai, ma luc
- * do tablet chua lam gi. Tablet mat mang thi lenh nam cho toi nua tieng, roi tablet
- * co mang lai la van lam. Ba Huy bam "15'", khong thay gi doi, bam them lan nua: hai
- * lenh cho gio cong don, Le Hoa duoc 30 phut.
+ * do tablet chua lam gi. Tablet mat mang thi lenh nam cho, tablet co mang lai la van lam,
+ * tre bao lau cung lam (tu 8/10/2026; truoc do lenh cu hon nua tieng bi bo). Ba Huy bam
+ * "15'", khong thay gi doi, bam them lan nua: hai lenh cho gio cong don, Le Hoa duoc 30
+ * phut. Thua thi bam "Bớt", lenh bot di sau va tablet lam dung thu tu bam.
  */
 data class LenhCho(
     val id: String,
     val kieu: String,
     val phut: Int?,
-    /** Luc go, theo dong ho may nay. Tablet cung lay truong nay de bo lenh qua cu. */
+    /** Luc go, theo dong ho may nay. Tablet lay truong nay de lam cac lenh dung thu tu bam. */
     val tao: Long,
     /** Chua len duoc may chu: chinh dien thoai dang mat mang. */
     val chuaLenMang: Boolean
 ) {
-    /** Qua [Duong.QUA_CU_MS] thi tablet co lay duoc cung bo qua. */
-    fun quaHan(bayGio: Long = System.currentTimeMillis()): Boolean =
-        tao > 0L && bayGio - tao > Duong.QUA_CU_MS
-
     /**
      * Co dang hien tren man Bang khong.
      *

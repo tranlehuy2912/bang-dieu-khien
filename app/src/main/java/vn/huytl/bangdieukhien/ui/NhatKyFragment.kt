@@ -1,7 +1,11 @@
 package vn.huytl.bangdieukhien.ui
 
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
@@ -11,6 +15,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.google.android.material.button.MaterialButton
 import com.google.firebase.firestore.ListenerRegistration
 import vn.huytl.bangdieukhien.R
 import vn.huytl.bangdieukhien.data.Kho
@@ -18,13 +23,18 @@ import vn.huytl.bangdieukhien.data.SoSuDung
 import vn.huytl.bangdieukhien.databinding.FragmentNhatKyBinding
 import vn.huytl.bangdieukhien.databinding.ItemAppHomNayBinding
 import vn.huytl.bangdieukhien.databinding.ItemNhatKyBinding
+import java.util.Calendar
 
 /**
- * Tab Nhat ky: chuyen gi da xay ra tren tablet hom nay. Ba the chi de doc, khong nut
- * lenh nao: nhat ky tablet ghi, dung app gi, con hoi AI gi.
+ * Tab Nhat ky: chuyen gi da xay ra tren tablet. Ba the chi de doc, khong nut lenh nao: nhat
+ * ky tablet ghi, dung app gi, con hoi AI gi.
  *
  * Truoc 27/9/2026 ba the nay nam cuoi tab Bang, duoi ca phan dieu khien gio lan the Viec
  * nha. Ba Huy muon tab do chi con phan dieu khien.
+ *
+ * Tu 8/10/2026 xem duoc [NGAY_XEM] ngay gan nhat, hang nut ngay o dau tab nhu trang "Thời gian
+ * dùng app" (anh Huy chot); truoc do chi co hom nay, du nhat ky cac ngay truoc van nam tren
+ * Firestore. Tablet giu nhatky/{ngay}, hoiai/{ngay} dung bay nhieu ngay roi tu xoa.
  */
 class NhatKyFragment : Fragment() {
 
@@ -35,8 +45,23 @@ class NhatKyFragment : Fragment() {
     private var ngheHoiAi: ListenerRegistration? = null
     private var ngheSuDung: ListenerRegistration? = null
 
+    /** Dang xem ngay nao: 0 la hom nay, 1 la hom qua. */
+    private var lui = 0
+
     /**
-     * Nhat ky va so hoi AI cua hom nay, giu lai de mo rong hay thu gon the ma khong
+     * Qua nua dem thi nghe lai document cua ngay moi. Truoc 8/10/2026 tab chi doc ngay luc mo
+     * (onStart), nen de tab mo qua nua dem thi van la nhat ky hom qua cho toi khi tab bi dung
+     * roi mo lai (thay tren may ao ngay 25/9/2026).
+     */
+    private val tay = Handler(Looper.getMainLooper())
+    private val quaNuaDem = Runnable {
+        if (_b == null) return@Runnable
+        ganNgay()
+        henNuaDem()
+    }
+
+    /**
+     * Nhat ky va so hoi AI cua ngay dang xem, giu lai de mo rong hay thu gon the ma khong
      * phai doi Firestore goi lai. Xem [veNhatKy], [veTheHoiAi].
      */
     private var nhatKy: List<String> = emptyList()
@@ -54,6 +79,7 @@ class NhatKyFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, s: Bundle?) {
+        lui = s?.getInt(K_LUI) ?: 0
         b.nutXemNhatKy.setOnClickListener {
             moNhatKy = !moNhatKy
             veNhatKy()
@@ -63,17 +89,53 @@ class NhatKyFragment : Fragment() {
             veTheHoiAi()
         }
         b.theSuDung.setOnClickListener {
-            startActivity(Intent(requireContext(), SuDungActivity::class.java))
+            startActivity(
+                Intent(requireContext(), SuDungActivity::class.java).putExtra(SuDungActivity.MO_NGAY, lui)
+            )
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(K_LUI, lui)
     }
 
     override fun onStart() {
         super.onStart()
-        val ct = requireContext()
         // Doc ngay moi lan mo tab chu khong mot lan luc tao: tab giu nguyen qua nua dem thi
-        // lan mo sau phai sang document cua ngay moi.
-        val ngay = Dinh.homNay()
-        b.ngayXem.text = Dinh.thuVaNgay(0)
+        // lan mo sau phai sang document cua ngay moi. Dang mo qua nua dem thi [quaNuaDem].
+        ganNgay()
+        ngheSuDung = Kho.ngheSuDung(requireContext()) { so ->
+            if (_b == null) return@ngheSuDung
+            soSuDung = so
+            daNhanSuDung = true
+            veSuDung()
+        }
+        veSuDung()
+        henNuaDem()
+        hoiTablet()
+    }
+
+    override fun onStop() {
+        tay.removeCallbacks(quaNuaDem)
+        ngheNhatKy?.remove()
+        ngheHoiAi?.remove()
+        ngheSuDung?.remove()
+        super.onStop()
+    }
+
+    /**
+     * Nghe nhat ky va so hoi AI cua ngay [lui], ve lai hang ngay va dong dau. Goi luc mo tab,
+     * luc doi ngay va luc qua nua dem: [lui] giu nguyen nen "hôm nay" thanh ngay moi.
+     */
+    private fun ganNgay() {
+        val ct = requireContext()
+        ngheNhatKy?.remove()
+        ngheHoiAi?.remove()
+        val ngay = Dinh.ngay(lui)
+        b.tieuDeNgay.text = Dinh.tenNgay(lui).replaceFirstChar { it.uppercase() }
+        b.ngayXem.text = Dinh.thuVaNgay(lui)
+        veHangNgay()
         ngheNhatKy = Kho.ngheNhatKy(ct, ngay) { dong ->
             if (_b == null) return@ngheNhatKy
             nhatKy = dong
@@ -84,23 +146,59 @@ class NhatKyFragment : Fragment() {
             hoiAiDong = dong
             veTheHoiAi()
         }
-        ngheSuDung = Kho.ngheSuDung(ct) { so ->
-            if (_b == null) return@ngheSuDung
-            soSuDung = so
-            daNhanSuDung = true
-            veSuDung()
-        }
         veNhatKy()
         veTheHoiAi()
         veSuDung()
-        hoiTablet()
     }
 
-    override fun onStop() {
-        ngheNhatKy?.remove()
-        ngheHoiAi?.remove()
-        ngheSuDung?.remove()
-        super.onStop()
+    /** Bay o ngay nhu trang "Thời gian dùng app" ([SuDungActivity.veHangNgay]). */
+    private fun veHangNgay() {
+        b.hangNgay.removeAllViews()
+        (0 until NGAY_XEM).forEach { n ->
+            val nut = LayoutInflater.from(requireContext())
+                .inflate(R.layout.item_ngay, b.hangNgay, false) as MaterialButton
+            nut.text = Dinh.tenNgay(n).replaceFirstChar { it.uppercase() }
+            nut.setOnClickListener { doiNgay(n) }
+            toMau(nut, dangXem = n == lui)
+            b.hangNgay.addView(nut)
+        }
+    }
+
+    private fun toMau(nut: MaterialButton, dangXem: Boolean) {
+        val ct = requireContext()
+        if (dangXem) {
+            nut.setBackgroundColor(ContextCompat.getColor(ct, R.color.brand))
+            nut.setTextColor(Color.WHITE)
+            nut.strokeColor = ColorStateList.valueOf(ContextCompat.getColor(ct, R.color.brand))
+        } else {
+            nut.setBackgroundColor(Color.TRANSPARENT)
+            nut.setTextColor(ContextCompat.getColor(ct, R.color.ink_soft))
+            nut.strokeColor = ColorStateList.valueOf(ContextCompat.getColor(ct, R.color.line))
+        }
+    }
+
+    private fun doiNgay(n: Int) {
+        if (n == lui) return
+        lui = n
+        // So cua ngay cu khong con dung: xoa truoc de khong ve nham trong luc cho Firestore.
+        nhatKy = emptyList()
+        hoiAiDong = emptyList()
+        moNhatKy = false
+        moHoiAi = false
+        ganNgay()
+    }
+
+    /** Hen [quaNuaDem] dung luc sang ngay moi (cong mot giay cho chac da qua 0:00). */
+    private fun henNuaDem() {
+        tay.removeCallbacks(quaNuaDem)
+        val mai = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 1)
+            set(Calendar.MILLISECOND, 0)
+        }
+        tay.postDelayed(quaNuaDem, (mai.timeInMillis - System.currentTimeMillis()).coerceAtLeast(1_000L))
     }
 
     override fun onDestroyView() {
@@ -122,8 +220,8 @@ class NhatKyFragment : Fragment() {
     /**
      * The nhat ky: [NHAT_KY_THU_GON] dong moi nhat, bam Xem ca ngay moi mo het.
      *
-     * Tablet giu toi bon muoi dong mot ngay. Hien het thi hai the Dung app, Hoi AI bi day
-     * xuong tan duoi.
+     * Tu 8/10/2026 tablet khong gioi han so dong mot ngay (truoc do 40). Hien het thi hai the
+     * Dung app, Hoi AI bi day xuong tan duoi.
      *
      * Gio mot cot, chu mot cot. Tablet ghi moi dong "17:30  chu", xem DayLog ben do; dong
      * nao khong dung khuon thi hien nguyen dong o cot chu.
@@ -162,14 +260,14 @@ class NhatKyFragment : Fragment() {
     }
 
     /**
-     * The "Hoi AI hom nay": moi cau hai phan, gio va ten app nhat o tren, cau con go
-     * o duoi, xuong dong dung cho con xuong dong. Hai cau ngan nhau bang mot dong trong.
+     * The "Hoi AI" cua ngay dang xem: moi cau hai phan, gio va ten app nhat o tren, cau con
+     * go o duoi, xuong dong dung cho con xuong dong. Hai cau ngan nhau bang mot dong trong.
      *
      * Tablet ghi moi cau thanh mot dong, [DongHoiAi] tach ra. Dong nao khong dung khuon
      * thi hien nguyen dong chu khong bo, de khong mat chu nao cua con.
      *
-     * Ngay tren dong da bo: the nay chi co hom nay, ma document tren Firestore cung
-     * dat ten theo ngay.
+     * Ngay tren dong da bo: the nay chi co mot ngay (ngay dang xem o hang ngay), ma document
+     * tren Firestore cung dat ten theo ngay.
      */
     private fun veHoiAi(dong: List<String>): CharSequence {
         if (dong.isEmpty()) return getString(R.string.bang_chua_hoi_ai)
@@ -193,15 +291,15 @@ class NhatKyFragment : Fragment() {
 
     /**
      * The "Dung app": tong thoi gian o dong ten the, ba app lau nhat moi app mot dong, va
-     * dai gio cua hom nay.
+     * dai gio cua ngay dang xem (so nay tablet giu bay ngay tu truoc 8/10/2026).
      *
      * Tablet chi gui so nay khi nhan PING, xem [hoiTablet]. Nen ban hien dau tien la ban
      * cua lan hoi truoc, vai giay sau moi den ban moi.
      */
     private fun veSuDung() {
         val s = soSuDung
-        val dau = SoSuDung.dauNgay(0)
-        val cuoi = SoSuDung.dauNgay(-1)
+        val dau = SoSuDung.dauNgay(lui)
+        val cuoi = SoSuDung.dauNgay(lui - 1)
         val cac = s?.theoApp(dau, cuoi).orEmpty()
         val coSo = s != null && cac.isNotEmpty()
         b.suDungTong.text = if (s != null && coSo) Dinh.doDai(s.tongMs(dau, cuoi)) else ""
@@ -212,7 +310,7 @@ class NhatKyFragment : Fragment() {
             b.suDungChu.text = when {
                 s == null ->
                     getString(if (daNhanSuDung) R.string.su_dung_chua_gui else R.string.su_dung_dang_lay)
-                else -> Dinh.viSaoTrong(s, dau, laHomNay = true, ten = "hôm nay")
+                else -> Dinh.viSaoTrong(s, dau, laHomNay = lui == 0, ten = Dinh.tenNgay(lui))
             }
             return
         }
@@ -249,5 +347,14 @@ class NhatKyFragment : Fragment() {
         /** The nhat ky, the Hoi AI luc thu gon hien bay nhieu dong moi nhat. */
         private const val NHAT_KY_THU_GON = 8
         private const val HOI_AI_THU_GON = 3
+
+        /**
+         * So ngay xem duoc, tinh ca hom nay. Bang so ngay tablet giu nhatky/, hoiai/ tren
+         * Firestore (DayLog.NGAY_GIU_TREN_MANG ben homework-gate) va bang trang "Thời gian dùng
+         * app" (SoSuDung.GIU_NGAY_MAC_DINH).
+         */
+        private const val NGAY_XEM = 7
+
+        private const val K_LUI = "lui"
     }
 }

@@ -92,7 +92,17 @@
     </style>
 
     <!--
-      Nut dieu khien phien dang chay: tam dung, bot gio, khoa.
+      Nut "Bớt" o cuoi hang cho gio (8/10/2026): cung co va cung hang voi nut cho gio, nhung
+      dac mau do. Anh Huy chot "nut bot mau do ke ben nut cho them Khac mau xanh": hai chieu
+      nguoc nhau thi phai nhin ra truoc khi doc chu.
+    -->
+    <style name="Nut.Nhanh.Do">
+        <item name="backgroundTint">@color/alert</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <!--
+      Nut dieu khien phien dang chay: tam dung, khoa (bot gio o day toi 8/10/2026).
 
       Nhat hon han nhom tren. Truoc day ca bay nut deu cung mot the tonal, cung co
       chu, xep hai hang lien nhau - ma "cho choi 45 phut" voi "bot 15 phut" thi

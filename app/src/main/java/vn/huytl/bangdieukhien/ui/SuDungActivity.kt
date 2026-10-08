@@ -51,7 +51,8 @@ class SuDungActivity : AppCompatActivity() {
         chuaThanhHeThong()
         b.thanhTren.setNavigationOnClickListener { finish() }
 
-        lui = savedInstanceState?.getInt(K_LUI) ?: 0
+        // Mo tu the Dung app cua tab Nhat ky thi mo dung ngay dang xem o do (8/10/2026).
+        lui = savedInstanceState?.getInt(K_LUI) ?: intent.getIntExtra(MO_NGAY, 0)
         // Xoay man hinh thi khong hoi lai: listener van nghe, va lan hoi truoc con moi.
         if (savedInstanceState == null) hoiTablet()
 
@@ -239,6 +240,9 @@ class SuDungActivity : AppCompatActivity() {
 
     companion object {
         private const val K_LUI = "lui"
+
+        /** Intent extra: mo trang o ngay nao, 0 la hom nay. Xem NhatKyFragment. */
+        const val MO_NGAY = "mo_ngay"
 
         /** Bao nhieu khoang thi ghi het, hon nua thi gom lai mot cau. Nhu ben tablet. */
         private const val MAX_KHOANG = 20

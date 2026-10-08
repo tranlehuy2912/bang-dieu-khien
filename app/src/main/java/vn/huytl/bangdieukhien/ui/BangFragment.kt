@@ -166,6 +166,7 @@ class BangFragment : Fragment() {
         b.cho30.setOnClickListener { cho(30) }
         b.cho45.setOnClickListener { cho(45) }
         b.choKhac.setOnClickListener { hoiSoPhut() }
+        b.choBot.setOnClickListener { hoiPhutBot() }
         b.nutCapQuy.setOnClickListener { hoiCapQuy() }
         b.nutCapLaptop.setOnClickListener { hoiCapLaptop() }
         // Nut "Mở web" / "Khoá web" cua laptop chuyen sang tab Cai dat (7/10/2026), xem
@@ -178,7 +179,6 @@ class BangFragment : Fragment() {
             val dangDung = moiNhat?.cong == Cong.TAM_DUNG
             gui(if (dangDung) Lenh.TIEP else Lenh.DUNG)
         }
-        b.nutBot.setOnClickListener { gui(Lenh.BOT, phut = 15) }
         b.nutKhoa.setOnClickListener { hoiRoiKhoa() }
         b.nutDongMay.setOnClickListener { gui(Lenh.DONG_MAY) }
         b.nutMoMay.setOnClickListener { hoiMoMay() }
@@ -384,7 +384,7 @@ class BangFragment : Fragment() {
         // luc gui: truoc day khong cho nao bat lai, nen bam xong mot lenh la hang Cho
         // choi ngay va nut Mo toan bo may cu nam xam.
         listOf(
-            b.cho15, b.cho30, b.cho45, b.choKhac, b.nutDung, b.nutBot, b.nutDongMay,
+            b.cho15, b.cho30, b.cho45, b.choKhac, b.choBot, b.nutDung, b.nutDongMay,
             b.nutKhoa, b.nutMoMay, b.nutTinCo
         ).forEach { it.isEnabled = true }
 
@@ -497,13 +497,16 @@ class BangFragment : Fragment() {
      * Truoc day ca ba nut luc nao cung nam do, tablet khoa thi hai nut xam, con nut Khoa
      * ngay tat ma van do tuoi vi mau chu dat cung. Dang mo toan bo may thi dong ho phien
      * khong hien, nen hai nut cua phien cung an, nhuong cho cho nut Dong che do Ba Huy.
+     *
+     * Nut "Bớt 15'" tung nam o hang nay, chi hien luc dang choi. Tu 8/10/2026 bot gio co
+     * che giong cho them (anh Huy chot) nen nut do thanh nut "Bớt" do o cuoi hang cho gio,
+     * xem [hoiPhutBot].
      */
     private fun veHangPhien(tt: TrangThai) {
         val choi = tt.cong == Cong.DANG_CHOI && !tt.cheDoBaBat
         val dung = tt.cong == Cong.TAM_DUNG && !tt.cheDoBaBat
         val hien = mapOf(
             b.nutDung to (choi || dung),
-            b.nutBot to choi,
             b.nutDongMay to tt.cheDoBaBat,
             b.nutKhoa to (tt.cong != Cong.KHOA || tt.cheDoBaBat)
         )
@@ -661,7 +664,7 @@ class BangFragment : Fragment() {
      * nguoi ta de bam lan hai nhat.
      */
     private fun cho(phut: Int) {
-        val choCu = lenhCho.filter { it.kieu == Lenh.CHO && !it.quaHan() }
+        val choCu = lenhCho.filter { it.kieu == Lenh.CHO }
         val im = khongDap()
         if (choCu.isEmpty() && !im) return gui(Lenh.CHO, phut = phut)
 
@@ -671,10 +674,9 @@ class BangFragment : Fragment() {
                 append("Điện thoại này đang không gửi được lệnh (mất mạng?). Lệnh sẽ nằm chờ ")
                 append("trên máy này, có mạng lại mới tới tablet.")
             } else if (im) {
+                // Tu 8/10/2026 tablet lam moi lenh du tre bao lau, khong con bo lenh qua nua tieng.
                 append("Tablet đang không trả lời. Lệnh này sẽ nằm chờ: tablet có mạng lại ")
-                val han = Dinh.phut((Duong.QUA_CU_MS / 60_000L).toInt())
-                append("trong vòng $han thì $con vẫn được ${Dinh.phut(phut)}, quá $han ")
-                append("thì tablet bỏ qua.")
+                append("thì $con vẫn được ${Dinh.phut(phut)}, trễ bao lâu cũng vậy.")
             }
             if (choCu.isNotEmpty()) {
                 if (isNotEmpty()) append("\n\n")
@@ -701,7 +703,7 @@ class BangFragment : Fragment() {
         if (_b == null) return
         val bayGio = System.currentTimeMillis()
         val hien = lenhCho.filter { it.dangHien(bayGio) }
-        val ky = hien.joinToString("|") { "${it.id}:${it.quaHan(bayGio)}:${it.chuaLenMang}" }
+        val ky = hien.joinToString("|") { "${it.id}:${it.chuaLenMang}" }
         if (ky == daVeLenhCho) return
         daVeLenhCho = ky
 
@@ -710,31 +712,27 @@ class BangFragment : Fragment() {
         hop.visibility = if (hien.isEmpty()) View.GONE else View.VISIBLE
         val ct = requireContext()
         hien.forEach { l ->
-            val quaHan = l.quaHan(bayGio)
             val luc = Dinh.gioPhut(l.tao)
             val dong = LinearLayout(ct).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
             }
             dong.addView(TextView(ct).apply {
+                // Khong con dong "quá nửa tiếng, tablet sẽ bỏ qua" (bo 8/10/2026): tablet lam
+                // moi lenh du tre bao lau.
                 text = when {
-                    quaHan -> "Quá ${Dinh.phut((Duong.QUA_CU_MS / 60_000L).toInt())} tablet chưa nhận: ${Dinh.lenh(l)}, gửi lúc $luc. " +
-                        "Tablet sẽ bỏ qua lệnh này."
                     l.chuaLenMang -> "Chưa gửi lên được vì điện thoại mất mạng: ${Dinh.lenh(l)}. " +
                         "Có mạng lại là tự gửi."
                     else -> "Đang chờ tablet nhận: ${Dinh.lenh(l)}, gửi lúc $luc."
                 }
                 textSize = 14f
                 setLineSpacing(2f * resources.displayMetrics.density, 1f)
-                setTextColor(
-                    ContextCompat.getColor(ct, if (quaHan) R.color.alert else R.color.ink_soft)
-                )
+                setTextColor(ContextCompat.getColor(ct, R.color.ink_soft))
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             })
             dong.addView(
                 MaterialButton(ct, null, androidx.appcompat.R.attr.borderlessButtonStyle).apply {
-                    // Qua han thi tablet co lay cung bo, nut chi con la don dong nay di.
-                    text = if (quaHan) "Xoá" else "Rút lại"
+                    text = "Rút lại"
                     setOnClickListener {
                         isEnabled = false
                         Kho.rutLenh(ct, l.id) { kq ->
@@ -807,8 +805,8 @@ class BangFragment : Fragment() {
      */
     private fun khoaNut() {
         listOf(
-            b.cho15, b.cho30, b.cho45, b.choKhac, b.nutCapQuy,
-            b.nutDung, b.nutBot, b.nutDongMay, b.nutKhoa, b.nutMoMay, b.nutTinCo
+            b.cho15, b.cho30, b.cho45, b.choKhac, b.choBot, b.nutCapQuy,
+            b.nutDung, b.nutDongMay, b.nutKhoa, b.nutMoMay, b.nutTinCo
         ).forEach { it.isEnabled = false }
         cacHangDeThi.values.forEach { it.nutXemDe.isEnabled = false }
     }
@@ -1001,7 +999,7 @@ class BangFragment : Fragment() {
      * la Le Hoa duoc gap doi.
      */
     private fun capQuy(phut: Int?) {
-        val cu = lenhCho.filter { it.kieu == Lenh.CAP_QUY && !it.quaHan() }
+        val cu = lenhCho.filter { it.kieu == Lenh.CAP_QUY }
         val im = khongDap()
         if (cu.isEmpty() && !im) return gui(Lenh.CAP_QUY, phut = phut)
 
@@ -1010,10 +1008,8 @@ class BangFragment : Fragment() {
                 append("Điện thoại này đang không gửi được lệnh (mất mạng?). Lệnh sẽ nằm chờ ")
                 append("trên máy này, có mạng lại mới tới tablet.")
             } else if (im) {
-                val han = Dinh.phut((Duong.QUA_CU_MS / 60_000L).toInt())
                 append("Tablet đang không trả lời, số trong quỹ là lần cuối nó báo về. Lệnh sẽ ")
-                append("nằm chờ: tablet có mạng lại trong vòng $han thì cấp, quá $han thì ")
-                append("tablet bỏ qua.")
+                append("nằm chờ: tablet có mạng lại thì cấp, trễ bao lâu cũng vậy.")
             }
             if (cu.isNotEmpty()) {
                 if (isNotEmpty()) append("\n\n")
@@ -1029,14 +1025,61 @@ class BangFragment : Fragment() {
             .show()
     }
 
+    /**
+     * Nut "Khác" cua hang cho choi: vai muc san, dong cuoi "Khác" mo o go so phut (anh Huy them
+     * dong do ngay 8/10/2026, giong hop Cap them cua laptop).
+     */
     private fun hoiSoPhut() {
-        val cac = arrayOf("10 phút", "20 phút", "60 phút", "90 phút")
         val so = intArrayOf(10, 20, 60, 90)
+        val cac = (so.map { Dinh.phut(it) } + "Khác").toTypedArray()
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Cho chơi bao lâu")
-            .setItems(cac) { _, i -> cho(so[i]) }
+            .setItems(cac) { _, i ->
+                if (i < so.size) cho(so[i])
+                else hoiGoPhut("Cho chơi bao nhiêu phút?", "Cho") { cho(it) }
+            }
             .setNegativeButton(R.string.huy, null)
             .show()
+    }
+
+    /**
+     * Nut "Bớt" do o cuoi hang cho choi (anh Huy chot 8/10/2026): go so phut roi gui lenh
+     * [Lenh.BOT]. Bot luc nao cung duoc nhu cho them: tablet tru vao phien dang choi, phan
+     * dang tam dung hay phieu chua bam Bat dau; Le Hoa khong giu phut nao thi tablet khong
+     * lam gi va tra loi la khong co gio de bot (GateStore.bot ben tablet). Lenh nam cho luc
+     * tablet tat thi tablet bat lai van lam, dung thu tu bam voi cac lenh cho gio.
+     */
+    private fun hoiPhutBot() {
+        hoiGoPhut("Bớt bao nhiêu phút?", "Bớt") { gui(Lenh.BOT, phut = it) }
+    }
+
+    /**
+     * Hop go so phut, tu 1 toi [GO_PHUT_TOI_DA]. So sai thi bao ngay duoi o va khong dong hop,
+     * y nhu [hoiPhutKhacLaptop]: dong lai la mat so vua go.
+     */
+    private fun hoiGoPhut(tieuDe: String, chuNut: String, lam: (Int) -> Unit) {
+        val ct = requireContext()
+        val o = EditText(ct).apply {
+            hint = "Số phút"
+            inputType = InputType.TYPE_CLASS_NUMBER
+            setPadding(48, 32, 48, 32)
+        }
+        val hop = MaterialAlertDialogBuilder(ct)
+            .setTitle(tieuDe)
+            .setMessage("Từ 1 tới $GO_PHUT_TOI_DA phút.")
+            .setView(o)
+            .setPositiveButton(chuNut, null)
+            .setNegativeButton(R.string.huy, null)
+            .show()
+        hop.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener {
+            val phut = o.text.toString().trim().toIntOrNull()
+            if (phut == null || phut < 1 || phut > GO_PHUT_TOI_DA) {
+                o.error = "Gõ một số từ 1 tới $GO_PHUT_TOI_DA."
+            } else {
+                hop.dismiss()
+                lam(phut)
+            }
+        }
     }
 
     private fun hoiRoiKhoa() {
@@ -1195,6 +1238,12 @@ class BangFragment : Fragment() {
          * request.resource.data.phut <= 600 cua phieu cap trong firestore.rules.
          */
         private const val CAP_LAPTOP_TOI_DA = 600
+
+        /**
+         * So phut lon nhat go duoc o o "Khác" cua hop cho choi va o hop "Bớt" (8/10/2026).
+         * Bang tran tablet tu cat: GateStore.approve gioi han phieu 1 toi 600 phut.
+         */
+        private const val GO_PHUT_TOI_DA = 600
 
         /** Cho ban trang thai tu may chu toi da bay lau roi van hoi tablet. */
         private const val CHO_BAN_DAU_MS = 5_000L

@@ -5,7 +5,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Lenh dang cho tablet: luc nao hien tren man Bang, luc nao coi la tablet se bo qua.
+ * Lenh dang cho tablet: luc nao hien tren man Bang.
+ *
+ * Tu 8/10/2026 tablet lam moi lenh du tre bao lau (anh Huy chot), nen khong con canh "qua nua
+ * tieng thi tablet bo qua" de thu nhu truoc.
  */
 class LenhChoTest {
 
@@ -27,12 +30,12 @@ class LenhChoTest {
     fun khong_biet_luc_go_thi_hien_luon() {
         // Lenh khong co truong tao thi khong biet no nam do bao lau: hien ra, dung giau.
         assertTrue(lenh(tao = 0L).dangHien(go))
-        assertFalse(lenh(tao = 0L).quaHan(go + Duong.QUA_CU_MS * 10))
     }
 
     @Test
-    fun qua_nua_tieng_la_tablet_se_bo_qua() {
-        assertFalse(lenh().quaHan(go + Duong.QUA_CU_MS))
-        assertTrue(lenh().quaHan(go + Duong.QUA_CU_MS + 1))
+    fun nam_cho_lau_van_hien_de_rut_lai() {
+        // Truoc 8/10/2026 lenh qua nua tieng thanh "Tablet sẽ bỏ qua". Gio tablet van lam, nen
+        // lenh nam cho ca ngay van hien voi nut Rút lại.
+        assertTrue(lenh().dangHien(go + 24 * 60 * 60_000L))
     }
 }

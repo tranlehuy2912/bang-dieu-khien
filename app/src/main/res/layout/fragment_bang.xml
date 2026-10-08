@@ -196,14 +196,9 @@
                         android:layout_weight="1"
                         android:text="Tạm dừng" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/nutBot"
-                        style="@style/Nut.Phien"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginEnd="8dp"
-                        android:layout_weight="1"
-                        android:text="Bớt 15'" />
+                    <!-- Nut "Bớt 15'" tung nam o day, chi hien luc dang choi. Tu 8/10/2026 nut
+                         "Bớt" do o cuoi hang cho gio ben duoi, bot duoc ca luc tam dung va luc
+                         con phieu chua bat dau. -->
 
                     <!-- Chi hien luc dang mo toan bo may. Lenh DONG_MAY chi dong che do
                          Ba Huy, phien choi dang chay van chay tiep; Khoa ngay thi dong
@@ -322,7 +317,10 @@
                         android:visibility="gone" />
                 </LinearLayout>
 
-                <!-- Hang nut cho gio. Le tren 16dp thay cho nhan "Cho chơi ngay" (bo 7/10/2026). -->
+                <!-- Hang nut cho gio. Le tren 16dp thay cho nhan "Cho chơi ngay" (bo 7/10/2026).
+                     Nut "Bớt" do o cuoi hang (anh Huy chot 8/10/2026): ke nut "Khác" xanh, go so
+                     phut nhu dong "Khác" cua hop cho choi, chieu nguoc lai thi mau nguoc lai. -->
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -362,8 +360,17 @@
                         style="@style/Nut.Nhanh"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
+                        android:layout_marginEnd="8dp"
                         android:layout_weight="1"
                         android:text="Khác" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/choBot"
+                        style="@style/Nut.Nhanh.Do"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:text="Bớt" />
                 </LinearLayout>
 
                 <!-- Quy gio choi (29/9/2026): phut Le Hoa lam tren may ma tran rieng cua phan do

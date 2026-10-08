@@ -115,7 +115,13 @@ object Dinh {
     }
 
     /** Ngay hom nay dang "yyyy-MM-dd", dung lam ten document nhat ky. */
-    fun homNay(): String = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+    fun homNay(): String = ngay(0)
+
+    /** Ngay [lui] ngay truoc hom nay, dang "yyyy-MM-dd" nhu ten document nhatky/, hoiai/. */
+    fun ngay(lui: Int): String {
+        val c = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, -lui) }
+        return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(c.time)
+    }
 
     /** "2026-09-28" thanh "28/9". null khi chu khong phai ngay. */
     fun ngayNgan(yyyyMMdd: String): String? {

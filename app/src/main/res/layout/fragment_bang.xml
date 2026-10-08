@@ -319,7 +319,7 @@
 
                 <!-- Hang nut cho gio. Le tren 16dp thay cho nhan "Cho chơi ngay" (bo 7/10/2026).
                      Nut "Bớt" do o cuoi hang (anh Huy chot 8/10/2026): ke nut "Khác" xanh, go so
-                     phut nhu dong "Khác" cua hop cho choi, chieu nguoc lai thi mau nguoc lai. -->
+                     phut nhu nut "Khác" (bam la hien o go so), chieu nguoc lai thi mau nguoc lai. -->
 
                 <LinearLayout
                     android:layout_width="match_parent"

@@ -1026,20 +1026,12 @@ class BangFragment : Fragment() {
     }
 
     /**
-     * Nut "Khác" cua hang cho choi: vai muc san, dong cuoi "Khác" mo o go so phut (anh Huy them
-     * dong do ngay 8/10/2026, giong hop Cap them cua laptop).
+     * Nut "Khác" cua hang cho choi: mo thang o go so phut (anh Huy chot 8/10/2026). Truoc do la
+     * danh sach 10, 20, 60, 90 phut; sang 8/10 co them dong "Khác" go so, roi cung ngay anh bo
+     * han danh sach: ba nut 15', 30', 45' da la cac muc san.
      */
     private fun hoiSoPhut() {
-        val so = intArrayOf(10, 20, 60, 90)
-        val cac = (so.map { Dinh.phut(it) } + "Khác").toTypedArray()
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Cho chơi bao lâu")
-            .setItems(cac) { _, i ->
-                if (i < so.size) cho(so[i])
-                else hoiGoPhut("Cho chơi bao nhiêu phút?", "Cho") { cho(it) }
-            }
-            .setNegativeButton(R.string.huy, null)
-            .show()
+        hoiGoPhut("Cho chơi bao nhiêu phút?", "Cho") { cho(it) }
     }
 
     /**

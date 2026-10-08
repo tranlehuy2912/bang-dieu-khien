@@ -380,7 +380,7 @@ Sáu tab ở `ui/MainActivity`. Tab đang ẩn bị hạ về `CREATED` để li
 gỡ trong `onStop`.
 
 - **Giờ chơi** (`BangFragment`, id `tab_bang`): trạng thái tablet và đồng hồ, hàng cho
-  thêm 15', 30', 45', "Khác" (vài mức sẵn và dòng "Khác" gõ 1 tới 600 phút) và nút "Bớt"
+  thêm 15', 30', 45', "Khác" (bấm là hiện ô gõ số phút, 1 tới 600) và nút "Bớt"
   đỏ ở cuối hàng (gõ số phút; từ 08/10/2026, thay nút "Bớt 15'" chỉ hiện lúc đang chơi),
   quỹ giờ chơi với nút cấp quỹ (`CAPQUY`), hàng "Xem Netflix" (số phút
   laptop còn, nút "Cấp thêm" 15, 30, 45, 60 phút hay gõ số từ 1 tới 600 ở dòng "Khác"), thẻ đề thi thử ngay dưới thẻ chính (từ 01/10/2026 mỗi

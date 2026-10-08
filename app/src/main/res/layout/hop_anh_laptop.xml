@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hop "Màn hình laptop" (8/10/2026): anh chup moi nhat va dong ghi luc chup. TheLaptop.moAnh dung
+     hop nay; anh cu hien truoc trong luc cho laptop chup anh moi. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingTop="8dp"
+    android:paddingEnd="16dp">
+
+    <ImageView
+        android:id="@+id/anh"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:background="@color/canvas"
+        android:contentDescription="Màn hình laptop"
+        android:minHeight="160dp"
+        android:scaleType="fitCenter" />
+
+    <TextView
+        android:id="@+id/chuAnh"
+        style="@style/Chu.Nho"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp" />
+</LinearLayout>

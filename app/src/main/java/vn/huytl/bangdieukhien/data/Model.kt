@@ -790,10 +790,24 @@ data class TinhTrangLaptop(
     /** Ba Huy da bam "Mở web" ([Duong.F_MO_WEB]). */
     val moWeb: Boolean,
     /** Laptop bao luat chan web dang go that ([Duong.F_WEB_DANG_MO]). */
-    val webDangMo: Boolean
+    val webDangMo: Boolean,
+    /**
+     * Tu 8/10/2026 (laptop ban cu khong ghi, de mac dinh): tai khoan dang ngoi man hinh
+     * ([Duong.F_PHIEN], rong la o man dang nhap) va tu luc nao, luc may bat, luc may tat dung
+     * cach (0 khi dang chay), cac lan bat tat dang nhap trong ngay, ket qua cac lenh gan nhat.
+     */
+    val phien: String = "",
+    val phienTu: Long = 0L,
+    val batLuc: Long = 0L,
+    val tatLuc: Long = 0L,
+    val suKien: List<SuKienTrenLaptop> = emptyList(),
+    val ketQua: List<KetQuaLenhLaptop> = emptyList()
 ) {
     fun conLai(bayGio: Long = System.currentTimeMillis()): Long =
         if (ketThucLuc > 0L) (ketThucLuc - bayGio).coerceAtLeast(0L) else conLaiMs
+
+    /** Laptop da ghi luc tat cho lan bat gan nhat: tat dung cach, chua bat lai. */
+    fun daTat(): Boolean = tatLuc > 0L && tatLuc >= batLuc
 
     companion object {
         /** null la laptop chua noi vao nha: chua co document, hay chua co uid laptop. */
@@ -805,11 +819,52 @@ data class TinhTrangLaptop(
                 dangDung = d.getBoolean(Duong.F_DANG_DUNG) ?: false,
                 capNhatLuc = d.getLong(Duong.F_CAP_NHAT_LUC) ?: 0L,
                 moWeb = d.getBoolean(Duong.F_MO_WEB) ?: false,
-                webDangMo = d.getBoolean(Duong.F_WEB_DANG_MO) ?: false
+                webDangMo = d.getBoolean(Duong.F_WEB_DANG_MO) ?: false,
+                phien = d.getString(Duong.F_PHIEN).orEmpty(),
+                phienTu = d.getLong(Duong.F_PHIEN_TU) ?: 0L,
+                batLuc = d.getLong(Duong.F_BAT_LUC) ?: 0L,
+                tatLuc = d.getLong(Duong.F_TAT_LUC) ?: 0L,
+                suKien = (d.get(Duong.F_SU_KIEN) as? List<*>).orEmpty().mapNotNull { SuKienTrenLaptop.doc(it) },
+                ketQua = (d.get(Duong.F_KET_QUA) as? List<*>).orEmpty().mapNotNull { KetQuaLenhLaptop.doc(it) }
             )
         }
     }
 }
+
+/** Mot dong trong [Duong.F_SU_KIEN]: [kieu] la mot trong [SuKienLaptop], [ai] ten tai khoan. */
+data class SuKienTrenLaptop(val kieu: String, val luc: Long, val ai: String) {
+    companion object {
+        fun doc(o: Any?): SuKienTrenLaptop? {
+            val m = o as? Map<*, *> ?: return null
+            val kieu = m[Duong.F_KIEU] as? String ?: return null
+            val luc = (m[Duong.F_LUC] as? Number)?.toLong() ?: return null
+            return SuKienTrenLaptop(kieu, luc, m[Duong.F_AI] as? String ?: "")
+        }
+    }
+}
+
+/** Ket qua mot lenh laptop da lam, xem [Duong.F_KET_QUA]. [id] la ma document lenh. */
+data class KetQuaLenhLaptop(val id: String, val kieu: String, val ok: Boolean, val chu: String, val luc: Long) {
+    companion object {
+        fun doc(o: Any?): KetQuaLenhLaptop? {
+            val m = o as? Map<*, *> ?: return null
+            val id = m[Duong.F_ID] as? String ?: return null
+            return KetQuaLenhLaptop(
+                id = id,
+                kieu = m[Duong.F_KIEU] as? String ?: "",
+                ok = m[Duong.F_OK] as? Boolean ?: false,
+                chu = m[Duong.F_CHU] as? String ?: "",
+                luc = (m[Duong.F_LUC] as? Number)?.toLong() ?: 0L
+            )
+        }
+    }
+}
+
+/** Mot lenh may nay gui laptop ma laptop chua lay (con nam trong laptop/{maNha}/lenh). */
+data class LenhLaptopCho(val id: String, val kieu: String, val tao: Long)
+
+/** Anh chup man hinh laptop moi nhat, xem [Duong.ANH]. */
+class AnhLaptop(val jpg: ByteArray, val luc: Long, val phien: String)
 
 /** Mot app dang cai tren tablet, de chon tu xa ma khong phai go ten goi. */
 data class AppTrenMay(val goi: String, val ten: String)

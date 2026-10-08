@@ -427,53 +427,8 @@
                         android:text="@string/bang_cap_quy" />
                 </LinearLayout>
 
-                <!-- Hang "Xem Netflix" (7/10/2026, ten dau la "Netflix trên laptop"): so phut
-                     laptop con, nut cap them (15, 30, 45, 60 phut hay go so khac). An
-                     khi laptop chua noi vao nha (chua co document laptop/{maNha}). So nay laptop
-                     ghi, khong qua tablet, nen khong mo di khi tablet khong tra loi. -->
-                <LinearLayout
-                    android:id="@+id/hangLaptop"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:baselineAligned="false"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:visibility="gone">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            style="@style/Chu.Nho"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/bang_laptop" />
-
-                        <TextView
-                            android:id="@+id/soLaptop"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/ink"
-                            android:textSize="17sp"
-                            android:textStyle="bold"
-                            android:text="@string/bang_gach" />
-                    </LinearLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/nutCapLaptop"
-                        style="@style/Nut.Phien"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="16dp"
-                        android:paddingRight="16dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
-                        android:text="@string/bang_cap_laptop" />
-                </LinearLayout>
+                <!-- Hang "Xem Netflix" (7/10/2026) chuyen sang the Laptop ngay duoi the nay (8/10/2026,
+                     anh Huy chon gop het viec voi laptop vao mot the), xem the_laptop.xml. -->
 
                 <!-- Hang mo hay khoa web tren laptop (co tu sang 7/10/2026) chuyen sang tab Cai
                      dat chieu 7/10/2026, thanh muc Bat/Tat "Firefox chỉ được mở Netflix" trong
@@ -507,6 +462,12 @@
                     android:visibility="gone" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <!-- The Laptop (8/10/2026): phut Netflix, trang thai, nhan len tivi, chup man hinh, dang
+             xuat, tat may. TheLaptop ve; an khi laptop chua noi vao nha. -->
+        <include
+            android:id="@+id/theLaptop"
+            layout="@layout/the_laptop" />
 
         <!-- The de thi thu (anh Huy chon tach khoi the chinh ngay 7/10/2026): moi mon mot hang
              item_de_thi, thu tu Toan, KHTN, Tieng Anh, mon khong co de thi khong co hang.

@@ -302,6 +302,69 @@ object Kho {
             }
     }
 
+    private fun laptop(context: Context) =
+        Nha.maNha(context).takeIf { it.isNotEmpty() }?.let { db(context)?.collection(Duong.LAPTOP)?.document(it) }
+
+    /**
+     * Gui mot lenh cho laptop (8/10/2026), xem [Duong.F_SO_LAN] va [LenhLaptop]. [xong] nhan ma
+     * lenh de tim ket qua trong [TinhTrangLaptop.ketQua]. Lenh nam cho toi khi laptop hoi (mot
+     * phut mot lan); qua 5 phut chua lay thi [TheLaptop] xoa, laptop gap cung bo.
+     */
+    fun guiLenhLaptop(
+        context: Context, kieu: String, chu: String? = null, soLan: Int? = null,
+        xong: (KetQua, String?) -> Unit = { _, _ -> }
+    ) {
+        val noi = laptop(context) ?: return xong(KetQua.Hong(THIEU_FIREBASE), null)
+        val du = mutableMapOf<String, Any>(
+            Duong.F_KIEU to kieu,
+            Duong.F_AI to Nguoi.BA_HUY,
+            Duong.F_TAO_LUC to System.currentTimeMillis()
+        )
+        if (chu != null) du[Duong.F_CHU] = chu
+        if (soLan != null) du[Duong.F_SO_LAN] = soLan
+        val tl = noi.collection(Duong.LENH).document()
+        tl.set(du)
+            .addOnSuccessListener { xong(KetQua.Xong, tl.id) }
+            .addOnFailureListener {
+                Log.w(TAG, "gui lenh laptop hong", it)
+                xong(KetQua.Hong(loiNguoiDoc(it)), null)
+            }
+    }
+
+    /** Nghe cac lenh laptop chua lay, cu nhat truoc. */
+    fun ngheLenhLaptop(context: Context, khi: (List<LenhLaptopCho>) -> Unit): ListenerRegistration? =
+        laptop(context)?.collection(Duong.LENH)?.addSnapshotListener { snap, loi ->
+            if (loi != null || snap == null) {
+                if (loi != null) Log.w(TAG, "nghe lenh laptop hong: ${loi.message}")
+                return@addSnapshotListener
+            }
+            khi(
+                snap.documents.map {
+                    LenhLaptopCho(it.id, it.getString(Duong.F_KIEU).orEmpty(), it.getLong(Duong.F_TAO_LUC) ?: 0L)
+                }.sortedBy { it.tao }
+            )
+        }
+
+    /** Bo mot lenh laptop chua lay (qua 5 phut, xem [Duong.LENH_LAPTOP_HET_HAN_MS]). */
+    fun xoaLenhLaptop(context: Context, id: String) {
+        laptop(context)?.collection(Duong.LENH)?.document(id)?.delete()
+            ?.addOnFailureListener { Log.w(TAG, "xoa lenh laptop hong", it) }
+    }
+
+    /** Nghe anh chup man hinh moi nhat cua laptop. null la chua co anh nao. */
+    fun ngheAnhLaptop(context: Context, khi: (AnhLaptop?) -> Unit): ListenerRegistration? =
+        laptop(context)?.collection(Duong.ANH)?.document(Duong.D_MOI_NHAT)?.addSnapshotListener { snap, loi ->
+            if (loi != null) {
+                Log.w(TAG, "nghe anh laptop hong: ${loi.message}")
+                return@addSnapshotListener
+            }
+            val jpg = snap?.getBlob(Duong.F_JPG)?.toBytes()
+            khi(
+                if (jpg == null) null
+                else AnhLaptop(jpg, snap.getLong(Duong.F_LUC) ?: 0L, snap.getString(Duong.F_PHIEN).orEmpty())
+            )
+        }
+
     fun ngheCaiDat(context: Context, khi: (CaiDat?) -> Unit): ListenerRegistration? =
         hop(context, Duong.D_CAI_DAT)?.addSnapshotListener { snap, loi ->
             if (loi == null) khi(CaiDat.doc(snap))

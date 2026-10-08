@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Laptop o tab Gio choi (8/10/2026, anh Huy chon cach B trong hai mau ve cung ngay): gop het
+     viec voi laptop vao mot the. So phut Netflix, nut Cap them (truoc nam o hang "Xem Netflix" cua
+     the chinh), trang thai bat tat, dong "Hôm nay", va cac nut lenh. TheLaptop ve va xu ly; an khi
+     laptop chua noi vao nha. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/theLaptop"
+    style="@style/The"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="12dp"
+    android:visibility="gone">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/Chu.TieuDe"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Laptop" />
+
+            <TextView
+                android:id="@+id/soNetflix"
+                style="@style/Chu.Nho"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- Cham mau: xanh dang bat, vang khi tai khoan Admin dang dung (khong tinh phut), xam khi
+             tat hay khong tra loi. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/cham"
+                android:layout_width="9dp"
+                android:layout_height="9dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/cham" />
+
+            <TextView
+                android:id="@+id/chuTrangThai"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/ink"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/chuHomNay"
+            style="@style/Chu.Nho"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:visibility="gone" />
+
+        <!-- Nam nut khong vua mot hang tren may 360dp, ChipGroup tu xuong dong. -->
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/hangNut"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:chipSpacingVertical="0dp">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/nutCap"
+                style="@style/Chip.Laptop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cấp thêm Netflix" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/nutNhan"
+                style="@style/Chip.Laptop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nhắn lên tivi" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/nutChup"
+                style="@style/Chip.Laptop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chụp màn hình" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/nutDangXuat"
+                style="@style/Chip.Laptop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Đăng xuất" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/nutTatMay"
+                style="@style/Chip.Laptop.Do"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tắt máy" />
+        </com.google.android.material.chip.ChipGroup>
+
+        <!-- Lenh dang cho laptop nhan va ket qua lenh vua lam: xanh la xong, do la hong hay bi bo. -->
+        <TextView
+            android:id="@+id/chuLenh"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:lineSpacingExtra="2dp"
+            android:textSize="13sp"
+            android:visibility="gone" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

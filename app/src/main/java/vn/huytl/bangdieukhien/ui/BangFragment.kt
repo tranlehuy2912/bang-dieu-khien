@@ -59,6 +59,9 @@ class BangFragment : Fragment() {
     /** Laptop xem Netflix, null la chua noi vao nha. Xem [veLaptop]. */
     private var laptop: TinhTrangLaptop? = null
 
+    /** The Laptop (8/10/2026), dung lai cung view. Xem [TheLaptop]. */
+    private var theLaptop: TheLaptop? = null
+
     /** Lenh may nay da go ma tablet chua lay, cu nhat truoc. Xem [veLenhCho]. */
     private var lenhCho: List<LenhCho> = emptyList()
 
@@ -168,7 +171,8 @@ class BangFragment : Fragment() {
         b.choKhac.setOnClickListener { hoiSoPhut() }
         b.choBot.setOnClickListener { hoiPhutBot() }
         b.nutCapQuy.setOnClickListener { hoiCapQuy() }
-        b.nutCapLaptop.setOnClickListener { hoiCapLaptop() }
+        // Nut cap them Netflix nam trong the Laptop tu 8/10/2026.
+        theLaptop = TheLaptop(this, b.theLaptop) { hoiCapLaptop() }
         // Nut "Mở web" / "Khoá web" cua laptop chuyen sang tab Cai dat (7/10/2026), xem
         // CaiDatFragment.doiWebLaptop.
         // Nut "Xem đề" cua tung mon gan luc dung hang, xem [veDeThi].
@@ -230,10 +234,11 @@ class BangFragment : Fragment() {
             lenhCho = ds
             veLenhCho()
         }
+        theLaptop?.batDau()
         ngheLaptop = Kho.ngheLaptop(ct) { l ->
             if (_b == null) return@ngheLaptop
             laptop = l
-            veLaptop()
+            theLaptop?.capNhat(l)
         }
         // Lang nghe o tren hoi tablet khi ban dau tien tu may chu ve. Xem [hoiKhiCoBanDau].
         hoiKhiCoBanDau = true
@@ -249,6 +254,7 @@ class BangFragment : Fragment() {
         ngheNhacBai?.remove()
         ngheLenh?.remove()
         ngheLaptop?.remove()
+        theLaptop?.dung()
         super.onStop()
     }
 
@@ -260,6 +266,7 @@ class BangFragment : Fragment() {
         // Cung ly do: cac hang de thi thuoc view cu. Giu lai thi [veDeThi] thay mon khong doi,
         // khong dung hang vao view moi, va chu cung nut ghi vao nhung hang khong con tren man.
         cacHangDeThi = emptyMap()
+        theLaptop = null
         _b = null
         super.onDestroyView()
     }
@@ -886,26 +893,16 @@ class BangFragment : Fragment() {
     }
 
     /**
-     * Hang "Xem Netflix" (7/10/2026; toi chieu hom do ten "Netflix trên laptop", anh Huy doi cho
-     * gon). Chay moi giay tu [nhip]: luc con dang xem, laptop chi ghi moc het gio mot lan, may nay
-     * tu dem lui.
+     * The Laptop, chay moi giay tu [nhip]: luc con dang xem, laptop chi ghi moc het gio mot lan, may
+     * nay tu dem lui. Truoc 8/10/2026 day la hang "Xem Netflix" trong the chinh (7/10/2026, toi
+     * chieu hom do ten "Netflix trên laptop").
      *
-     * Hang mo, khoa web tung nam ngay duoi hang nay; chieu 7/10/2026 anh Huy chuyen no sang tab
+     * Hang mo, khoa web tung nam ngay duoi hang do; chieu 7/10/2026 anh Huy chuyen no sang tab
      * Cai dat thanh muc "Firefox chỉ được mở Netflix", xem CaiDatFragment.
      */
     private fun veLaptop() {
-        val l = laptop
-        if (l == null) {
-            b.hangLaptop.visibility = View.GONE
-            return
-        }
-        b.hangLaptop.visibility = View.VISIBLE
-        val con = l.conLai()
-        b.soLaptop.text = when {
-            con <= 0L -> "Hết phút"
-            l.dangDung && l.ketThucLuc > 0L -> "Đang xem, còn ${Dinh.dongHo(con)}"
-            else -> "Còn ${Dinh.doDai(con)}"
-        }
+        // Tu 8/10/2026 hang "Xem Netflix" thanh the Laptop: so phut, dong ho, trang thai deu o day.
+        theLaptop?.nhip()
     }
 
     /**

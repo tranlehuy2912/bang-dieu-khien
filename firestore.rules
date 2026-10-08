@@ -167,6 +167,30 @@ service cloud.firestore {
           && request.resource.data.phut <= 600;
         allow read, delete: if laNguoiNha(nhaId) || laLaptop(nhaId);
       }
+
+      // Lenh Ba Huy gui laptop (8/10/2026): nhan len tivi, chup man hinh, dang xuat, tat may,
+      // hoi. Nguoi nha tao, laptop doc roi xoa; dien thoai cung xoa lenh cho qua 5 phut. Cau
+      // nhan toi da 200 ky tu, doc 1 toi 3 lan (anh Huy chot).
+      match /lenh/{id} {
+        allow create: if laNguoiNha(nhaId)
+          && request.resource.data.kieu in ['NHAN', 'CHUP', 'DANGXUAT', 'TATMAY', 'HOI']
+          && request.resource.data.taoLuc is int
+          && (request.resource.data.kieu != 'NHAN'
+            || (request.resource.data.chu is string
+              && request.resource.data.chu.size() > 0
+              && request.resource.data.chu.size() <= 200
+              && request.resource.data.soLan is int
+              && request.resource.data.soLan >= 1
+              && request.resource.data.soLan <= 3));
+        allow read, delete: if laNguoiNha(nhaId) || laLaptop(nhaId);
+      }
+
+      // Anh chup man hinh moi nhat (8/10/2026). Chi laptop ghi, anh sau de anh truoc.
+      match /anh/{id} {
+        allow read: if laNguoiNha(nhaId) || laLaptop(nhaId);
+        allow create, update: if laLaptop(nhaId);
+        allow delete: if false;
+      }
     }
   }
 }

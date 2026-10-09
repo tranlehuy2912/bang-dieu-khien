@@ -125,7 +125,8 @@
                 android:text="Tắt máy" />
         </com.google.android.material.chip.ChipGroup>
 
-        <!-- Lenh dang cho laptop nhan va ket qua lenh vua lam: xanh la xong, do la hong hay bi bo. -->
+        <!-- Ket qua lenh vua lam: xanh la xong, do la hong hay bi bo. Lenh, phieu dang cho nam o
+             hopCho ben duoi. -->
         <TextView
             android:id="@+id/chuLenh"
             android:layout_width="match_parent"
@@ -133,6 +134,15 @@
             android:layout_marginTop="8dp"
             android:lineSpacingExtra="2dp"
             android:textSize="13sp"
+            android:visibility="gone" />
+
+        <!-- Lenh, phieu cap/bot dang cho laptop nhan, moi dong mot nut "Rút lại" (9/10/2026), nhu
+             khoi lenh cho tablet o the Gio choi. TheLaptop.veCho ve. -->
+        <LinearLayout
+            android:id="@+id/hopCho"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
             android:visibility="gone" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -154,7 +154,7 @@ class ChuLaptopTest {
             listOf(
                 ChuLaptop.DongLenh("Laptop chưa nhận lệnh Tắt máy trong 5 phút, đã bỏ.", true),
                 ChuLaptop.DongLenh("Đã đọc 2 lần trên tivi lúc 16:41.", false),
-                ChuLaptop.DongLenh("Đang chờ laptop nhận: Chụp màn hình (gửi 16:49).", false, cho = true)
+                ChuLaptop.DongLenh("Đang chờ laptop nhận: Chụp màn hình (gửi 16:49).", false, cho = true, lenhId = "c")
             ),
             dong
         )
@@ -172,9 +172,10 @@ class ChuLaptopTest {
         )
         assertEquals(
             listOf(
-                ChuLaptop.DongLenh("Thêm 20 phút lúc 14:05 (Chờ)", false, cho = true),
-                ChuLaptop.DongLenh("Đang chờ laptop nhận: Chụp màn hình (gửi 14:06).", false, cho = true),
-                ChuLaptop.DongLenh("Bớt 15 phút lúc 14:07 (Chờ)", false, cho = true)
+                // Moi dong cho mang ma cua cai se xoa khi bam "Rút lại".
+                ChuLaptop.DongLenh("Thêm 20 phút lúc 14:05 (Chờ)", false, cho = true, phieuId = "p1"),
+                ChuLaptop.DongLenh("Đang chờ laptop nhận: Chụp màn hình (gửi 14:06).", false, cho = true, lenhId = "c"),
+                ChuLaptop.DongLenh("Bớt 15 phút lúc 14:07 (Chờ)", false, cho = true, phieuId = "p2")
             ),
             ChuLaptop.dongLenh(cho, emptyList(), emptyList(), bayGio, phieu)
         )

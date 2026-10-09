@@ -6,11 +6,15 @@ import android.graphics.BitmapFactory
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.firestore.ListenerRegistration
 import vn.huytl.bangdieukhien.R
@@ -35,7 +39,8 @@ import vn.huytl.bangdieukhien.databinding.TheLaptopBinding
  * bao "đã bỏ" (anh Huy chot), laptop gap lenh cu cung bo. Laptop tat hay khong tra loi thi cac nut
  * lenh mo di, bam chi bao ly do; rieng nut Them, Bot van bam duoc vi phieu cap nam cho toi khi
  * laptop bat lai (phieu chua nhan hien dong "Thêm 20 phút lúc 14:05 (Chờ)", 9/10/2026), va
- * nut Chup man hinh van mo duoc hop xem anh lan truoc.
+ * nut Chup man hinh van mo duoc hop xem anh lan truoc. Moi dong lenh, phieu dang cho co nut "Rút
+ * lại" (9/10/2026), xem [veCho].
  *
  * [BangFragment] giu lang nghe document laptop (chung voi hang cu) va goi [capNhat], [nhip].
  */
@@ -158,7 +163,9 @@ class TheLaptop(
         val mo = if (tt.choBam) 1f else 0.4f
         for (n in listOf(v.nutNhan, v.nutDangXuat, v.nutTatMay)) n.alpha = mo
 
-        val dong = ChuLaptop.dongLenh(cho.filter { it.id !in daBo }, l.ketQua, bo, bayGio, phieu)
+        val tatCa = ChuLaptop.dongLenh(cho.filter { it.id !in daBo }, l.ketQua, bo, bayGio, phieu)
+        veCho(tatCa.filter { it.cho })
+        val dong = tatCa.filter { !it.cho }
         if (dong.isEmpty()) {
             v.chuLenh.visibility = View.GONE
         } else {
@@ -179,6 +186,52 @@ class TheLaptop(
             }
             v.chuLenh.text = chu
             v.chuLenh.visibility = View.VISIBLE
+        }
+    }
+
+    /** Khoa cua lan ve [veCho] truoc, de khong dung lai view khi danh sach khong doi. */
+    private var daVeCho = ""
+
+    /**
+     * Khoi lenh, phieu dang cho laptop nhan: moi dong mot nut "Rút lại" (anh Huy dan 9/10/2026),
+     * giong khoi lenh cho tablet o the Gio choi (BangFragment.veLenhCho). Chi ve lai khi danh sach
+     * doi: [ve] chay moi giay tu [nhip], dung lai view moi giay thi nut dang bam do bi thay giua
+     * chung. Rut xong thi listener cua [cho] hay [phieu] bo dong do.
+     */
+    private fun veCho(ds: List<ChuLaptop.DongLenh>) {
+        val ky = ds.joinToString("|") { "${it.lenhId}:${it.phieuId}:${it.chu}" }
+        if (ky == daVeCho) return
+        daVeCho = ky
+        val hop = v.hopCho
+        hop.removeAllViews()
+        hop.visibility = if (ds.isEmpty()) View.GONE else View.VISIBLE
+        val c = ct
+        for (d in ds) {
+            val dong = LinearLayout(c).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+            }
+            dong.addView(TextView(c).apply {
+                text = d.chu
+                textSize = 13f
+                setTextColor(ContextCompat.getColor(c, R.color.ink_soft))
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            })
+            dong.addView(MaterialButton(c, null, androidx.appcompat.R.attr.borderlessButtonStyle).apply {
+                text = "Rút lại"
+                setOnClickListener {
+                    isEnabled = false
+                    val xong: (Kho.KetQua) -> Unit = { kq ->
+                        if (kq is Kho.KetQua.Hong) {
+                            isEnabled = true
+                            fragment.context?.let { Dinh.noi(it, kq.viSao) }
+                        }
+                    }
+                    d.phieuId?.let { Kho.rutPhieuLaptop(c, it, xong) }
+                        ?: d.lenhId?.let { Kho.rutLenhLaptop(c, it, xong) }
+                }
+            })
+            hop.addView(dong)
         }
     }
 

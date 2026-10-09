@@ -32,8 +32,14 @@ object ChuLaptop {
     /** Dong trang thai cua the. [choBam] false thi cac nut lenh mo di va bam chi bao ly do. */
     data class TrangThaiHien(val chu: String, val mau: Mau, val choBam: Boolean)
 
-    /** Mot dong o cuoi the: [cho] lenh dang cho (mau nhat), ket qua lenh (xanh, [loi] thi do). */
-    data class DongLenh(val chu: String, val loi: Boolean, val cho: Boolean = false)
+    /**
+     * Mot dong o cuoi the: [cho] lenh, phieu dang cho (mau nhat, co nut "Rút lại": [lenhId] hay
+     * [phieuId] la cai se xoa), ket qua lenh (xanh, [loi] thi do).
+     */
+    data class DongLenh(
+        val chu: String, val loi: Boolean, val cho: Boolean = false,
+        val lenhId: String? = null, val phieuId: String? = null
+    )
 
     /** Ten hien o man dang nhap laptop (anh Huy doi 8/10/2026). */
     fun tenHien(ten: String): String = when (ten) {
@@ -128,12 +134,13 @@ object ChuLaptop {
         val dangCho = mutableListOf<Pair<Long, DongLenh>>()
         for (l in cho.filter { it.kieu != LenhLaptop.HOI }) {
             dangCho += l.tao to DongLenh(
-                "Đang chờ laptop nhận: ${tenLenh(l.kieu)} (gửi ${Dinh.gioPhut(l.tao)}).", false, cho = true
+                "Đang chờ laptop nhận: ${tenLenh(l.kieu)} (gửi ${Dinh.gioPhut(l.tao)}).", false, cho = true,
+                lenhId = l.id
             )
         }
         val dau = dauNgay(bayGio)
         for (p in phieu.filter { it.tao >= dau && it.phut != 0 }) {
-            dangCho += p.tao to DongLenh(chuPhieu(p), false, cho = true)
+            dangCho += p.tao to DongLenh(chuPhieu(p), false, cho = true, phieuId = p.id)
         }
         ra += dangCho.sortedBy { it.first }.map { it.second }
         return ra

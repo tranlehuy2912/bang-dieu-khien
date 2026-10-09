@@ -363,6 +363,32 @@ object Kho {
             )
         }
 
+    /**
+     * Rut lai mot phieu cap, bot phut Netflix laptop chua nhan (nut "Rút lại" cua the Laptop,
+     * 9/10/2026). Laptop dang bat thi nhan phieu trong vai giay, nen rut lai chu yeu co ich khi laptop
+     * tat; rut dung luc laptop vua doc phieu thi phut van duoc cong, nhu nut "Rút lại" cua tablet.
+     */
+    fun rutPhieuLaptop(context: Context, id: String, xong: (KetQua) -> Unit = {}) {
+        val noi = laptop(context) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
+        noi.collection(Duong.CAP).document(id).delete()
+            .addOnSuccessListener { xong(KetQua.Xong) }
+            .addOnFailureListener {
+                Log.w(TAG, "rut phieu laptop hong", it)
+                xong(KetQua.Hong(loiNguoiDoc(it)))
+            }
+    }
+
+    /** Rut lai mot lenh laptop chua lay (nut "Rút lại" cua the Laptop, 9/10/2026). */
+    fun rutLenhLaptop(context: Context, id: String, xong: (KetQua) -> Unit = {}) {
+        val noi = laptop(context) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
+        noi.collection(Duong.LENH).document(id).delete()
+            .addOnSuccessListener { xong(KetQua.Xong) }
+            .addOnFailureListener {
+                Log.w(TAG, "rut lenh laptop hong", it)
+                xong(KetQua.Hong(loiNguoiDoc(it)))
+            }
+    }
+
     /** Bo mot lenh laptop chua lay (qua 5 phut, xem [Duong.LENH_LAPTOP_HET_HAN_MS]). */
     fun xoaLenhLaptop(context: Context, id: String) {
         laptop(context)?.collection(Duong.LENH)?.document(id)?.delete()

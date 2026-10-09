@@ -730,7 +730,7 @@ class BangFragment : Fragment() {
                 text = when {
                     l.chuaLenMang -> "Chưa gửi lên được vì điện thoại mất mạng: ${Dinh.lenh(l)}. " +
                         "Có mạng lại là tự gửi."
-                    else -> "Đang chờ tablet nhận: ${Dinh.lenh(l)}, gửi lúc $luc."
+                    else -> Dinh.dongChoTablet(l, luc)
                 }
                 textSize = 14f
                 setLineSpacing(2f * resources.displayMetrics.density, 1f)

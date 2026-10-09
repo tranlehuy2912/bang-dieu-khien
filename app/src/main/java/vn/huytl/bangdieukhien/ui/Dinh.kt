@@ -114,6 +114,18 @@ object Dinh {
         else -> l.kieu.lowercase(VN)
     }
 
+    /**
+     * Mot dong o khoi lenh dang cho tablet cua the Gio choi ([luc] la gio gui, "14:06"). Cho choi
+     * va bot gio viet nhu dong phieu cho cua the Laptop (anh Huy doi 9/10/2026): "Thêm 15 phút lúc
+     * 14:06 (Chờ)", "Bớt 10 phút lúc 14:07 (Chờ)". Lenh khac giu cau cu "Đang chờ tablet nhận:
+     * duyệt bài, 45 phút, gửi lúc 14:06.".
+     */
+    fun dongChoTablet(l: LenhCho, luc: String): String = when {
+        l.kieu == Lenh.CHO && l.phut != null -> "Thêm ${phut(l.phut)} lúc $luc (Chờ)"
+        l.kieu == Lenh.BOT -> "Bớt ${phut(l.phut ?: 15)} lúc $luc (Chờ)"
+        else -> "Đang chờ tablet nhận: ${lenh(l)}, gửi lúc $luc."
+    }
+
     /** Ngay hom nay dang "yyyy-MM-dd", dung lam ten document nhat ky. */
     fun homNay(): String = ngay(0)
 

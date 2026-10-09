@@ -29,6 +29,21 @@ class DinhTest {
     }
 
     @Test
+    fun dong_cho_tablet_cho_choi_bot_gio_viet_nhu_the_laptop() {
+        // Anh Huy doi 9/10/2026, luc dau la "Đang chờ tablet nhận: cho chơi 15 phút, gửi lúc 14:06.".
+        assertEquals("Thêm 15 phút lúc 14:06 (Chờ)", Dinh.dongChoTablet(lenh(Lenh.CHO, 15), "14:06"))
+        assertEquals("Thêm 1 tiếng 30 phút lúc 14:06 (Chờ)", Dinh.dongChoTablet(lenh(Lenh.CHO, 90), "14:06"))
+        assertEquals("Bớt 10 phút lúc 14:07 (Chờ)", Dinh.dongChoTablet(lenh(Lenh.BOT, 10), "14:07"))
+        assertEquals("Bớt 15 phút lúc 14:07 (Chờ)", Dinh.dongChoTablet(lenh(Lenh.BOT), "14:07"))
+        // Lenh khac giu cau cu.
+        assertEquals(
+            "Đang chờ tablet nhận: duyệt bài, 45 phút, gửi lúc 14:06.",
+            Dinh.dongChoTablet(lenh(Lenh.DUYET, 45), "14:06")
+        )
+        assertEquals("Đang chờ tablet nhận: cho chơi, gửi lúc 14:06.", Dinh.dongChoTablet(lenh(Lenh.CHO), "14:06"))
+    }
+
+    @Test
     fun lenh_la_thi_hien_ten_kieu() {
         // Ban Bang dieu khien moi hon go ra kieu ban nay chua biet: van hien, khong de trong.
         assertEquals("kieumoi", Dinh.lenh(lenh("KIEUMOI")))

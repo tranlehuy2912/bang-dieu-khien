@@ -49,7 +49,9 @@ object ChuLaptop {
 
     /** Ten hien o man dang nhap laptop (anh Huy doi 8/10/2026). */
     fun tenHien(ten: String): String = when (ten) {
-        "lehoa" -> "Netflix"
+        // Tai khoan lehoa hien "Xem phim" tu 9/10/2026 (anh Huy chot luc laptop them YouTube; truoc
+        // la "Netflix"). Doi chu tren dien thoai o lan build app moi, theo loi anh Huy.
+        "lehoa" -> "Xem phim"
         "huy" -> "Admin"
         else -> ten
     }
@@ -81,7 +83,7 @@ object ChuLaptop {
             "" -> TrangThaiHien("Ở màn đăng nhập", "Chưa ai đăng nhập", Mau.XAM, true)
             // Xem bang tai khoan Admin thi khong bi tru phut (sang 8/10/2026 xem mot tieng nhu vay).
             "huy" -> TrangThaiHien("Admin đang dùng", "Tài khoản Admin$tu, không tính phút", Mau.ADMIN, true)
-            "lehoa" -> TrangThaiHien("Đang xem Netflix", "Tài khoản Netflix$tu", Mau.NETFLIX, true)
+            "lehoa" -> TrangThaiHien("Đang xem phim", "Tài khoản ${tenHien("lehoa")}$tu", Mau.NETFLIX, true)
             else -> TrangThaiHien("Đang dùng", "Tài khoản ${tenHien(l.phien)}$tu", Mau.XAM, true)
         }
     }
@@ -139,7 +141,7 @@ object ChuLaptop {
         return ra
     }
 
-    /** "Netflix 26 phút · Admin 1 tiếng 35 phút": Netflix truoc, roi Admin, roi tai khoan khac. */
+    /** "Xem phim 26 phút · Admin 1 tiếng 35 phút": lehoa truoc, roi Admin, roi tai khoan khac. */
     fun tongLanDung(cac: List<LanDung>): String {
         val theoAi = cac.groupBy { it.ai }.mapValues { (_, l) -> l.sumOf { it.dai } }
         val thuTu = listOf("lehoa", "huy") + theoAi.keys.filter { it != "lehoa" && it != "huy" }.sorted()

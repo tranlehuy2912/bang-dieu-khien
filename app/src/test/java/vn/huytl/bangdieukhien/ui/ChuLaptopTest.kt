@@ -49,8 +49,8 @@ class ChuLaptopTest {
         val tt = ChuLaptop.trangThai(
             laptop(phien = "lehoa", phienTu = luc("2026-10-08 16:19")), "h1", hoiLuc, hoiLuc + 30_000L
         )
-        assertEquals("Đang xem Netflix", tt.nhan)
-        assertEquals("Tài khoản Netflix từ 16:19", tt.chu)
+        assertEquals("Đang xem phim", tt.nhan)
+        assertEquals("Tài khoản Xem phim từ 16:19", tt.chu)
         assertEquals(ChuLaptop.Mau.NETFLIX, tt.mau)
         assertTrue(tt.choBam)
     }
@@ -128,7 +128,7 @@ class ChuLaptopTest {
             ),
             cac
         )
-        assertEquals("Netflix 26 phút · Admin 1 tiếng 33 phút", ChuLaptop.tongLanDung(cac))
+        assertEquals("Xem phim 26 phút · Admin 1 tiếng 33 phút", ChuLaptop.tongLanDung(cac))
         assertEquals("16:19 – nay", ChuLaptop.khoangGio(cac[2]))
         assertEquals("09:36–10:06", ChuLaptop.khoangGio(cac[0]))
     }

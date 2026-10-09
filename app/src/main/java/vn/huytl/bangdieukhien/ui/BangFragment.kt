@@ -966,8 +966,10 @@ class BangFragment : Fragment() {
                 ct,
                 when {
                     kq is Kho.KetQua.Hong -> kq.viSao
-                    bot -> "Đã gửi bớt ${Dinh.phut(phut)} Netflix, laptop nhận trong khoảng một phút."
-                    else -> "Đã gửi ${Dinh.phut(phut)} Netflix, laptop nhận trong khoảng một phút."
+                    // Bo ve "laptop nhận trong khoảng một phút" (anh Huy dan 9/10/2026): laptop nghe
+                    // Firestore, nhan trong vai giay; laptop tat thi nhan khi bat lai.
+                    bot -> "Đã gửi bớt ${Dinh.phut(phut)} Netflix."
+                    else -> "Đã gửi ${Dinh.phut(phut)} Netflix."
                 }
             )
         }

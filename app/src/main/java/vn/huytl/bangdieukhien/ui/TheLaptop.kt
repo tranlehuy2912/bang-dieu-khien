@@ -185,7 +185,8 @@ class TheLaptop(
             if (kq is Kho.KetQua.Hong) {
                 Dinh.noi(c, kq.viSao)
             } else {
-                Dinh.noi(c, "Đã gửi, laptop nhận trong khoảng một phút.")
+                // Bo ve "laptop nhận trong khoảng một phút" (anh Huy dan 9/10/2026).
+                Dinh.noi(c, "Đã gửi.")
                 if (id != null) xong(id)
             }
         }

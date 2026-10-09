@@ -32,7 +32,8 @@ import vn.huytl.bangdieukhien.databinding.TheLaptopBinding
  * [LenhLaptop.HOI]: laptop tra loi trong khoang mot phut thi biet no con song. Lenh laptop chua
  * lay sau 5 phut thi may nay xoa va bao "đã bỏ" (anh Huy chot), laptop gap lenh cu cung bo.
  * Laptop tat hay khong tra loi thi cac nut lenh mo di, bam chi bao ly do; rieng nut Cap them van
- * bam duoc vi phieu cap nam cho toi khi laptop bat lai.
+ * bam duoc vi phieu cap nam cho toi khi laptop bat lai, va nut Chup man hinh van mo duoc hop xem
+ * anh lan truoc.
  *
  * [BangFragment] giu lang nghe document laptop (chung voi hang cu) va goi [capNhat], [nhip].
  */
@@ -61,7 +62,8 @@ class TheLaptop(
     init {
         v.nutCap.setOnClickListener { khiCap() }
         v.nutNhan.setOnClickListener { neuChoBam { hoiNhan() } }
-        v.nutChup.setOnClickListener { neuChoBam { moAnh() } }
+        // Mo hop xem anh lan truoc thi duoc ca luc laptop tat; nut Chup trong hop moi can laptop.
+        v.nutChup.setOnClickListener { moAnh() }
         v.nutDangXuat.setOnClickListener { neuChoBam { hoiDangXuat() } }
         v.nutTatMay.setOnClickListener { neuChoBam { hoiTatMay() } }
     }
@@ -140,7 +142,7 @@ class TheLaptop(
         v.chuHomNay.visibility = if (homNay == null) View.GONE else View.VISIBLE
         v.chuHomNay.text = homNay
         val mo = if (tt.choBam) 1f else 0.4f
-        for (n in listOf(v.nutNhan, v.nutChup, v.nutDangXuat, v.nutTatMay)) n.alpha = mo
+        for (n in listOf(v.nutNhan, v.nutDangXuat, v.nutTatMay)) n.alpha = mo
 
         val dong = ChuLaptop.dongLenh(cho.filter { it.id !in daBo }, l.ketQua, bo, bayGio)
         if (dong.isEmpty()) {
@@ -236,28 +238,29 @@ class TheLaptop(
     }
 
     /**
-     * Hop "Màn hình laptop": gui lenh chup, hien anh cu trong luc cho anh moi. Nut "Chụp lại" gui
-     * lenh nua ma khong dong hop.
+     * Hop "Màn hình laptop": mo ra chi hien anh chup lan truoc, bam nut "Chụp" o duoi moi gui lenh
+     * chup (anh Huy doi 9/10/2026; truoc do mo hop la chup ngay). Dau X o tren de dong. Chi co mot
+     * anh moi nhat, anh sau de anh truoc (anh Huy hoi lai 9/10/2026 va giu nhu vay).
      */
     private fun moAnh() {
         val h = HopAnhLaptopBinding.inflate(LayoutInflater.from(ct))
         hopAnh = h
+        chupLuc = 0L
+        chupId = null
         val nghe = Kho.ngheAnhLaptop(ct) { a ->
             anh = a
             veAnh()
         }
         val hop = MaterialAlertDialogBuilder(ct)
-            .setTitle("Màn hình laptop")
             .setView(h.root)
-            .setNeutralButton("Chụp lại", null)
-            .setPositiveButton("Đóng", null)
             .setOnDismissListener {
                 nghe?.remove()
                 hopAnh = null
             }
             .show()
-        hop.getButton(DialogInterface.BUTTON_NEUTRAL).setOnClickListener { chup() }
-        chup()
+        h.nutDong.setOnClickListener { hop.dismiss() }
+        h.nutChupAnh.setOnClickListener { neuChoBam { chup() } }
+        veAnh()
     }
 
     private fun chup() {
@@ -276,15 +279,17 @@ class TheLaptop(
             h.anh.tag = a.luc
         }
         val hong = laptop?.ketQua?.firstOrNull { it.id == chupId && !it.ok }
-        val moi = a != null && a.luc >= chupLuc - 5_000L
+        // Vua bam Chup ma anh tren may chu van cu hon luc bam: dang cho laptop chup.
+        val dangCho = chupLuc > 0L && (a == null || a.luc < chupLuc - 5_000L)
         val cuaAi = a?.phien?.takeIf { it.isNotEmpty() }?.let { " · tài khoản ${ChuLaptop.tenHien(it)}" }
             ?: " · màn đăng nhập"
         h.chuAnh.text = when {
             hong != null -> hong.chu
-            moi -> "Chụp lúc ${ChuLaptop.luc(a!!.luc, bayGio)}$cuaAi"
-            a != null -> "Đang chờ laptop chụp ảnh mới, tối đa khoảng một phút. Ảnh dưới chụp lúc " +
+            dangCho && a != null -> "Đang chờ laptop chụp ảnh mới, tối đa khoảng một phút. Ảnh dưới chụp lúc " +
                 "${ChuLaptop.luc(a.luc, bayGio)}."
-            else -> "Đang chờ laptop chụp, tối đa khoảng một phút."
+            dangCho -> "Đang chờ laptop chụp, tối đa khoảng một phút."
+            a != null -> "Chụp lúc ${ChuLaptop.luc(a.luc, bayGio)}$cuaAi"
+            else -> "Chưa có ảnh nào. Bấm Chụp để chụp màn hình laptop."
         }
     }
 }

@@ -15,9 +15,10 @@ import java.util.Calendar
 object ChuLaptop {
 
     /**
-     * Gui [LenhLaptop.HOI] xong cho bao lau thi coi la laptop khong tra loi. Laptop hoi lenh mot
-     * phut mot lan (anh Huy chot giu mot phut), cong thoi gian ghi len may chu; 150 giay la hon
-     * hai vong hoi mot chut.
+     * Gui [LenhLaptop.HOI] xong cho bao lau thi coi la laptop khong tra loi. Tu 9/10/2026 laptop
+     * nghe lenh qua mot ket noi Firestore, tra loi trong vai giay; chi khi khong mo duoc ket noi do
+     * no moi hoi lenh mot phut mot lan nhu truoc, cong thoi gian ghi len may chu. 150 giay la hon
+     * hai vong hoi do mot chut.
      */
     const val CHO_TRA_LOI_MS = 150_000L
 

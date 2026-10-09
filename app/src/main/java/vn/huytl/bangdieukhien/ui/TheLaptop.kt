@@ -34,7 +34,7 @@ import vn.huytl.bangdieukhien.databinding.TheLaptopBinding
  * duoc thi toi mot phut) thi biet no con song. Lenh laptop chua lay sau 5 phut thi may nay xoa va
  * bao "đã bỏ" (anh Huy chot), laptop gap lenh cu cung bo. Laptop tat hay khong tra loi thi cac nut
  * lenh mo di, bam chi bao ly do; rieng nut Them, Bot van bam duoc vi phieu cap nam cho toi khi
- * laptop bat lai (phieu chua nhan hien dong "Chờ nhận thêm 20 phút (gửi 14:05)", 9/10/2026), va
+ * laptop bat lai (phieu chua nhan hien dong "Thêm 20 phút lúc 14:05 (Chờ)", 9/10/2026), va
  * nut Chup man hinh van mo duoc hop xem anh lan truoc.
  *
  * [BangFragment] giu lang nghe document laptop (chung voi hang cu) va goi [capNhat], [nhip].

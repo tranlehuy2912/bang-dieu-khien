@@ -172,9 +172,9 @@ class ChuLaptopTest {
         )
         assertEquals(
             listOf(
-                ChuLaptop.DongLenh("Chờ nhận thêm 20 phút (gửi 14:05)", false, cho = true),
+                ChuLaptop.DongLenh("Thêm 20 phút lúc 14:05 (Chờ)", false, cho = true),
                 ChuLaptop.DongLenh("Đang chờ laptop nhận: Chụp màn hình (gửi 14:06).", false, cho = true),
-                ChuLaptop.DongLenh("Chờ nhận bớt 15 phút (gửi 14:07)", false, cho = true)
+                ChuLaptop.DongLenh("Bớt 15 phút lúc 14:07 (Chờ)", false, cho = true)
             ),
             ChuLaptop.dongLenh(cho, emptyList(), emptyList(), bayGio, phieu)
         )
@@ -183,11 +183,11 @@ class ChuLaptopTest {
     @Test
     fun phieu_tu_mot_tieng_ghi_theo_tieng() {
         assertEquals(
-            "Chờ nhận thêm 1 tiếng 30 phút (gửi 14:05)",
+            "Thêm 1 tiếng 30 phút lúc 14:05 (Chờ)",
             ChuLaptop.chuPhieu(PhieuLaptopCho("p", 90, luc("2026-10-09 14:05")))
         )
         assertEquals(
-            "Chờ nhận bớt 1 tiếng (gửi 14:05)",
+            "Bớt 1 tiếng lúc 14:05 (Chờ)",
             ChuLaptop.chuPhieu(PhieuLaptopCho("p", -60, luc("2026-10-09 14:05")))
         )
     }

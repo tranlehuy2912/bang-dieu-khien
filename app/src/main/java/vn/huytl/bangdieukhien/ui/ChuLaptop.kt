@@ -139,9 +139,12 @@ object ChuLaptop {
         return ra
     }
 
-    /** "Chờ nhận thêm 20 phút (gửi 14:05)", "Chờ nhận bớt 15 phút (gửi 14:05)" (chu anh Huy chon 9/10/2026). */
+    /**
+     * "Thêm 20 phút lúc 14:05 (Chờ)", "Bớt 15 phút lúc 14:05 (Chờ)" (chu anh Huy chon 9/10/2026, luc
+     * dau la "Chờ nhận thêm 20 phút (gửi 14:05)"). Gio la luc gui phieu.
+     */
     fun chuPhieu(p: PhieuLaptopCho): String =
-        "Chờ nhận ${if (p.phut < 0) "bớt" else "thêm"} ${Dinh.phut(abs(p.phut))} (gửi ${Dinh.gioPhut(p.tao)})"
+        "${if (p.phut < 0) "Bớt" else "Thêm"} ${Dinh.phut(abs(p.phut))} lúc ${Dinh.gioPhut(p.tao)} (Chờ)"
 
     /** Lenh cho qua [Duong.LENH_LAPTOP_HET_HAN_MS] thi may nay xoa (anh Huy chot 8/10/2026). */
     fun quaHan(l: LenhLaptopCho, bayGio: Long): Boolean = bayGio - l.tao > Duong.LENH_LAPTOP_HET_HAN_MS

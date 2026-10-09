@@ -865,7 +865,7 @@ data class LenhLaptopCho(val id: String, val kieu: String, val tao: Long)
 
 /**
  * Mot phieu cap hay bot phut Netflix laptop chua nhan (con nam trong laptop/{maNha}/cap), cho dong
- * "Chờ nhận thêm 20 phút (gửi 14:05)" cua the Laptop (anh Huy chot 9/10/2026). [phut] am la phieu
+ * "Thêm 20 phút lúc 14:05 (Chờ)" cua the Laptop (anh Huy chot 9/10/2026). [phut] am la phieu
  * bot. Laptop nhan xong la xoa phieu, nen phieu con nam do tuc la laptop dang tat, mat mang, hay
  * chi vai giay chua kip. Phieu Le Hoa doi phut tren tablet cung nam o day.
  */

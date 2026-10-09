@@ -41,7 +41,7 @@ class TheLaptop(
     private val fragment: Fragment,
     private val v: TheLaptopBinding,
     private val khiCap: () -> Unit,
-    /** Nut "Bớt Netflix" (9/10/2026): cung hop voi Cap them, phieu phut am. */
+    /** Nut "Bớt" (9/10/2026, luc dau ghi "Bớt Netflix"): cung hop voi nut Them, phieu phut am. */
     private val khiBot: () -> Unit
 ) {
     private var laptop: TinhTrangLaptop? = null
@@ -191,11 +191,11 @@ class TheLaptop(
         }
     }
 
-    /** Hop "Nhắn lên tivi": cau toi da 200 ky tu, doc 1 toi 3 lan, mac dinh 1 (anh Huy chot). */
+    /** Hop "Thông báo" (nut "Thông báo", truoc 9/10/2026 ghi "Nhắn lên tivi"): cau toi da 200 ky tu, doc 1 toi 3 lan, mac dinh 1 (anh Huy chot). */
     private fun hoiNhan() {
         val h = HopNhanTiviBinding.inflate(LayoutInflater.from(ct))
         val hop = MaterialAlertDialogBuilder(ct)
-            .setTitle("Nhắn lên tivi")
+            .setTitle("Thông báo")
             .setView(h.root)
             .setPositiveButton("Gửi", null)
             .setNegativeButton(R.string.huy, null)

@@ -71,7 +71,9 @@
             android:layout_marginTop="4dp"
             android:visibility="gone" />
 
-        <!-- Nam nut khong vua mot hang tren may 360dp, ChipGroup tu xuong dong. -->
+        <!-- Nam nut khong vua mot hang tren may 360dp, ChipGroup tu xuong dong. Ngay 9/10/2026 anh
+             Huy doi chu tren nut cho gon: "Cấp thêm Netflix" thanh "Thêm", "Bớt Netflix" thanh "Bớt",
+             "Nhắn lên tivi" thanh "Thông báo". -->
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/hangNut"
             android:layout_width="match_parent"
@@ -84,22 +86,22 @@
                 style="@style/Chip.Laptop"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cấp thêm Netflix" />
+                android:text="Thêm" />
 
-            <!-- Bot phut Netflix (9/10/2026, anh Huy chot): vien do, ngay canh Cap them. -->
+            <!-- Bot phut Netflix (9/10/2026, anh Huy chot): vien do, ngay canh nut Them. -->
             <com.google.android.material.chip.Chip
                 android:id="@+id/nutBot"
                 style="@style/Chip.Laptop.Do"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Bớt Netflix" />
+                android:text="Bớt" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/nutNhan"
                 style="@style/Chip.Laptop"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Nhắn lên tivi" />
+                android:text="Thông báo" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/nutChup"

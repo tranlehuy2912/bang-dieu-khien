@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hop "Nhắn lên tivi" cua the Laptop (8/10/2026): cau nhan toi da 200 ky tu, doc 1, 2 hay 3 lan,
+<!-- Hop "Thông báo" cua the Laptop (8/10/2026, truoc 9/10/2026 ten la "Nhắn lên tivi"): cau nhan toi da 200 ky tu, doc 1, 2 hay 3 lan,
      mac dinh 1 (anh Huy chot). TheLaptop.hoiNhan dung hop nay. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"

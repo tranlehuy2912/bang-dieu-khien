@@ -40,7 +40,7 @@ object ChuLaptop {
     }
 
     fun tenLenh(kieu: String): String = when (kieu) {
-        LenhLaptop.NHAN -> "Nhắn lên tivi"
+        LenhLaptop.NHAN -> "Thông báo"
         LenhLaptop.CHUP -> "Chụp màn hình"
         LenhLaptop.DANG_XUAT -> "Đăng xuất"
         LenhLaptop.TAT_MAY -> "Tắt máy"

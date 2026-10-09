@@ -913,8 +913,8 @@ class BangFragment : Fragment() {
      * Cac muc o [MUC_CAP_LAPTOP], dong cuoi "Khác" mo o go so ([hoiPhutKhacLaptop]); muc 45 phut
      * va dong do anh Huy them chieu 7/10/2026, dong do luc dau ghi "Phút khác" roi anh doi ngay.
      *
-     * [bot] la nut "Bớt Netflix" (9/10/2026, anh Huy chot "cap them thi cung phai bot"): cung hop,
-     * cung muc, phieu mang so phut am, laptop bot toi da ve 0.
+     * [bot] la nut "Bớt" cua the Laptop (9/10/2026, luc dau ghi "Bớt Netflix"; anh Huy chot "cap
+     * them thi cung phai bot"): cung hop, cung muc, phieu mang so phut am, laptop bot toi da ve 0.
      */
     private fun hoiCapLaptop(bot: Boolean = false) {
         val cac = (MUC_CAP_LAPTOP.map { Dinh.phut(it) } + "Khác").toTypedArray()

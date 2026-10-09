@@ -41,7 +41,7 @@ class CaiDatFragment : Fragment() {
     private var ngheCaiDat: ListenerRegistration? = null
     private var ngheApp: ListenerRegistration? = null
 
-    /** Nghe laptop/{maNha} cho muc "Firefox chỉ được mở Netflix", xem [veNhomLaptop]. */
+    /** Nghe laptop/{maNha} cho muc "Khoá web", xem [veNhomLaptop]. */
     private var ngheLaptop: ListenerRegistration? = null
 
     /** Dang cho tablet vua cai lai app xin vao nha. Xem [noiLaiTablet]. */
@@ -180,9 +180,13 @@ class CaiDatFragment : Fragment() {
     }
 
     /**
-     * Nhom "Laptop" (anh Huy chon chieu 7/10/2026): ti le doi phut choi sang Netflix, va muc bat
-     * tat "Firefox chỉ được mở Netflix" (truoc do la hang chu kem nut "Mở web" / "Khoá web" o tab
-     * Gio choi, chu luc khoa la "Web khoá, Firefox chỉ vào Netflix.").
+     * Nhom "Laptop" (anh Huy chon chieu 7/10/2026): ti le doi phut choi sang phut xem phim, va muc
+     * bat tat "Khoá web" (truoc do la hang chu kem nut "Mở web" / "Khoá web" o tab Gio choi, chu
+     * luc khoa la "Web khoá, Firefox chỉ vào Netflix.").
+     *
+     * Ten hai muc anh Huy chot 9/10/2026, khi laptop xem duoc ca Netflix lan YouTube: "Tỷ lệ đổi
+     * phút phim" (truoc la "Tỷ lệ đổi Netflix") va "Khoá web" (truoc la "Firefox chỉ được mở
+     * Netflix", da sai tu luc luat chan web cho them YouTube).
      *
      * Ti le la cai dat cua tablet, gui lenh CAIDAT nhu moi muc khac; tablet ban cu khong gui
      * truong nay thi an muc. Muc Firefox thi ghi thang vao laptop/{maNha} qua [Kho.datMoWeb],
@@ -194,13 +198,13 @@ class CaiDatFragment : Fragment() {
             c?.tiLeNetflix?.let { tiLe ->
                 // Anh Huy doi chu ngay 7/10/2026: ten cu "Đổi sang Netflix", so cu "1 phút chơi =
                 // 2 phút" dai qua, dong nho cu "Lê Hòa đổi phút chơi tablet lấy phút xem trên
-                // laptop". Hop chon khi cham van hoi "1 phút chơi đổi được" N phút Netflix.
-                muc("Tỷ lệ đổi Netflix", "1:$tiLe", "Đổi phút chơi sang xem Netflix") {
+                // laptop". Hop chon khi cham van hoi "1 phút chơi đổi được" N phút xem phim.
+                muc("Tỷ lệ đổi phút phim", "1:$tiLe", "Đổi phút chơi sang phút xem phim") {
                     hoiTiLe(tiLe) { guiCaiDat("tiLeNetflix", it) }
                 }
             },
             laptop?.let { l ->
-                muc("Firefox chỉ được mở Netflix", if (l.moWeb) "Tắt" else "Bật", chuWeb(l)) {
+                muc("Khoá web", if (l.moWeb) "Tắt" else "Bật", chuWeb(l)) {
                     doiWebLaptop(l)
                 }
             }
@@ -211,7 +215,7 @@ class CaiDatFragment : Fragment() {
     }
 
     /**
-     * Dong nho duoi muc "Firefox chỉ được mở Netflix". Chu "Bật" / "Tắt" ben phai la dieu Ba Huy
+     * Dong nho duoi muc "Khoá web". Chu "Bật" / "Tắt" ben phai la dieu Ba Huy
      * chon (truong moWeb), con dong nay la dieu laptop bao da lam (truong webDangMo). Hai dieu do
      * lech nhau mot luc: laptop hoi Firestore moi phut, va khong mo web luc Le Hoa dang dung.
      */
@@ -220,7 +224,9 @@ class CaiDatFragment : Fragment() {
         l.moWeb && l.dangDung -> "Lê Hòa đang dùng laptop nên web vẫn khoá."
         l.moWeb -> "Đang chờ laptop mở web."
         l.webDangMo -> "Đang chờ laptop khoá web."
-        else -> "Cả máy, kể cả tài khoản của Ba"
+        // Luat chan web cua Firefox ap cho ca may, ke ca tai khoan Admin cua Ba Huy; tu 9/10/2026
+        // cho ca YouTube (truoc chi Netflix, chu luc do la "Cả máy, kể cả tài khoản của Ba").
+        else -> "Chỉ mở được Netflix, YouTube. Cả tài khoản Admin."
     }
 
     /**
@@ -331,13 +337,13 @@ class CaiDatFragment : Fragment() {
         }
     }
 
-    /** Chon ti le doi Netflix, 1 den 5 phut cho moi phut choi (tablet nhan toi 10). */
+    /** Chon ti le doi phut xem phim, 1 den 5 phut cho moi phut choi (tablet nhan toi 10). */
     private fun hoiTiLe(dangLa: Int, xong: (Int) -> Unit) {
         val cac = (1..5).toList()
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("1 phút chơi đổi được")
             .setSingleChoiceItems(
-                cac.map { "$it phút Netflix" }.toTypedArray(), cac.indexOf(dangLa)
+                cac.map { "$it phút xem phim" }.toTypedArray(), cac.indexOf(dangLa)
             ) { d, i ->
                 d.dismiss()
                 xong(cac[i])

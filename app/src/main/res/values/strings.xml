@@ -51,8 +51,6 @@
     <!-- Quy gio choi (29/9/2026): phut lam tren may ma tran rieng cua phan do cat. -->
     <string name="bang_quy_gio">Quỹ giờ chơi</string>
     <string name="bang_cap_quy">Cấp từ quỹ</string>
-    <!-- Truoc chieu 7/10/2026 la "Netflix trên laptop"; anh Huy doi cho gon. -->
-    <string name="bang_laptop">Xem Netflix</string>
     <string name="bang_cap_laptop">Cấp thêm</string>
     <!-- Hang de thi thu, tu 1/10/2026 moi mon mot hang: tieu de "Đề thi thử <môn>" ghep trong
          HangDeThi nen khong con chuoi bang_de_thi. Nut cua hang mo danh sach de cua mon do; nut

@@ -431,8 +431,8 @@
                      anh Huy chon gop het viec voi laptop vao mot the), xem the_laptop.xml. -->
 
                 <!-- Hang mo hay khoa web tren laptop (co tu sang 7/10/2026) chuyen sang tab Cai
-                     dat chieu 7/10/2026, thanh muc Bat/Tat "Firefox chỉ được mở Netflix" trong
-                     nhom Laptop, xem CaiDatFragment. Cac hang de thi thu ra the rieng theDeThi
+                     dat chieu 7/10/2026, thanh muc Bat/Tat "Firefox chỉ được mở Netflix" (tu
+                     9/10/2026 ten "Khoá web") trong nhom Laptop, xem CaiDatFragment. Cac hang de thi thu ra the rieng theDeThi
                      ngay duoi the nay (anh Huy chon cung ngay). -->
 
                 <!-- Lenh dang tren duong di, hay vua hong. Nam cuoi the, ngay duoi cac

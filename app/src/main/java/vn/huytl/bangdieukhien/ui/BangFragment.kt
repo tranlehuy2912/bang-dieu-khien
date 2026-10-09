@@ -905,7 +905,8 @@ class BangFragment : Fragment() {
      * chieu hom do ten "Netflix trên laptop").
      *
      * Hang mo, khoa web tung nam ngay duoi hang do; chieu 7/10/2026 anh Huy chuyen no sang tab
-     * Cai dat thanh muc "Firefox chỉ được mở Netflix", xem CaiDatFragment.
+     * Cai dat thanh muc "Firefox chỉ được mở Netflix" (tu 9/10/2026 ten "Khoá web"), xem
+     * CaiDatFragment.
      */
     private fun veLaptop() {
         // Tu 8/10/2026 hang "Xem Netflix" thanh the Laptop: so phut, dong ho, trang thai deu o day.
@@ -959,8 +960,9 @@ class BangFragment : Fragment() {
                     kq is Kho.KetQua.Hong -> kq.viSao
                     // Bo ve "laptop nhận trong khoảng một phút" (anh Huy dan 9/10/2026): laptop nghe
                     // Firestore, nhan trong vai giay; laptop tat thi nhan khi bat lai.
-                    bot -> "Đã gửi bớt ${Dinh.phut(phut)} Netflix."
-                    else -> "Đã gửi ${Dinh.phut(phut)} Netflix."
+                    // Chu "phút xem phim" thay "Netflix" tu 9/10/2026: laptop xem ca YouTube.
+                    bot -> "Đã gửi bớt ${Dinh.phut(phut)} xem phim."
+                    else -> "Đã gửi thêm ${Dinh.phut(phut)} xem phim."
                 }
             )
         }

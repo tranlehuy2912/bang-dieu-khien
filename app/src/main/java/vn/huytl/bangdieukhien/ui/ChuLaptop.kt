@@ -4,9 +4,11 @@ import vn.huytl.bangdieukhien.data.Duong
 import vn.huytl.bangdieukhien.data.KetQuaLenhLaptop
 import vn.huytl.bangdieukhien.data.LenhLaptop
 import vn.huytl.bangdieukhien.data.LenhLaptopCho
+import vn.huytl.bangdieukhien.data.PhieuLaptopCho
 import vn.huytl.bangdieukhien.data.SuKienLaptop
 import vn.huytl.bangdieukhien.data.TinhTrangLaptop
 import java.util.Calendar
+import kotlin.math.abs
 
 /**
  * Chu cua the Laptop (8/10/2026), tach khoi [TheLaptop] de thu bang test JVM (ChuLaptopTest):
@@ -103,11 +105,12 @@ object ChuLaptop {
 
     /**
      * Cac dong cuoi the: lenh dang cho laptop nhan (tru HOI), ket qua lenh moi nhat trong
-     * [HIEN_KET_QUA_MS], va cac lenh may nay da bo vi qua 5 phut ([bo]: lenh kem luc bo).
+     * [HIEN_KET_QUA_MS], cac lenh may nay da bo vi qua 5 phut ([bo]: lenh kem luc bo), va phieu cap,
+     * bot phut Netflix laptop chua nhan ([phieu], 9/10/2026).
      */
     fun dongLenh(
         cho: List<LenhLaptopCho>, ketQua: List<KetQuaLenhLaptop>, bo: List<Pair<LenhLaptopCho, Long>>,
-        bayGio: Long
+        bayGio: Long, phieu: List<PhieuLaptopCho> = emptyList()
     ): List<DongLenh> {
         val ra = mutableListOf<DongLenh>()
         val gan = ketQua.filter { it.kieu != LenhLaptop.HOI && bayGio - it.luc <= HIEN_KET_QUA_MS }
@@ -120,11 +123,25 @@ object ChuLaptop {
             cu += luc to DongLenh("Laptop chưa nhận lệnh ${tenLenh(l.kieu)} trong 5 phút, đã bỏ.", true)
         }
         ra += cu.sortedBy { it.first }.map { it.second }
+        // Lenh va phieu dang cho, theo thu tu gui. Phieu tu hom truoc thi laptop bo luc bat lai (phut
+        // Netflix chi dung trong ngay), nen khong hien.
+        val dangCho = mutableListOf<Pair<Long, DongLenh>>()
         for (l in cho.filter { it.kieu != LenhLaptop.HOI }) {
-            ra += DongLenh("Đang chờ laptop nhận: ${tenLenh(l.kieu)} (gửi ${Dinh.gioPhut(l.tao)}).", false, cho = true)
+            dangCho += l.tao to DongLenh(
+                "Đang chờ laptop nhận: ${tenLenh(l.kieu)} (gửi ${Dinh.gioPhut(l.tao)}).", false, cho = true
+            )
         }
+        val dau = dauNgay(bayGio)
+        for (p in phieu.filter { it.tao >= dau && it.phut != 0 }) {
+            dangCho += p.tao to DongLenh(chuPhieu(p), false, cho = true)
+        }
+        ra += dangCho.sortedBy { it.first }.map { it.second }
         return ra
     }
+
+    /** "Chờ nhận thêm 20 phút (gửi 14:05)", "Chờ nhận bớt 15 phút (gửi 14:05)" (chu anh Huy chon 9/10/2026). */
+    fun chuPhieu(p: PhieuLaptopCho): String =
+        "Chờ nhận ${if (p.phut < 0) "bớt" else "thêm"} ${Dinh.phut(abs(p.phut))} (gửi ${Dinh.gioPhut(p.tao)})"
 
     /** Lenh cho qua [Duong.LENH_LAPTOP_HET_HAN_MS] thi may nay xoa (anh Huy chot 8/10/2026). */
     fun quaHan(l: LenhLaptopCho, bayGio: Long): Boolean = bayGio - l.tao > Duong.LENH_LAPTOP_HET_HAN_MS

@@ -9,6 +9,7 @@ import org.junit.Test
 import vn.huytl.bangdieukhien.data.KetQuaLenhLaptop
 import vn.huytl.bangdieukhien.data.LenhLaptop
 import vn.huytl.bangdieukhien.data.LenhLaptopCho
+import vn.huytl.bangdieukhien.data.PhieuLaptopCho
 import vn.huytl.bangdieukhien.data.SuKienLaptop
 import vn.huytl.bangdieukhien.data.SuKienTrenLaptop
 import vn.huytl.bangdieukhien.data.TinhTrangLaptop
@@ -156,6 +157,38 @@ class ChuLaptopTest {
                 ChuLaptop.DongLenh("Đang chờ laptop nhận: Chụp màn hình (gửi 16:49).", false, cho = true)
             ),
             dong
+        )
+    }
+
+    @Test
+    fun phieu_cap_bot_dang_cho_hien_chung_lenh_cho_theo_thu_tu_gui_bo_phieu_hom_truoc() {
+        val bayGio = luc("2026-10-09 14:10")
+        val cho = listOf(LenhLaptopCho("c", LenhLaptop.CHUP, luc("2026-10-09 14:06")))
+        val phieu = listOf(
+            PhieuLaptopCho("p1", 20, luc("2026-10-09 14:05")),
+            PhieuLaptopCho("p2", -15, luc("2026-10-09 14:07")),
+            // Phieu tu toi qua: laptop bat lai se bo, nen khong hien.
+            PhieuLaptopCho("cu", 30, luc("2026-10-08 21:00"))
+        )
+        assertEquals(
+            listOf(
+                ChuLaptop.DongLenh("Chờ nhận thêm 20 phút (gửi 14:05)", false, cho = true),
+                ChuLaptop.DongLenh("Đang chờ laptop nhận: Chụp màn hình (gửi 14:06).", false, cho = true),
+                ChuLaptop.DongLenh("Chờ nhận bớt 15 phút (gửi 14:07)", false, cho = true)
+            ),
+            ChuLaptop.dongLenh(cho, emptyList(), emptyList(), bayGio, phieu)
+        )
+    }
+
+    @Test
+    fun phieu_tu_mot_tieng_ghi_theo_tieng() {
+        assertEquals(
+            "Chờ nhận thêm 1 tiếng 30 phút (gửi 14:05)",
+            ChuLaptop.chuPhieu(PhieuLaptopCho("p", 90, luc("2026-10-09 14:05")))
+        )
+        assertEquals(
+            "Chờ nhận bớt 1 tiếng (gửi 14:05)",
+            ChuLaptop.chuPhieu(PhieuLaptopCho("p", -60, luc("2026-10-09 14:05")))
         )
     }
 

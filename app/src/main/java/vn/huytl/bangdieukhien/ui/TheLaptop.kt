@@ -19,6 +19,7 @@ import vn.huytl.bangdieukhien.data.Duong
 import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.LenhLaptop
 import vn.huytl.bangdieukhien.data.LenhLaptopCho
+import vn.huytl.bangdieukhien.data.PhieuLaptopCho
 import vn.huytl.bangdieukhien.data.TinhTrangLaptop
 import vn.huytl.bangdieukhien.databinding.HopAnhLaptopBinding
 import vn.huytl.bangdieukhien.databinding.HopNhanTiviBinding
@@ -29,11 +30,12 @@ import vn.huytl.bangdieukhien.databinding.TheLaptopBinding
  * [ChuLaptop]; o day lo view, hop thoai va lenh.
  *
  * Laptop chi ghi len Firestore khi co gi doi, nen moi lan tab hien len la gui mot lenh
- * [LenhLaptop.HOI]: laptop tra loi trong khoang mot phut thi biet no con song. Lenh laptop chua
- * lay sau 5 phut thi may nay xoa va bao "đã bỏ" (anh Huy chot), laptop gap lenh cu cung bo.
- * Laptop tat hay khong tra loi thi cac nut lenh mo di, bam chi bao ly do; rieng nut Cap them van
- * bam duoc vi phieu cap nam cho toi khi laptop bat lai, va nut Chup man hinh van mo duoc hop xem
- * anh lan truoc.
+ * [LenhLaptop.HOI]: laptop tra loi (tu 9/10/2026 laptop nghe Firestore, vai giay; luc khong nghe
+ * duoc thi toi mot phut) thi biet no con song. Lenh laptop chua lay sau 5 phut thi may nay xoa va
+ * bao "đã bỏ" (anh Huy chot), laptop gap lenh cu cung bo. Laptop tat hay khong tra loi thi cac nut
+ * lenh mo di, bam chi bao ly do; rieng nut Them, Bot van bam duoc vi phieu cap nam cho toi khi
+ * laptop bat lai (phieu chua nhan hien dong "Chờ nhận thêm 20 phút (gửi 14:05)", 9/10/2026), va
+ * nut Chup man hinh van mo duoc hop xem anh lan truoc.
  *
  * [BangFragment] giu lang nghe document laptop (chung voi hang cu) va goi [capNhat], [nhip].
  */
@@ -46,6 +48,7 @@ class TheLaptop(
 ) {
     private var laptop: TinhTrangLaptop? = null
     private var cho: List<LenhLaptopCho> = emptyList()
+    private var phieu: List<PhieuLaptopCho> = emptyList()
 
     /** Lenh may nay da bo vi qua 5 phut, kem luc bo, de hien "đã bỏ" mot luc. */
     private val bo = mutableListOf<Pair<LenhLaptopCho, Long>>()
@@ -54,6 +57,7 @@ class TheLaptop(
     private var hoiId: String? = null
     private var hoiLuc = 0L
     private var ngheLenh: ListenerRegistration? = null
+    private var nghePhieu: ListenerRegistration? = null
 
     /** Hop anh dang mo, de ve lai khi anh hay ket qua lenh chup ve. */
     private var hopAnh: HopAnhLaptopBinding? = null
@@ -82,11 +86,17 @@ class TheLaptop(
             cho = ds
             ve()
         }
+        nghePhieu = Kho.ngheCapLaptop(ct) { ds ->
+            phieu = ds
+            ve()
+        }
     }
 
     fun dung() {
         ngheLenh?.remove()
         ngheLenh = null
+        nghePhieu?.remove()
+        nghePhieu = null
     }
 
     fun capNhat(l: TinhTrangLaptop?) {
@@ -148,7 +158,7 @@ class TheLaptop(
         val mo = if (tt.choBam) 1f else 0.4f
         for (n in listOf(v.nutNhan, v.nutDangXuat, v.nutTatMay)) n.alpha = mo
 
-        val dong = ChuLaptop.dongLenh(cho.filter { it.id !in daBo }, l.ketQua, bo, bayGio)
+        val dong = ChuLaptop.dongLenh(cho.filter { it.id !in daBo }, l.ketQua, bo, bayGio, phieu)
         if (dong.isEmpty()) {
             v.chuLenh.visibility = View.GONE
         } else {
@@ -290,9 +300,9 @@ class TheLaptop(
             ?: " · màn đăng nhập"
         h.chuAnh.text = when {
             hong != null -> hong.chu
-            dangCho && a != null -> "Đang chờ laptop chụp ảnh mới, tối đa khoảng một phút. Ảnh dưới chụp lúc " +
+            dangCho && a != null -> "Đang chờ laptop chụp ảnh mới. Ảnh dưới chụp lúc " +
                 "${ChuLaptop.luc(a.luc, bayGio)}."
-            dangCho -> "Đang chờ laptop chụp, tối đa khoảng một phút."
+            dangCho -> "Đang chờ laptop chụp."
             a != null -> "Chụp lúc ${ChuLaptop.luc(a.luc, bayGio)}$cuaAi"
             else -> "Chưa có ảnh nào. Bấm Chụp để chụp màn hình laptop."
         }

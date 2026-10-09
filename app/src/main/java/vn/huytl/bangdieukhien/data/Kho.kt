@@ -263,8 +263,9 @@ object Kho {
 
     /**
      * Ba Huy cho them [phut] phut Netflix, khong tru phut choi cua tablet (anh Huy chon
-     * 7/10/2026). [phut] am la bot (nut "Bớt" cua the Laptop, 9/10/2026), laptop bot toi da ve 0. Ghi mot phieu vao laptop/{maNha}/cap; laptop hoi cho do moi phut, cong gio
-     * roi xoa phieu. Phieu het hieu luc luc nua dem, nhu phieu con doi tren tablet.
+     * 7/10/2026). [phut] am la bot (nut "Bớt" cua the Laptop, 9/10/2026), laptop bot toi da ve 0. Ghi mot phieu vao laptop/{maNha}/cap; laptop nghe cho do (tu 9/10/2026, dang bat thi nhan
+     * trong vai giay), cong gio roi xoa phieu. Phieu het hieu luc luc nua dem, nhu phieu con doi
+     * tren tablet. Phieu chua nhan hien o the Laptop, xem [ngheCapLaptop].
      */
     fun capNetflix(context: Context, phut: Int, xong: (KetQua) -> Unit) {
         val ma = Nha.maNha(context)
@@ -307,8 +308,9 @@ object Kho {
 
     /**
      * Gui mot lenh cho laptop (8/10/2026), xem [Duong.F_SO_LAN] va [LenhLaptop]. [xong] nhan ma
-     * lenh de tim ket qua trong [TinhTrangLaptop.ketQua]. Lenh nam cho toi khi laptop hoi (mot
-     * phut mot lan); qua 5 phut chua lay thi [TheLaptop] xoa, laptop gap cung bo.
+     * lenh de tim ket qua trong [TinhTrangLaptop.ketQua]. Lenh nam cho toi khi laptop nhan (laptop
+     * nghe Firestore tu 9/10/2026, dang bat thi vai giay); qua 5 phut chua lay thi [TheLaptop] xoa,
+     * laptop gap cung bo.
      */
     fun guiLenhLaptop(
         context: Context, kieu: String, chu: String? = null, soLan: Int? = null,
@@ -341,6 +343,22 @@ object Kho {
             khi(
                 snap.documents.map {
                     LenhLaptopCho(it.id, it.getString(Duong.F_KIEU).orEmpty(), it.getLong(Duong.F_TAO_LUC) ?: 0L)
+                }.sortedBy { it.tao }
+            )
+        }
+
+    /** Nghe cac phieu cap, bot phut Netflix laptop chua nhan (9/10/2026), cu nhat truoc. */
+    fun ngheCapLaptop(context: Context, khi: (List<PhieuLaptopCho>) -> Unit): ListenerRegistration? =
+        laptop(context)?.collection(Duong.CAP)?.addSnapshotListener { snap, loi ->
+            if (loi != null || snap == null) {
+                if (loi != null) Log.w(TAG, "nghe phieu laptop hong: ${loi.message}")
+                return@addSnapshotListener
+            }
+            khi(
+                snap.documents.map {
+                    PhieuLaptopCho(
+                        it.id, (it.getLong(Duong.F_PHUT) ?: 0L).toInt(), it.getLong(Duong.F_TAO_LUC) ?: 0L
+                    )
                 }.sortedBy { it.tao }
             )
         }

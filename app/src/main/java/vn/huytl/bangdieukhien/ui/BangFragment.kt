@@ -172,7 +172,7 @@ class BangFragment : Fragment() {
         b.choBot.setOnClickListener { hoiPhutBot() }
         b.nutCapQuy.setOnClickListener { hoiCapQuy() }
         // Nut cap them Netflix nam trong the Laptop tu 8/10/2026.
-        theLaptop = TheLaptop(this, b.theLaptop) { hoiCapLaptop() }
+        theLaptop = TheLaptop(this, b.theLaptop, khiCap = { hoiCapLaptop() }, khiBot = { hoiCapLaptop(bot = true) })
         // Nut "Mở web" / "Khoá web" cua laptop chuyen sang tab Cai dat (7/10/2026), xem
         // CaiDatFragment.doiWebLaptop.
         // Nut "Xem đề" cua tung mon gan luc dung hang, xem [veDeThi].
@@ -912,13 +912,16 @@ class BangFragment : Fragment() {
      *
      * Cac muc o [MUC_CAP_LAPTOP], dong cuoi "Khác" mo o go so ([hoiPhutKhacLaptop]); muc 45 phut
      * va dong do anh Huy them chieu 7/10/2026, dong do luc dau ghi "Phút khác" roi anh doi ngay.
+     *
+     * [bot] la nut "Bớt Netflix" (9/10/2026, anh Huy chot "cap them thi cung phai bot"): cung hop,
+     * cung muc, phieu mang so phut am, laptop bot toi da ve 0.
      */
-    private fun hoiCapLaptop() {
+    private fun hoiCapLaptop(bot: Boolean = false) {
         val cac = (MUC_CAP_LAPTOP.map { Dinh.phut(it) } + "Khác").toTypedArray()
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Cho thêm phút Netflix")
+            .setTitle(if (bot) "Bớt phút Netflix" else "Cho thêm phút Netflix")
             .setItems(cac) { _, i ->
-                if (i < MUC_CAP_LAPTOP.size) capLaptop(MUC_CAP_LAPTOP[i]) else hoiPhutKhacLaptop()
+                if (i < MUC_CAP_LAPTOP.size) capLaptop(MUC_CAP_LAPTOP[i], bot) else hoiPhutKhacLaptop(bot)
             }
             .setNegativeButton(R.string.huy, null)
             .show()
@@ -926,12 +929,12 @@ class BangFragment : Fragment() {
 
     /**
      * Dong "Khác" cua [hoiCapLaptop]: go so phut, tu 1 toi [CAP_LAPTOP_TOI_DA] (anh Huy chon
-     * 7/10/2026). Tran do la tran luat Firestore dat cho phieu laptop/{maNha}/cap (phut > 0 va
-     * <= 600, xem firestore.rules): vuot thi phieu bi tu choi ma Ba Huy chi thay mot cau loi
-     * quyen, nen chan truoc o day. So sai thi bao ngay duoi o va khong dong hop, y nhu
+     * 7/10/2026). Tran do la tran luat Firestore dat cho phieu laptop/{maNha}/cap (phut tu -600
+     * toi 600, khac 0, xem firestore.rules): vuot thi phieu bi tu choi ma Ba Huy chi thay mot cau
+     * loi quyen, nen chan truoc o day. So sai thi bao ngay duoi o va khong dong hop, y nhu
      * [hoiTinCo]: dong lai la mat so vua go.
      */
-    private fun hoiPhutKhacLaptop() {
+    private fun hoiPhutKhacLaptop(bot: Boolean = false) {
         val ct = requireContext()
         val o = EditText(ct).apply {
             hint = "Số phút"
@@ -939,10 +942,10 @@ class BangFragment : Fragment() {
             setPadding(48, 32, 48, 32)
         }
         val hop = MaterialAlertDialogBuilder(ct)
-            .setTitle("Cho thêm bao nhiêu phút?")
+            .setTitle(if (bot) "Bớt bao nhiêu phút?" else "Cho thêm bao nhiêu phút?")
             .setMessage("Từ 1 tới $CAP_LAPTOP_TOI_DA phút.")
             .setView(o)
-            .setPositiveButton("Cho", null)
+            .setPositiveButton(if (bot) "Bớt" else "Cho", null)
             .setNegativeButton(R.string.huy, null)
             .show()
         hop.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener {
@@ -951,18 +954,21 @@ class BangFragment : Fragment() {
                 o.error = "Gõ một số từ 1 tới $CAP_LAPTOP_TOI_DA."
             } else {
                 hop.dismiss()
-                capLaptop(phut)
+                capLaptop(phut, bot)
             }
         }
     }
 
-    private fun capLaptop(phut: Int) {
-        Kho.capNetflix(requireContext(), phut) { kq ->
+    private fun capLaptop(phut: Int, bot: Boolean = false) {
+        Kho.capNetflix(requireContext(), if (bot) -phut else phut) { kq ->
             val ct = context ?: return@capNetflix
             Dinh.noi(
                 ct,
-                if (kq is Kho.KetQua.Hong) kq.viSao
-                else "Đã gửi ${Dinh.phut(phut)} Netflix, laptop nhận trong khoảng một phút."
+                when {
+                    kq is Kho.KetQua.Hong -> kq.viSao
+                    bot -> "Đã gửi bớt ${Dinh.phut(phut)} Netflix, laptop nhận trong khoảng một phút."
+                    else -> "Đã gửi ${Dinh.phut(phut)} Netflix, laptop nhận trong khoảng một phút."
+                }
             )
         }
     }

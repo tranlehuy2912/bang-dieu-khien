@@ -40,7 +40,9 @@ import vn.huytl.bangdieukhien.databinding.TheLaptopBinding
 class TheLaptop(
     private val fragment: Fragment,
     private val v: TheLaptopBinding,
-    private val khiCap: () -> Unit
+    private val khiCap: () -> Unit,
+    /** Nut "Bớt Netflix" (9/10/2026): cung hop voi Cap them, phieu phut am. */
+    private val khiBot: () -> Unit
 ) {
     private var laptop: TinhTrangLaptop? = null
     private var cho: List<LenhLaptopCho> = emptyList()
@@ -61,6 +63,8 @@ class TheLaptop(
 
     init {
         v.nutCap.setOnClickListener { khiCap() }
+        // Phieu bot nhu phieu cap: nam cho toi khi laptop bat lai trong ngay, nen bam luc nao cung duoc.
+        v.nutBot.setOnClickListener { khiBot() }
         v.nutNhan.setOnClickListener { neuChoBam { hoiNhan() } }
         // Mo hop xem anh lan truoc thi duoc ca luc laptop tat; nut Chup trong hop moi can laptop.
         v.nutChup.setOnClickListener { moAnh() }

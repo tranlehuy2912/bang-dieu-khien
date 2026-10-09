@@ -86,6 +86,14 @@
                 android:layout_height="wrap_content"
                 android:text="Cấp thêm Netflix" />
 
+            <!-- Bot phut Netflix (9/10/2026, anh Huy chot): vien do, ngay canh Cap them. -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/nutBot"
+                style="@style/Chip.Laptop.Do"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bớt Netflix" />
+
             <com.google.android.material.chip.Chip
                 android:id="@+id/nutNhan"
                 style="@style/Chip.Laptop"

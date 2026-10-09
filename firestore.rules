@@ -160,10 +160,12 @@ service cloud.firestore {
 
       // Phieu cap gio Netflix. Nguoi nha tao (tablet khi Le Hoa doi phut choi, Bang dieu
       // khien khi Ba Huy cho them), laptop doc roi xoa sau khi cong gio. Khong ai sua phieu.
+      // Tu 9/10/2026 phut am la phieu bot (Ba Huy bam "Bớt Netflix"), toi da 600 phut moi phieu.
       match /cap/{id} {
         allow create: if laNguoiNha(nhaId)
           && request.resource.data.phut is int
-          && request.resource.data.phut > 0
+          && request.resource.data.phut != 0
+          && request.resource.data.phut >= -600
           && request.resource.data.phut <= 600;
         allow read, delete: if laNguoiNha(nhaId) || laLaptop(nhaId);
       }

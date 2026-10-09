@@ -263,7 +263,7 @@ object Kho {
 
     /**
      * Ba Huy cho them [phut] phut Netflix, khong tru phut choi cua tablet (anh Huy chon
-     * 7/10/2026). Ghi mot phieu vao laptop/{maNha}/cap; laptop hoi cho do moi phut, cong gio
+     * 7/10/2026). [phut] am la bot (nut "Bớt Netflix", 9/10/2026), laptop bot toi da ve 0. Ghi mot phieu vao laptop/{maNha}/cap; laptop hoi cho do moi phut, cong gio
      * roi xoa phieu. Phieu het hieu luc luc nua dem, nhu phieu con doi tren tablet.
      */
     fun capNetflix(context: Context, phut: Int, xong: (KetQua) -> Unit) {

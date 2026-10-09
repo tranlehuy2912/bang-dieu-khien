@@ -395,6 +395,19 @@ object Kho {
             ?.addOnFailureListener { Log.w(TAG, "xoa lenh laptop hong", it) }
     }
 
+    /**
+     * Nghe so mot ngay cua laptop, laptop/{maNha}/ngay/[ngay] (9/10/2026), cho the "Thời gian dùng
+     * laptop" o tab Nhat ky. Ngay khong co document thi tra danh sach rong.
+     */
+    fun ngheNgayLaptop(context: Context, ngay: String, khi: (List<SuKienTrenLaptop>) -> Unit): ListenerRegistration? =
+        laptop(context)?.collection(Duong.LAPTOP_NGAY)?.document(ngay)?.addSnapshotListener { snap, loi ->
+            if (loi != null) {
+                Log.w(TAG, "nghe so ngay laptop hong: ${loi.message}")
+                return@addSnapshotListener
+            }
+            khi((snap?.get(Duong.F_SU_KIEN) as? List<*>).orEmpty().mapNotNull { SuKienTrenLaptop.doc(it) })
+        }
+
     /** Nghe anh chup man hinh moi nhat cua laptop. null la chua co anh nao. */
     fun ngheAnhLaptop(context: Context, khi: (AnhLaptop?) -> Unit): ListenerRegistration? =
         laptop(context)?.collection(Duong.ANH)?.document(Duong.D_MOI_NHAT)?.addSnapshotListener { snap, loi ->

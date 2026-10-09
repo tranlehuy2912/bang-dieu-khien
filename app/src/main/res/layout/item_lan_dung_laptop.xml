@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mot lan dung laptop trong the "Thời gian dùng laptop" (9/10/2026): khoang gio, nhan tai khoan
+     (Netflix mau Le Hoa, Admin mau Ba Huy, NhatKyFragment.veLaptop to mau), bao lau. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
+
+    <TextView
+        android:id="@+id/khoang"
+        android:layout_width="104dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/ink"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/taiKhoan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/vien_nhan"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="2dp"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/baoLau"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="end"
+        android:textColor="@color/ink"
+        android:textSize="14sp" />
+</LinearLayout>

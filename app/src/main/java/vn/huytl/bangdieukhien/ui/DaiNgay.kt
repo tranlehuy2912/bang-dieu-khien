@@ -29,11 +29,29 @@ class DaiNgay @JvmOverloads constructor(
     private var dauNgay = 0L
     private var cac: List<Pair<Long, Long>> = emptyList()
 
+    /** Mau rieng tung khoang, cung thu tu voi [cac]; rong thi moi khoang mot mau [butVach]. */
+    private var mauTung: List<Int> = emptyList()
+    private val butTung = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+
     /** [cac] la cac khoang tinh bang milli giay tuyet doi, cat san trong mot ngay. */
     fun dat(dauNgay: Long, cac: List<Pair<Long, Long>>, mauVach: Int, mauNen: Int, mauGio: Int) {
         this.dauNgay = dauNgay
         this.cac = cac
+        this.mauTung = emptyList()
         butVach.color = mauVach
+        butNen.color = mauNen
+        butGio.color = mauGio
+        invalidate()
+    }
+
+    /**
+     * Nhu [dat] nhung moi khoang mot mau (the "Thời gian dùng laptop", 9/10/2026: Netflix mau cua Le
+     * Hoa, Admin mau cua Ba Huy). [cac] la (tu, den, mau).
+     */
+    fun datNhieuMau(dauNgay: Long, cac: List<Triple<Long, Long, Int>>, mauNen: Int, mauGio: Int) {
+        this.dauNgay = dauNgay
+        this.cac = cac.map { it.first to it.second }
+        this.mauTung = cac.map { it.third }
         butNen.color = mauNen
         butGio.color = mauGio
         invalidate()
@@ -56,13 +74,14 @@ class DaiNgay @JvmOverloads constructor(
         }
 
         val mot = 24L * 60 * 60_000L
-        cac.forEach { (tu, den) ->
+        cac.forEachIndexed { i, (tu, den) ->
             val t1 = ((tu - dauNgay).coerceIn(0L, mot)).toFloat() / mot * rong
             val t2 = ((den - dauNgay).coerceIn(0L, mot)).toFloat() / mot * rong
             // Khoang vai phut ra mot vach mong hon soi toc: keo len toi thieu 2dp de
             // no con nhin thay duoc.
             val phai = maxOf(t2, t1 + dp(2f))
-            canvas.drawRoundRect(RectF(t1, 0f, minOf(phai, rong), cao), bo, bo, butVach)
+            val but = mauTung.getOrNull(i)?.let { butTung.apply { color = it } } ?: butVach
+            canvas.drawRoundRect(RectF(t1, 0f, minOf(phai, rong), cao), bo, bo, but)
         }
     }
 

@@ -187,6 +187,13 @@ service cloud.firestore {
         allow read, delete: if laNguoiNha(nhaId) || laLaptop(nhaId);
       }
 
+      // So tung ngay cua laptop (9/10/2026): cac lan bat, tat, vao, ra, cho the "Thời gian dùng
+      // laptop" o tab Nhat ky. Chi laptop ghi va xoa (giu 7 ngay), nguoi nha doc.
+      match /ngay/{ngay} {
+        allow read: if laNguoiNha(nhaId) || laLaptop(nhaId);
+        allow create, update, delete: if laLaptop(nhaId);
+      }
+
       // Anh chup man hinh moi nhat (8/10/2026). Chi laptop ghi, anh sau de anh truoc.
       match /anh/{id} {
         allow read: if laNguoiNha(nhaId) || laLaptop(nhaId);

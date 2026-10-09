@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The Laptop o tab Gio choi (8/10/2026, anh Huy chon cach B trong hai mau ve cung ngay): gop het
-     viec voi laptop vao mot the. So phut Netflix, nut Cap them (truoc nam o hang "Xem Netflix" cua
-     the chinh), trang thai bat tat, dong "Hôm nay", va cac nut lenh. TheLaptop ve va xu ly; an khi
-     laptop chua noi vao nha. -->
+<!-- The Laptop o tab Gio choi. 8/10/2026 anh Huy chon cach B: gop het viec voi laptop vao mot the.
+     9/10/2026 anh Huy chon "mau Moi": bay giong the tablet ngay tren (nhan trang thai, dong tai
+     khoan, dong ho to, hai nut do, duong ke, hang 15' 30' 45' Khac Bot), bo dong "Hôm nay", bo dong
+     ghi chu duoi dong ho va nhan "Phút Netflix" tren hang nut. TheLaptop ve va xu ly; an khi laptop
+     chua noi vao nha. Cac lan dung laptop trong ngay o the "Thời gian dùng laptop" cua tab Nhat ky. -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/theLaptop"
     style="@style/The"
     android:layout_width="match_parent"
@@ -31,99 +31,145 @@
                 android:layout_weight="1"
                 android:text="Laptop" />
 
+            <!-- Nhan trang thai nhu nhanTrangThai cua the tablet: mau Le Hoa khi xem Netflix, mau Ba
+                 Huy khi tai khoan Admin dang dung, xam khi o man dang nhap, tat hay khong tra loi. -->
             <TextView
-                android:id="@+id/soNetflix"
-                style="@style/Chu.Nho"
+                android:id="@+id/nhanTrangThai"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
-
-        <!-- Cham mau: xanh dang bat, vang khi tai khoan Admin dang dung (khong tinh phut), xam khi
-             tat hay khong tra loi. -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <View
-                android:id="@+id/cham"
-                android:layout_width="9dp"
-                android:layout_height="9dp"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/cham" />
-
-            <TextView
-                android:id="@+id/chuTrangThai"
-                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textColor="@color/ink"
-                android:textSize="14sp" />
+                android:background="@drawable/vien_nhan"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp"
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <TextView
-            android:id="@+id/chuHomNay"
-            style="@style/Chu.Nho"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:visibility="gone" />
-
-        <!-- Nam nut khong vua mot hang tren may 360dp, ChipGroup tu xuong dong. Ngay 9/10/2026 anh
-             Huy doi chu tren nut cho gon: "Cấp thêm Netflix" thanh "Thêm", "Bớt Netflix" thanh "Bớt",
-             "Nhắn lên tivi" thanh "Thông báo". -->
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/hangNut"
+            android:id="@+id/dongTaiKhoan"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            app:chipSpacingVertical="0dp">
+            android:textColor="@color/ink"
+            android:textSize="14sp" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/nutCap"
-                style="@style/Chip.Laptop"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Thêm" />
+        <!-- Phut Netflix con lai, dang xem thi dem lui tung giay nhu dong ho the tablet. -->
+        <TextView
+            android:id="@+id/soNetflix"
+            style="@style/Chu.So"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/bang_gach" />
 
-            <!-- Bot phut Netflix (9/10/2026, anh Huy chot): vien do, ngay canh nut Them. -->
-            <com.google.android.material.chip.Chip
-                android:id="@+id/nutBot"
-                style="@style/Chip.Laptop.Do"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Bớt" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/nutNhan"
-                style="@style/Chip.Laptop"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Thông báo" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/nutChup"
-                style="@style/Chip.Laptop"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Chụp màn hình" />
-
-            <com.google.android.material.chip.Chip
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/nutDangXuat"
-                style="@style/Chip.Laptop"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/Nut.Phien.Do"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
                 android:text="Đăng xuất" />
 
-            <com.google.android.material.chip.Chip
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/nutTatMay"
-                style="@style/Chip.Laptop.Do"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/Nut.Phien.Do"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
                 android:text="Tắt máy" />
-        </com.google.android.material.chip.ChipGroup>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="20dp"
+            android:background="@color/line" />
+
+        <!-- Hang phut Netflix nhu hang cho gio cua tablet (anh Huy chot 9/10/2026): 15' 30' 45' gui
+             phieu ngay, khong hoi lai; Khac va Bot mo o go so phut. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/them15"
+                style="@style/Nut.Nhanh"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="15'" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/them30"
+                style="@style/Nut.Nhanh"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="30'" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/them45"
+                style="@style/Nut.Nhanh"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="45'" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/themKhac"
+                style="@style/Nut.Nhanh"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="Khác" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/nutBot"
+                style="@style/Nut.Nhanh.Do"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Bớt" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/nutNhan"
+                style="@style/Nut.Phien"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="Thông báo" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/nutChup"
+                style="@style/Nut.Phien"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Chụp màn hình" />
+        </LinearLayout>
 
         <!-- Ket qua lenh vua lam: xanh la xong, do la hong hay bi bo. Lenh, phieu dang cho nam o
              hopCho ben duoi. -->

@@ -20,6 +20,9 @@ import com.google.firebase.firestore.ListenerRegistration
 import vn.huytl.bangdieukhien.R
 import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.SoSuDung
+import vn.huytl.bangdieukhien.data.SuKienTrenLaptop
+import vn.huytl.bangdieukhien.data.TinhTrangLaptop
+import vn.huytl.bangdieukhien.databinding.ItemLanDungLaptopBinding
 import vn.huytl.bangdieukhien.databinding.FragmentNhatKyBinding
 import vn.huytl.bangdieukhien.databinding.ItemAppHomNayBinding
 import vn.huytl.bangdieukhien.databinding.ItemNhatKyBinding
@@ -44,6 +47,18 @@ class NhatKyFragment : Fragment() {
     private var ngheNhatKy: ListenerRegistration? = null
     private var ngheHoiAi: ListenerRegistration? = null
     private var ngheSuDung: ListenerRegistration? = null
+    private var ngheLaptop: ListenerRegistration? = null
+    private var ngheLaptopNgay: ListenerRegistration? = null
+
+    /**
+     * The "Thời gian dùng laptop" (9/10/2026): document laptop (null la laptop chua noi vao nha, an
+     * the; kem tai khoan dang ngoi man hinh de biet lan nao con dang chay) va so cua ngay dang xem.
+     */
+    private var laptop: TinhTrangLaptop? = null
+    private var suKienLaptop: List<SuKienTrenLaptop> = emptyList()
+
+    /** Lan dung dang chay thi ve lai moi phut cho so phut tang dan. */
+    private val veLaiLaptop = Runnable { if (_b != null) veLaptop() }
 
     /** Dang xem ngay nao: 0 la hom nay, 1 la hom qua. */
     private var lui = 0
@@ -112,15 +127,23 @@ class NhatKyFragment : Fragment() {
             veSuDung()
         }
         veSuDung()
+        ngheLaptop = Kho.ngheLaptop(requireContext()) { l ->
+            if (_b == null) return@ngheLaptop
+            laptop = l
+            veLaptop()
+        }
         henNuaDem()
         hoiTablet()
     }
 
     override fun onStop() {
         tay.removeCallbacks(quaNuaDem)
+        tay.removeCallbacks(veLaiLaptop)
         ngheNhatKy?.remove()
         ngheHoiAi?.remove()
         ngheSuDung?.remove()
+        ngheLaptop?.remove()
+        ngheLaptopNgay?.remove()
         super.onStop()
     }
 
@@ -132,6 +155,7 @@ class NhatKyFragment : Fragment() {
         val ct = requireContext()
         ngheNhatKy?.remove()
         ngheHoiAi?.remove()
+        ngheLaptopNgay?.remove()
         val ngay = Dinh.ngay(lui)
         b.tieuDeNgay.text = Dinh.tenNgay(lui).replaceFirstChar { it.uppercase() }
         b.ngayXem.text = Dinh.thuVaNgay(lui)
@@ -146,9 +170,15 @@ class NhatKyFragment : Fragment() {
             hoiAiDong = dong
             veTheHoiAi()
         }
+        ngheLaptopNgay = Kho.ngheNgayLaptop(ct, ngay) { sk ->
+            if (_b == null) return@ngheNgayLaptop
+            suKienLaptop = sk
+            veLaptop()
+        }
         veNhatKy()
         veTheHoiAi()
         veSuDung()
+        veLaptop()
     }
 
     /** Bay o ngay nhu trang "Thời gian dùng app" ([SuDungActivity.veHangNgay]). */
@@ -183,6 +213,7 @@ class NhatKyFragment : Fragment() {
         // So cua ngay cu khong con dung: xoa truoc de khong ve nham trong luc cho Firestore.
         nhatKy = emptyList()
         hoiAiDong = emptyList()
+        suKienLaptop = emptyList()
         moNhatKy = false
         moHoiAi = false
         ganNgay()
@@ -338,6 +369,62 @@ class NhatKyFragment : Fragment() {
             mauNen = ContextCompat.getColor(ct, R.color.line),
             mauGio = ContextCompat.getColor(ct, R.color.surface)
         )
+    }
+
+    /**
+     * The "Thời gian dùng laptop" (9/10/2026, anh Huy chon mau B): tong theo tai khoan, dai 24 gio
+     * nhu the dung app nhung moi tai khoan mot mau (Netflix mau cua Le Hoa, Admin mau cua Ba Huy),
+     * roi tung lan dung. Tinh tu luc dang nhap toi luc thoat (anh Huy chot), xem
+     * [ChuLaptop.cacLanDung]. Khong co dong may bat, tat (anh Huy bo).
+     */
+    private fun veLaptop() {
+        tay.removeCallbacks(veLaiLaptop)
+        val l = laptop
+        if (l == null) {
+            b.theLaptopNgay.visibility = View.GONE
+            return
+        }
+        b.theLaptopNgay.visibility = View.VISIBLE
+        val ct = requireContext()
+        val dau = SoSuDung.dauNgay(lui)
+        val cuoi = SoSuDung.dauNgay(lui - 1)
+        val cac = ChuLaptop.cacLanDung(suKienLaptop, dau, cuoi, System.currentTimeMillis(), l.phien)
+        val coLan = cac.isNotEmpty()
+        b.laptopKhoiDai.visibility = if (coLan) View.VISIBLE else View.GONE
+        b.laptopLan.visibility = if (coLan) View.VISIBLE else View.GONE
+        if (!coLan) {
+            b.laptopTong.text = "${Dinh.tenNgay(lui).replaceFirstChar { it.uppercase() }} không ai dùng laptop."
+            b.laptopTong.setTextColor(ContextCompat.getColor(ct, R.color.ink_soft))
+            return
+        }
+        b.laptopTong.text = ChuLaptop.tongLanDung(cac)
+        b.laptopTong.setTextColor(ContextCompat.getColor(ct, R.color.ink))
+        b.laptopDai.datNhieuMau(
+            dauNgay = dau,
+            cac = cac.map { Triple(it.tu, it.den, ContextCompat.getColor(ct, mauLaptop(it.ai).first)) },
+            mauNen = ContextCompat.getColor(ct, R.color.line),
+            mauGio = ContextCompat.getColor(ct, R.color.surface)
+        )
+        val lop = LayoutInflater.from(ct)
+        b.laptopLan.removeAllViews()
+        cac.forEach { lan ->
+            val d = ItemLanDungLaptopBinding.inflate(lop, b.laptopLan, false)
+            val (dam, nhat) = mauLaptop(lan.ai)
+            d.khoang.text = ChuLaptop.khoangGio(lan)
+            d.taiKhoan.text = ChuLaptop.tenHien(lan.ai)
+            d.taiKhoan.setTextColor(ContextCompat.getColor(ct, dam))
+            d.taiKhoan.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(ct, nhat))
+            d.baoLau.text = Dinh.doDai(lan.dai)
+            b.laptopLan.addView(d.root)
+        }
+        if (cac.any { it.dangDung }) tay.postDelayed(veLaiLaptop, 60_000L)
+    }
+
+    /** (mau chu, mau nen) cua nhan tai khoan: Netflix la Le Hoa, Admin la Ba Huy. */
+    private fun mauLaptop(ai: String): Pair<Int, Int> = when (ai) {
+        "lehoa" -> R.color.child_tint to R.color.child_soft
+        "huy" -> R.color.parent_tint to R.color.parent_soft
+        else -> R.color.ink_soft to R.color.line
     }
 
     companion object {

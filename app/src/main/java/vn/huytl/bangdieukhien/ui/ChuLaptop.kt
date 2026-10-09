@@ -6,6 +6,7 @@ import vn.huytl.bangdieukhien.data.LenhLaptop
 import vn.huytl.bangdieukhien.data.LenhLaptopCho
 import vn.huytl.bangdieukhien.data.PhieuLaptopCho
 import vn.huytl.bangdieukhien.data.SuKienLaptop
+import vn.huytl.bangdieukhien.data.SuKienTrenLaptop
 import vn.huytl.bangdieukhien.data.TinhTrangLaptop
 import java.util.Calendar
 import kotlin.math.abs
@@ -27,10 +28,15 @@ object ChuLaptop {
     /** Ket qua lenh, lenh bi bo, hien bao lau sau khi xay ra. Cu hon thi khong con lien quan. */
     const val HIEN_KET_QUA_MS = 30 * 60_000L
 
-    enum class Mau { XANH, VANG, XAM }
+    /** Mau nhan trang thai: mau cua Le Hoa khi xem Netflix, mau cua Ba Huy khi Admin dang dung. */
+    enum class Mau { NETFLIX, ADMIN, XAM }
 
-    /** Dong trang thai cua the. [choBam] false thi cac nut lenh mo di va bam chi bao ly do. */
-    data class TrangThaiHien(val chu: String, val mau: Mau, val choBam: Boolean)
+    /**
+     * Trang thai cua the (9/10/2026 bay giong the tablet, anh Huy chon "mau Moi"): [nhan] la nhan
+     * nho goc tren, [chu] la dong ngay duoi. [choBam] false thi cac nut lenh mo di va bam chi bao
+     * ly do.
+     */
+    data class TrangThaiHien(val nhan: String, val chu: String, val mau: Mau, val choBam: Boolean)
 
     /**
      * Mot dong o cuoi the: [cho] lenh, phieu dang cho (mau nhat, co nut "Rút lại": [lenhId] hay
@@ -61,53 +67,88 @@ object ChuLaptop {
      * co gi doi, nen phai hoi thi moi biet no con song.
      */
     fun trangThai(l: TinhTrangLaptop, hoiId: String?, hoiLuc: Long, bayGio: Long): TrangThaiHien {
-        if (l.daTat()) return TrangThaiHien("Đã tắt lúc ${luc(l.tatLuc, bayGio)}", Mau.XAM, false)
+        if (l.daTat()) return TrangThaiHien("Laptop đã tắt", "Tắt lúc ${luc(l.tatLuc, bayGio)}", Mau.XAM, false)
         val daTraLoi = hoiLuc > 0L && (l.capNhatLuc >= hoiLuc || l.ketQua.any { it.id == hoiId })
         if (!daTraLoi) {
             if (hoiLuc > 0L && bayGio - hoiLuc > CHO_TRA_LOI_MS) {
                 val tu = if (l.capNhatLuc > 0L) " từ ${luc(l.capNhatLuc, bayGio)}" else ""
-                return TrangThaiHien("Không thấy laptop trả lời$tu", Mau.XAM, false)
+                return TrangThaiHien("Không trả lời", "Không thấy laptop trả lời$tu", Mau.XAM, false)
             }
-            return TrangThaiHien("Đang hỏi laptop…", Mau.XAM, true)
+            return TrangThaiHien("Đang hỏi", "Đang hỏi laptop…", Mau.XAM, true)
         }
         val tu = if (l.phienTu > 0L) " từ ${luc(l.phienTu, bayGio)}" else ""
         return when (l.phien) {
-            "" -> TrangThaiHien("Đang bật · chưa ai đăng nhập", Mau.XANH, true)
+            "" -> TrangThaiHien("Ở màn đăng nhập", "Chưa ai đăng nhập", Mau.XAM, true)
             // Xem bang tai khoan Admin thi khong bi tru phut (sang 8/10/2026 xem mot tieng nhu vay).
-            "huy" -> TrangThaiHien("Đang bật · tài khoản Admin$tu, không tính phút", Mau.VANG, true)
-            else -> TrangThaiHien("Đang bật · tài khoản ${tenHien(l.phien)}$tu", Mau.XANH, true)
-        }
-    }
-
-    /** "còn 38:12 Netflix" luc dang xem (dem lui tung giay), "còn 45 phút Netflix", "Hết phút Netflix". */
-    fun soNetflix(l: TinhTrangLaptop, bayGio: Long): String {
-        val con = l.conLai(bayGio)
-        return when {
-            con <= 0L -> "Hết phút Netflix"
-            l.dangDung && l.ketThucLuc > 0L -> "còn ${Dinh.dongHo(con)} Netflix"
-            else -> "còn ${Dinh.doDai(con)} Netflix"
+            "huy" -> TrangThaiHien("Admin đang dùng", "Tài khoản Admin$tu, không tính phút", Mau.ADMIN, true)
+            "lehoa" -> TrangThaiHien("Đang xem Netflix", "Tài khoản Netflix$tu", Mau.NETFLIX, true)
+            else -> TrangThaiHien("Đang dùng", "Tài khoản ${tenHien(l.phien)}$tu", Mau.XAM, true)
         }
     }
 
     /**
-     * "Hôm nay: bật 09:36, Admin vào 09:36, tắt 10:06, ..." tu [Duong.F_SU_KIEN]. Bo dong dang xuat
-     * (ra) cho ngan: sau no la tat may hay mot lan vao khac. null khi khong co gi.
+     * Phut Netflix con lai cho dong ho to cua the, cung kieu dong ho the tablet: "38:12" (dang xem thi
+     * dem lui tung giay), "45:00", het phut thi "00:00".
      */
-    fun homNay(l: TinhTrangLaptop, bayGio: Long): String? {
-        val dauNgay = dauNgay(bayGio)
-        val cac = mutableListOf<String>()
-        if (l.batLuc in 1 until dauNgay && !l.daTat()) cac += "đang bật từ hôm qua"
-        for (s in l.suKien.filter { it.luc >= dauNgay }.sortedBy { it.luc }) {
-            val gio = Dinh.gioPhut(s.luc)
+    fun soNetflix(l: TinhTrangLaptop, bayGio: Long): String = Dinh.dongHo(l.conLai(bayGio))
+
+    /**
+     * Mot lan dung laptop trong ngay: tai khoan [ai] tu [tu] toi [den] (ms). [dangDung] la phien con
+     * dang chay, [den] khi do la luc ve.
+     */
+    data class LanDung(val ai: String, val tu: Long, val den: Long, val dangDung: Boolean = false) {
+        val dai: Long get() = (den - tu).coerceAtLeast(0L)
+    }
+
+    /**
+     * Cac lan dung laptop trong ngay [dauNgay, cuoiNgay) tu so ngay cua laptop (laptop/{maNha}/ngay,
+     * 9/10/2026), cho the "Thời gian dùng laptop" o tab Nhat ky. Tinh tu luc dang nhap toi luc thoat
+     * (anh Huy chot): vao mo mot lan; ra, tat, tat dot ngot dong lan dang mo; vao tai khoan khac
+     * cung dong lan truoc. Dong ra ma chua thay vao (phien chay tu hom truoc) thi tinh tu dau ngay.
+     * Con lan dang mo luc het so: hom nay thi toi [bayGio] neu laptop con bao [phienHienTai] la
+     * nguoi do, ngay cu thi toi het ngay.
+     */
+    fun cacLanDung(
+        suKien: List<SuKienTrenLaptop>, dauNgay: Long, cuoiNgay: Long, bayGio: Long, phienHienTai: String
+    ): List<LanDung> {
+        val ra = mutableListOf<LanDung>()
+        var dang: Pair<String, Long>? = null
+        for (s in suKien.filter { it.luc in dauNgay until cuoiNgay }.sortedBy { it.luc }) {
             when (s.kieu) {
-                SuKienLaptop.BAT -> cac += "bật $gio"
-                SuKienLaptop.TAT -> cac += "tắt $gio"
-                SuKienLaptop.MAT -> cac += "tắt đột ngột khoảng $gio"
-                SuKienLaptop.VAO -> cac += "${tenHien(s.ai)} vào $gio"
+                SuKienLaptop.VAO -> {
+                    val d = dang
+                    if (d != null && d.first == s.ai) continue
+                    if (d != null) ra += LanDung(d.first, d.second, s.luc)
+                    dang = s.ai to s.luc
+                }
+                SuKienLaptop.RA, SuKienLaptop.TAT, SuKienLaptop.MAT -> {
+                    val d = dang
+                    if (d != null) {
+                        ra += LanDung(d.first, d.second, s.luc)
+                        dang = null
+                    } else if (s.kieu == SuKienLaptop.RA && ra.isEmpty() && s.ai.isNotEmpty()) {
+                        ra += LanDung(s.ai, dauNgay, s.luc)
+                    }
+                }
             }
         }
-        return if (cac.isEmpty()) null else "Hôm nay: " + cac.joinToString(", ")
+        dang?.let { (ai, tu) ->
+            ra += if (bayGio < cuoiNgay) LanDung(ai, tu, maxOf(bayGio, tu), dangDung = phienHienTai == ai)
+            else LanDung(ai, tu, cuoiNgay)
+        }
+        return ra
     }
+
+    /** "Netflix 26 phút · Admin 1 tiếng 35 phút": Netflix truoc, roi Admin, roi tai khoan khac. */
+    fun tongLanDung(cac: List<LanDung>): String {
+        val theoAi = cac.groupBy { it.ai }.mapValues { (_, l) -> l.sumOf { it.dai } }
+        val thuTu = listOf("lehoa", "huy") + theoAi.keys.filter { it != "lehoa" && it != "huy" }.sorted()
+        return thuTu.filter { it in theoAi }.joinToString(" · ") { "${tenHien(it)} ${Dinh.doDai(theoAi.getValue(it))}" }
+    }
+
+    /** "09:36–10:06", lan dang chay thi "16:19 – nay". */
+    fun khoangGio(l: LanDung): String =
+        if (l.dangDung) "${Dinh.gioPhut(l.tu)} – nay" else "${Dinh.gioPhut(l.tu)}–${Dinh.gioPhut(l.den)}"
 
     /**
      * Cac dong cuoi the: lenh dang cho laptop nhan (tru HOI), ket qua lenh moi nhat trong

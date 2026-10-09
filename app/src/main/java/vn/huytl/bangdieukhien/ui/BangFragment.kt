@@ -172,7 +172,14 @@ class BangFragment : Fragment() {
         b.choBot.setOnClickListener { hoiPhutBot() }
         b.nutCapQuy.setOnClickListener { hoiCapQuy() }
         // Nut cap them Netflix nam trong the Laptop tu 8/10/2026.
-        theLaptop = TheLaptop(this, b.theLaptop, khiCap = { hoiCapLaptop() }, khiBot = { hoiCapLaptop(bot = true) })
+        // Hang 15' 30' 45' Khac Bot nhu hang cho gio tablet (anh Huy chot 9/10/2026): 15' 30' 45' gui
+        // ngay, Khac va Bot mo o go so.
+        theLaptop = TheLaptop(
+            this, b.theLaptop,
+            khiThem = { capLaptop(it) },
+            khiKhac = { hoiPhutKhacLaptop() },
+            khiBot = { hoiPhutKhacLaptop(bot = true) }
+        )
         // Nut "Mở web" / "Khoá web" cua laptop chuyen sang tab Cai dat (7/10/2026), xem
         // CaiDatFragment.doiWebLaptop.
         // Nut "Xem đề" cua tung mon gan luc dung hang, xem [veDeThi].
@@ -906,29 +913,13 @@ class BangFragment : Fragment() {
     }
 
     /**
-     * Ba Huy cho them phut Netflix, khong tru phut choi cua tablet (anh Huy chon 7/10/2026).
-     * Phieu ghi thang vao laptop/{maNha}/cap, khong qua tablet; laptop nhan trong vong mot
-     * phut neu dang mo. Phut chi dung trong ngay.
+     * Ba Huy cho them hay bot phut Netflix, khong dung phut choi cua tablet (anh Huy chon 7/10/2026;
+     * bot them ngay 9/10/2026). Phieu ghi thang vao laptop/{maNha}/cap, khong qua tablet; phut chi
+     * dung trong ngay. Tu 9/10/2026 the Laptop co hang 15' 30' 45' Khac Bot nhu the tablet: ba nut
+     * dau goi thang [capLaptop], "Khác" va "Bớt" mo o nay ([bot] la bot, phieu mang so phut am).
+     * Truoc do la mot hop danh sach 15, 30, 45 phut, 1 tieng, Khac cho ca hai nut.
      *
-     * Cac muc o [MUC_CAP_LAPTOP], dong cuoi "Khác" mo o go so ([hoiPhutKhacLaptop]); muc 45 phut
-     * va dong do anh Huy them chieu 7/10/2026, dong do luc dau ghi "Phút khác" roi anh doi ngay.
-     *
-     * [bot] la nut "Bớt" cua the Laptop (9/10/2026, luc dau ghi "Bớt Netflix"; anh Huy chot "cap
-     * them thi cung phai bot"): cung hop, cung muc, phieu mang so phut am, laptop bot toi da ve 0.
-     */
-    private fun hoiCapLaptop(bot: Boolean = false) {
-        val cac = (MUC_CAP_LAPTOP.map { Dinh.phut(it) } + "Khác").toTypedArray()
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(if (bot) "Bớt phút Netflix" else "Cho thêm phút Netflix")
-            .setItems(cac) { _, i ->
-                if (i < MUC_CAP_LAPTOP.size) capLaptop(MUC_CAP_LAPTOP[i], bot) else hoiPhutKhacLaptop(bot)
-            }
-            .setNegativeButton(R.string.huy, null)
-            .show()
-    }
-
-    /**
-     * Dong "Khác" cua [hoiCapLaptop]: go so phut, tu 1 toi [CAP_LAPTOP_TOI_DA] (anh Huy chon
+     * Go so phut, tu 1 toi [CAP_LAPTOP_TOI_DA] (anh Huy chon
      * 7/10/2026). Tran do la tran luat Firestore dat cho phieu laptop/{maNha}/cap (phut tu -600
      * toi 600, khac 0, xem firestore.rules): vuot thi phieu bi tu choi ma Ba Huy chi thay mot cau
      * loi quyen, nen chan truoc o day. So sai thi bao ngay duoi o va khong dong hop, y nhu
@@ -1226,9 +1217,6 @@ class BangFragment : Fragment() {
          * ngay; muc nao lon hon so trong quy thi an.
          */
         private val MUC_CAP_QUY = listOf(15, 30, 45, 60)
-
-        /** So phut Netflix Ba Huy cho them, xem [hoiCapLaptop]. Muc 45 them chieu 7/10/2026. */
-        private val MUC_CAP_LAPTOP = listOf(15, 30, 45, 60)
 
         /**
          * So phut lon nhat go duoc o dong "Khác", xem [hoiPhutKhacLaptop]. Phai bang tran

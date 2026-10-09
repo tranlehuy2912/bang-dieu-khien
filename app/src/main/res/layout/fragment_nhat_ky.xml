@@ -254,6 +254,114 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Thoi gian dung laptop (9/10/2026, anh Huy chon mau B): tong theo tai khoan, dai 24 gio
+             nhu the dung app, roi tung lan dung. An khi laptop chua noi vao nha. NhatKyFragment.veLaptop
+             ve tu so ngay laptop/{maNha}/ngay/{ngay}. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/theLaptopNgay"
+            style="@style/The"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="16dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="12dp">
+
+                <TextView
+                    style="@style/Chu.TieuDe"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Thời gian dùng laptop" />
+
+                <TextView
+                    android:id="@+id/laptopTong"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:textColor="@color/ink"
+                    android:textSize="14sp" />
+
+                <LinearLayout
+                    android:id="@+id/laptopKhoiDai"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical">
+
+                    <vn.huytl.bangdieukhien.ui.DaiNgay
+                        android:id="@+id/laptopDai"
+                        android:layout_width="match_parent"
+                        android:layout_height="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="0h"
+                            android:textColor="@color/ink_mo"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="2"
+                            android:gravity="center"
+                            android:text="6h"
+                            android:textColor="@color/ink_mo"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="2"
+                            android:gravity="center"
+                            android:text="12h"
+                            android:textColor="@color/ink_mo"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="2"
+                            android:gravity="center"
+                            android:text="18h"
+                            android:textColor="@color/ink_mo"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:text="24h"
+                            android:textColor="@color/ink_mo"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Moi lan dung mot dong item_lan_dung_laptop. -->
+                <LinearLayout
+                    android:id="@+id/laptopLan"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Cau con hoi app AI hom nay. Tach khoi nhat ky: nhat ky la chuyen cong
              dong mo, con day la chu con go, can doc tung cau. -->
         <com.google.android.material.card.MaterialCardView

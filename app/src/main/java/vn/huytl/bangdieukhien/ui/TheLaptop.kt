@@ -47,8 +47,11 @@ import vn.huytl.bangdieukhien.databinding.TheLaptopBinding
 class TheLaptop(
     private val fragment: Fragment,
     private val v: TheLaptopBinding,
-    private val khiCap: () -> Unit,
-    /** Nut "Bớt" (9/10/2026, luc dau ghi "Bớt Netflix"): cung hop voi nut Them, phieu phut am. */
+    /** Nut 15', 30', 45': gui ngay phieu cong chung ay phut, khong hoi lai (anh Huy chot 9/10/2026). */
+    private val khiThem: (Int) -> Unit,
+    /** Nut "Khác": o go so phut cong. */
+    private val khiKhac: () -> Unit,
+    /** Nut "Bớt": o go so phut bot (9/10/2026; truoc la danh sach chon nhu nut Them cu). */
     private val khiBot: () -> Unit
 ) {
     private var laptop: TinhTrangLaptop? = null
@@ -71,8 +74,11 @@ class TheLaptop(
     private var chupLuc = 0L
 
     init {
-        v.nutCap.setOnClickListener { khiCap() }
-        // Phieu bot nhu phieu cap: nam cho toi khi laptop bat lai trong ngay, nen bam luc nao cung duoc.
+        // Phieu cap, bot nam cho toi khi laptop bat lai trong ngay, nen bam luc nao cung duoc.
+        v.them15.setOnClickListener { khiThem(15) }
+        v.them30.setOnClickListener { khiThem(30) }
+        v.them45.setOnClickListener { khiThem(45) }
+        v.themKhac.setOnClickListener { khiKhac() }
         v.nutBot.setOnClickListener { khiBot() }
         v.nutNhan.setOnClickListener { neuChoBam { hoiNhan() } }
         // Mo hop xem anh lan truoc thi duoc ca luc laptop tat; nut Chup trong hop moi can laptop.
@@ -147,19 +153,18 @@ class TheLaptop(
         val bayGio = System.currentTimeMillis()
         v.soNetflix.text = ChuLaptop.soNetflix(l, bayGio)
         val tt = trangThai(l)
-        v.chuTrangThai.text = tt.chu
-        v.cham.backgroundTintList = ColorStateList.valueOf(
-            ContextCompat.getColor(
-                ct, when (tt.mau) {
-                    ChuLaptop.Mau.XANH -> R.color.ok
-                    ChuLaptop.Mau.VANG -> R.color.wait
-                    ChuLaptop.Mau.XAM -> R.color.ink_mo
-                }
-            )
-        )
-        val homNay = ChuLaptop.homNay(l, bayGio)
-        v.chuHomNay.visibility = if (homNay == null) View.GONE else View.VISIBLE
-        v.chuHomNay.text = homNay
+        v.nhanTrangThai.text = tt.nhan
+        v.dongTaiKhoan.text = tt.chu
+        // Nhan to mau nhu nhanTrangThai cua the tablet: mau chu dam tren nen nhat cung ho mau.
+        val (mauChu, mauNen) = when (tt.mau) {
+            ChuLaptop.Mau.NETFLIX -> R.color.child_tint to R.color.child_soft
+            ChuLaptop.Mau.ADMIN -> R.color.parent_tint to R.color.parent_soft
+            ChuLaptop.Mau.XAM -> R.color.ink_soft to R.color.line
+        }
+        v.nhanTrangThai.setTextColor(ContextCompat.getColor(ct, mauChu))
+        v.nhanTrangThai.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(ct, mauNen))
+        // Dong "Hôm nay: bật …, tắt …" bo ngay 9/10/2026 (anh Huy chot), cac lan dung laptop chuyen
+        // sang the "Thời gian dùng laptop" o tab Nhat ky.
         val mo = if (tt.choBam) 1f else 0.4f
         for (n in listOf(v.nutNhan, v.nutDangXuat, v.nutTatMay)) n.alpha = mo
 

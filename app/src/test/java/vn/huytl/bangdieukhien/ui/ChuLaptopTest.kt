@@ -2,7 +2,6 @@ package vn.huytl.bangdieukhien.ui
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Test
@@ -50,8 +49,9 @@ class ChuLaptopTest {
         val tt = ChuLaptop.trangThai(
             laptop(phien = "lehoa", phienTu = luc("2026-10-08 16:19")), "h1", hoiLuc, hoiLuc + 30_000L
         )
-        assertEquals("Đang bật · tài khoản Netflix từ 16:19", tt.chu)
-        assertEquals(ChuLaptop.Mau.XANH, tt.mau)
+        assertEquals("Đang xem Netflix", tt.nhan)
+        assertEquals("Tài khoản Netflix từ 16:19", tt.chu)
+        assertEquals(ChuLaptop.Mau.NETFLIX, tt.mau)
         assertTrue(tt.choBam)
     }
 
@@ -60,8 +60,9 @@ class ChuLaptopTest {
         val tt = ChuLaptop.trangThai(
             laptop(phien = "huy", phienTu = luc("2026-10-08 10:50")), "h1", hoiLuc, hoiLuc + 30_000L
         )
-        assertEquals("Đang bật · tài khoản Admin từ 10:50, không tính phút", tt.chu)
-        assertEquals(ChuLaptop.Mau.VANG, tt.mau)
+        assertEquals("Admin đang dùng", tt.nhan)
+        assertEquals("Tài khoản Admin từ 10:50, không tính phút", tt.chu)
+        assertEquals(ChuLaptop.Mau.ADMIN, tt.mau)
     }
 
     @Test
@@ -71,7 +72,7 @@ class ChuLaptopTest {
             capNhatLuc = hoiLuc - 3_000L,
             ketQua = listOf(KetQuaLenhLaptop("h1", LenhLaptop.HOI, true, "", hoiLuc - 3_000L))
         )
-        assertEquals("Đang bật · chưa ai đăng nhập", ChuLaptop.trangThai(l, "h1", hoiLuc, hoiLuc + 60_000L).chu)
+        assertEquals("Chưa ai đăng nhập", ChuLaptop.trangThai(l, "h1", hoiLuc, hoiLuc + 60_000L).chu)
     }
 
     @Test
@@ -88,53 +89,73 @@ class ChuLaptopTest {
     @Test
     fun tat_dung_cach_thi_bao_luc_tat_ke_ca_ngay_khac() {
         val homNay = laptop(batLuc = luc("2026-10-08 10:48"), tatLuc = luc("2026-10-08 11:53"))
-        assertEquals("Đã tắt lúc 11:53", ChuLaptop.trangThai(homNay, null, hoiLuc, hoiLuc).chu)
+        assertEquals("Tắt lúc 11:53", ChuLaptop.trangThai(homNay, null, hoiLuc, hoiLuc).chu)
+        assertEquals("Laptop đã tắt", ChuLaptop.trangThai(homNay, null, hoiLuc, hoiLuc).nhan)
         assertFalse(ChuLaptop.trangThai(homNay, null, hoiLuc, hoiLuc).choBam)
         val homQua = laptop(batLuc = luc("2026-10-07 20:56"), tatLuc = luc("2026-10-07 22:20"))
-        assertEquals("Đã tắt lúc 22:20 ngày 7/10", ChuLaptop.trangThai(homQua, null, hoiLuc, hoiLuc).chu)
+        assertEquals("Tắt lúc 22:20 ngày 7/10", ChuLaptop.trangThai(homQua, null, hoiLuc, hoiLuc).chu)
     }
 
     @Test
     fun bat_lai_sau_lan_tat_thi_khong_con_la_da_tat() {
         val l = laptop(batLuc = luc("2026-10-08 15:36"), tatLuc = luc("2026-10-08 11:53"), capNhatLuc = hoiLuc)
         assertFalse(l.daTat())
-        assertEquals("Đang bật · chưa ai đăng nhập", ChuLaptop.trangThai(l, "h1", hoiLuc, hoiLuc + 5_000L).chu)
+        assertEquals("Chưa ai đăng nhập", ChuLaptop.trangThai(l, "h1", hoiLuc, hoiLuc + 5_000L).chu)
     }
 
     @Test
-    fun dong_hom_nay_ke_bat_tat_va_lan_vao_bo_lan_ra() {
+    fun cac_lan_dung_trong_ngay_tu_luc_vao_toi_luc_ra_tat() {
         val sk = listOf(
             SuKienTrenLaptop(SuKienLaptop.BAT, luc("2026-10-08 09:36"), ""),
             SuKienTrenLaptop(SuKienLaptop.VAO, luc("2026-10-08 09:36"), "huy"),
             SuKienTrenLaptop(SuKienLaptop.RA, luc("2026-10-08 10:06"), "huy"),
             SuKienTrenLaptop(SuKienLaptop.TAT, luc("2026-10-08 10:06"), ""),
+            SuKienTrenLaptop(SuKienLaptop.BAT, luc("2026-10-08 10:48"), ""),
+            SuKienTrenLaptop(SuKienLaptop.VAO, luc("2026-10-08 10:50"), "huy"),
+            // Tat dot ngot: dong lan dang mo o luc cuoi con thay may chay.
             SuKienTrenLaptop(SuKienLaptop.MAT, luc("2026-10-08 11:53"), ""),
-            SuKienTrenLaptop(SuKienLaptop.BAT, luc("2026-10-08 15:36"), ""),
             SuKienTrenLaptop(SuKienLaptop.VAO, luc("2026-10-08 16:19"), "lehoa"),
-            // Dong cua hom qua con sot thi khong ke.
-            SuKienTrenLaptop(SuKienLaptop.TAT, luc("2026-10-07 22:20"), "")
+            SuKienTrenLaptop(SuKienLaptop.VAO, luc("2026-10-08 16:19"), "lehoa")
+        )
+        val cac = ChuLaptop.cacLanDung(
+            sk, luc("2026-10-08 00:00"), luc("2026-10-09 00:00"), luc("2026-10-08 16:45"), "lehoa"
         )
         assertEquals(
-            "Hôm nay: bật 09:36, Admin vào 09:36, tắt 10:06, tắt đột ngột khoảng 11:53, bật 15:36, " +
-                "Netflix vào 16:19",
-            ChuLaptop.homNay(laptop(suKien = sk), luc("2026-10-08 16:45"))
+            listOf(
+                ChuLaptop.LanDung("huy", luc("2026-10-08 09:36"), luc("2026-10-08 10:06")),
+                ChuLaptop.LanDung("huy", luc("2026-10-08 10:50"), luc("2026-10-08 11:53")),
+                ChuLaptop.LanDung("lehoa", luc("2026-10-08 16:19"), luc("2026-10-08 16:45"), dangDung = true)
+            ),
+            cac
         )
+        assertEquals("Netflix 26 phút · Admin 1 tiếng 33 phút", ChuLaptop.tongLanDung(cac))
+        assertEquals("16:19 – nay", ChuLaptop.khoangGio(cac[2]))
+        assertEquals("09:36–10:06", ChuLaptop.khoangGio(cac[0]))
     }
 
     @Test
-    fun bat_tu_hom_qua_ma_chua_co_gi_hom_nay() {
-        val l = laptop(batLuc = luc("2026-10-07 21:00"))
-        assertEquals("Hôm nay: đang bật từ hôm qua", ChuLaptop.homNay(l, luc("2026-10-08 07:00")))
-        assertNull(ChuLaptop.homNay(laptop(batLuc = 0L), luc("2026-10-08 07:00")))
+    fun phien_qua_nua_dem_va_ngay_cu_chua_dong() {
+        // Ngay cu: phien mo luc 22:00 khong thay ra thi tinh toi het ngay.
+        val homQua = ChuLaptop.cacLanDung(
+            listOf(SuKienTrenLaptop(SuKienLaptop.VAO, luc("2026-10-07 22:00"), "lehoa")),
+            luc("2026-10-07 00:00"), luc("2026-10-08 00:00"), luc("2026-10-08 09:00"), "lehoa"
+        )
+        assertEquals(listOf(ChuLaptop.LanDung("lehoa", luc("2026-10-07 22:00"), luc("2026-10-08 00:00"))), homQua)
+        // Ngay moi: dong ra dau tien ma chua thay vao thi tinh tu 0 gio.
+        val homNay = ChuLaptop.cacLanDung(
+            listOf(SuKienTrenLaptop(SuKienLaptop.RA, luc("2026-10-08 00:30"), "lehoa")),
+            luc("2026-10-08 00:00"), luc("2026-10-09 00:00"), luc("2026-10-08 09:00"), ""
+        )
+        assertEquals(listOf(ChuLaptop.LanDung("lehoa", luc("2026-10-08 00:00"), luc("2026-10-08 00:30"))), homNay)
     }
 
     @Test
     fun so_netflix_dem_lui_luc_dang_xem() {
         val bayGio = luc("2026-10-08 16:41")
         val dangXem = laptop().copy(dangDung = true, ketThucLuc = bayGio + 38 * 60_000L + 12_000L)
-        assertEquals("còn 38:12 Netflix", ChuLaptop.soNetflix(dangXem, bayGio))
-        assertEquals("còn 45 phút Netflix", ChuLaptop.soNetflix(laptop(), bayGio))
-        assertEquals("Hết phút Netflix", ChuLaptop.soNetflix(laptop().copy(conLaiMs = 0L), bayGio))
+        assertEquals("38:12", ChuLaptop.soNetflix(dangXem, bayGio))
+        assertEquals("45:00", ChuLaptop.soNetflix(laptop(), bayGio))
+        assertEquals("00:00", ChuLaptop.soNetflix(laptop().copy(conLaiMs = 0L), bayGio))
     }
 
     @Test

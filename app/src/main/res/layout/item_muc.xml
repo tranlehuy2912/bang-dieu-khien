@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Mot dong cai dat: ten muc ben trai, gia tri ben phai, bam vao la sua. -->
+<!-- Mot dong cai dat: ten muc ben trai, gia tri ben phai, bam vao la sua. Muc bat tat thi
+     thay chu gia tri bang cong tac gat (congTac), xem CaiDatFragment.mucBatTat. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -42,4 +43,16 @@
         android:textColor="@color/brand"
         android:textSize="16sp"
         android:textStyle="bold" />
+
+    <!-- Khong bam truc tiep duoc (clickable false): cham vao cong tac la cham vao ca dong, va
+         dong goi lenh. Cong tac chi doi khi may kia bao da doi, nhu chu Bat/Tat truoc day. -->
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/congTac"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:clickable="false"
+        android:focusable="false"
+        android:importantForAccessibility="no"
+        android:visibility="gone" />
 </LinearLayout>

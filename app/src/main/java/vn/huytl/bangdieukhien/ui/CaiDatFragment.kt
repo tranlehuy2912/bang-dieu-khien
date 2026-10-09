@@ -167,8 +167,7 @@ class CaiDatFragment : Fragment() {
             muc("App AI ghi câu hỏi", "${c.appAi.size} app", "Ghi lại câu Lê Hòa hỏi AI") {
                 chonApp("App AI ghi câu hỏi", c.appAi) { guiCaiDat("appAi", it) }
             },
-            muc("Khoá màn Cài đặt", if (c.khoaCaiDat) "Bật" else "Tắt",
-                "Chặn Lê Hòa vào Cài đặt của máy") {
+            mucBatTat("Khoá màn Cài đặt", c.khoaCaiDat, "Chặn Lê Hòa vào Cài đặt của máy") {
                 guiCaiDat("khoaCaiDat", !c.khoaCaiDat)
             }
         ))
@@ -204,7 +203,8 @@ class CaiDatFragment : Fragment() {
                 }
             },
             laptop?.let { l ->
-                muc("Khoá web", if (l.moWeb) "Tắt" else "Bật", chuWeb(l)) {
+                // Bat la khoa web, tuc moWeb false.
+                mucBatTat("Khoá web", !l.moWeb, chuWeb(l)) {
                     doiWebLaptop(l)
                 }
             }
@@ -530,6 +530,24 @@ class CaiDatFragment : Fragment() {
             v.phu.text = phu
         }
         v.root.setOnClickListener { bam() }
+        return v.root
+    }
+
+    /**
+     * Muc bat tat: cong tac gat ben phai thay cho chu "Bật" / "Tắt" (anh Huy doi 9/10/2026, cho hai
+     * muc "Khoá màn Cài đặt" va "Khoá web").
+     *
+     * Cong tac ve dieu dang chay that, giong chu Bat/Tat cu: "Khoá màn Cài đặt" theo ban tablet
+     * ghi lai sau khi nhan lenh, "Khoá web" theo dieu Ba Huy da chon tren laptop/{maNha}. Bam
+     * thi gui lenh, cong tac chi gat khi ban moi ve, thuong trong vai giay. Cho gat ngay luc bam
+     * thi tablet dang tat mang van hien la da khoa, trai voi cach ca man nay chi hien so that.
+     */
+    private fun mucBatTat(ten: String, bat: Boolean, phu: String?, bam: () -> Unit): View {
+        val v = ItemMucBinding.bind(muc(ten, "", phu, bam))
+        v.giaTri.visibility = View.GONE
+        v.congTac.visibility = View.VISIBLE
+        v.congTac.isChecked = bat
+        v.root.contentDescription = "$ten, ${if (bat) "đang bật" else "đang tắt"}"
         return v.root
     }
 

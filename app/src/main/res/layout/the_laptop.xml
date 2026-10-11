@@ -153,6 +153,17 @@
             android:baselineAligned="false"
             android:orientation="horizontal">
 
+            <!-- Remote tivi (11/10/2026): mo man Remote, noi thang laptop qua Wi-Fi nha. Ba nut chia
+                 rong theo do dai chu, khong thi tren may 360dp "Chụp màn hình" gay hai dong. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/nutRemote"
+                style="@style/Nut.Phien"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="0.8"
+                android:text="Remote" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/nutNhan"
                 style="@style/Nut.Phien"
@@ -167,7 +178,7 @@
                 style="@style/Nut.Phien"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:layout_weight="1.35"
                 android:text="Chụp màn hình" />
         </LinearLayout>
 

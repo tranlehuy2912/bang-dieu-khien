@@ -214,6 +214,41 @@
     </style>
 
     <!--
+      Nut tron chi co icon o man Remote (11/10/2026): lui, tien 10 giay, am luong. Vien nhat, to
+      vua ngon cai vi luc bam mat nhin tivi chu khong nhin dien thoai. Co nut dat theo layout.
+    -->
+    <style name="Nut.Tron" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:padding">0dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">0dp</item>
+        <item name="iconTint">@color/ink</item>
+        <item name="strokeColor">@color/line</item>
+        <item name="shapeAppearance">@style/HinhTron</item>
+    </style>
+
+    <!-- Nut Dung/Phat cua man Remote: nut bam nhieu nhat, dac mau chu dao. -->
+    <style name="Nut.Tron.Dac" parent="Widget.Material3.Button">
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:padding">0dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">0dp</item>
+        <item name="iconTint">@android:color/white</item>
+        <item name="shapeAppearance">@style/HinhTron</item>
+    </style>
+
+    <style name="HinhTron" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <!--
       Thanh chay trong the chinh. Material3 tu ve nen thanh mau tim nhat va mot cham o
       cuoi thanh; ca hai deu khong mang y gi o day, lai lech mau cua app.
     -->

@@ -80,6 +80,7 @@ class TheLaptop(
         v.them45.setOnClickListener { khiThem(45) }
         v.themKhac.setOnClickListener { khiKhac() }
         v.nutBot.setOnClickListener { khiBot() }
+        v.nutRemote.setOnClickListener { moRemote() }
         v.nutNhan.setOnClickListener { neuChoBam { hoiNhan() } }
         // Mo hop xem anh lan truoc thi duoc ca luc laptop tat; nut Chup trong hop moi can laptop.
         v.nutChup.setOnClickListener { moAnh() }
@@ -241,6 +242,19 @@ class TheLaptop(
     }
 
     /** Laptop tat hay khong tra loi thi khong gui (anh Huy chot), chi noi ly do. */
+    /**
+     * Man Remote noi thang laptop qua Wi-Fi nha (11/10/2026), khong cho Firestore: mo duoc ca luc the
+     * dang bao laptop khong tra loi, man do tu bao co noi duoc khong.
+     */
+    private fun moRemote() {
+        val r = laptop?.remote
+        if (r == null) {
+            Dinh.noi(ct, "Laptop chưa cài bản có remote.")
+            return
+        }
+        RemoteActivity.mo(ct, r)
+    }
+
     private fun neuChoBam(lam: () -> Unit) {
         val l = laptop ?: return
         val tt = trangThai(l)

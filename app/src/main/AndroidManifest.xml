@@ -38,6 +38,12 @@
             android:name=".ui.SuDungActivity"
             android:exported="false" />
 
+        <!-- Remote tivi (11/10/2026): noi thang laptop qua Wi-Fi nha bang socket TCP, khong can
+             them quyen nao ngoai INTERNET. -->
+        <activity
+            android:name=".ui.RemoteActivity"
+            android:exported="false" />
+
         <activity
             android:name=".ui.XemAnhActivity"
             android:exported="false"

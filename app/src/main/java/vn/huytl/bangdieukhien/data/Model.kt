@@ -801,7 +801,9 @@ data class TinhTrangLaptop(
     val batLuc: Long = 0L,
     val tatLuc: Long = 0L,
     val suKien: List<SuKienTrenLaptop> = emptyList(),
-    val ketQua: List<KetQuaLenhLaptop> = emptyList()
+    val ketQua: List<KetQuaLenhLaptop> = emptyList(),
+    /** Tu 11/10/2026: dia chi va ma khoa de man Remote noi thang toi laptop; null o laptop ban cu. */
+    val remote: RemoteLaptop? = null
 ) {
     fun conLai(bayGio: Long = System.currentTimeMillis()): Long =
         if (ketThucLuc > 0L) (ketThucLuc - bayGio).coerceAtLeast(0L) else conLaiMs
@@ -825,8 +827,23 @@ data class TinhTrangLaptop(
                 batLuc = d.getLong(Duong.F_BAT_LUC) ?: 0L,
                 tatLuc = d.getLong(Duong.F_TAT_LUC) ?: 0L,
                 suKien = (d.get(Duong.F_SU_KIEN) as? List<*>).orEmpty().mapNotNull { SuKienTrenLaptop.doc(it) },
-                ketQua = (d.get(Duong.F_KET_QUA) as? List<*>).orEmpty().mapNotNull { KetQuaLenhLaptop.doc(it) }
+                ketQua = (d.get(Duong.F_KET_QUA) as? List<*>).orEmpty().mapNotNull { KetQuaLenhLaptop.doc(it) },
+                remote = RemoteLaptop.doc(d.get(Duong.F_REMOTE))
             )
+        }
+    }
+}
+
+/** Truong [Duong.F_REMOTE] cua laptop: dia chi trong Wi-Fi nha, cong va ma khoa cua netflix-remote. */
+data class RemoteLaptop(val ip: String, val cong: Int, val khoa: String) {
+    companion object {
+        fun doc(o: Any?): RemoteLaptop? {
+            val m = o as? Map<*, *> ?: return null
+            val ip = m[Duong.F_REMOTE_IP] as? String ?: return null
+            val cong = (m[Duong.F_REMOTE_CONG] as? Number)?.toInt() ?: return null
+            val khoa = m[Duong.F_REMOTE_KHOA] as? String ?: return null
+            if (ip.isEmpty() || khoa.isEmpty()) return null
+            return RemoteLaptop(ip, cong, khoa)
         }
     }
 }

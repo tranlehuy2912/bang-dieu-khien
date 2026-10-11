@@ -94,7 +94,7 @@ class RemoteActivity : AppCompatActivity() {
             remote,
             khiDoi = { t -> if (ketNoi === k) veTrangThai(t) },
             khiAm = { pt, tat -> if (ketNoi === k) veAm(pt, tat) },
-            khiLoi = { chu -> if (ketNoi === k) Dinh.noi(this, chu) }
+            khiBao = { chu -> if (ketNoi === k) Dinh.noi(this, chu) }
         )
         ketNoi = k
         k.noi()

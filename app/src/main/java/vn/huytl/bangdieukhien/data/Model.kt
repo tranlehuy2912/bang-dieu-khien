@@ -803,7 +803,11 @@ data class TinhTrangLaptop(
     val suKien: List<SuKienTrenLaptop> = emptyList(),
     val ketQua: List<KetQuaLenhLaptop> = emptyList(),
     /** Tu 11/10/2026: dia chi va ma khoa de man Remote noi thang toi laptop; null o laptop ban cu. */
-    val remote: RemoteLaptop? = null
+    val remote: RemoteLaptop? = null,
+    /** Tu 19/10/2026: khung gio Ba Huy chon ([Duong.F_KHUNG_GIO]), null khi chua chon lan nao. */
+    val khungGio: KhungGio? = null,
+    /** Khung gio laptop bao dang ap ([Duong.F_KHUNG_DANG_DAT]), null o laptop ban truoc 19/10/2026. */
+    val khungDangDat: KhungGio? = null
 ) {
     fun conLai(bayGio: Long = System.currentTimeMillis()): Long =
         if (ketThucLuc > 0L) (ketThucLuc - bayGio).coerceAtLeast(0L) else conLaiMs
@@ -828,8 +832,30 @@ data class TinhTrangLaptop(
                 tatLuc = d.getLong(Duong.F_TAT_LUC) ?: 0L,
                 suKien = (d.get(Duong.F_SU_KIEN) as? List<*>).orEmpty().mapNotNull { SuKienTrenLaptop.doc(it) },
                 ketQua = (d.get(Duong.F_KET_QUA) as? List<*>).orEmpty().mapNotNull { KetQuaLenhLaptop.doc(it) },
-                remote = RemoteLaptop.doc(d.get(Duong.F_REMOTE))
+                remote = RemoteLaptop.doc(d.get(Duong.F_REMOTE)),
+                khungGio = KhungGio.doc(d.get(Duong.F_KHUNG_GIO)),
+                khungDangDat = KhungGio.doc(d.get(Duong.F_KHUNG_DANG_DAT))
             )
+        }
+    }
+}
+
+/**
+ * Khung gio Le Hoa duoc dung laptop (19/10/2026), xem [Duong.F_KHUNG_GIO]: [tu], [toi] la phut tinh
+ * tu 0 gio. [tu] bang [toi] la dung ca ngay, [tu] lon hon [toi] la khoa qua dem.
+ */
+data class KhungGio(val tu: Int, val toi: Int) {
+    fun luuFirestore(): Map<String, Int> = mapOf(Duong.F_TU to tu, Duong.F_TOI to toi)
+
+    companion object {
+        private val HOP_LE = 0 until 24 * 60
+
+        fun doc(o: Any?): KhungGio? {
+            val m = o as? Map<*, *> ?: return null
+            val tu = (m[Duong.F_TU] as? Number)?.toInt() ?: return null
+            val toi = (m[Duong.F_TOI] as? Number)?.toInt() ?: return null
+            if (tu !in HOP_LE || toi !in HOP_LE) return null
+            return KhungGio(tu, toi)
         }
     }
 }

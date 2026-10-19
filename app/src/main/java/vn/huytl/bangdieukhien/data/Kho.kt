@@ -287,9 +287,9 @@ object Kho {
     }
 
     /**
-     * Mo hay khoa web tren laptop (7/10/2026): ghi [Duong.F_MO_WEB], truong duy nhat cua
-     * laptop/{maNha} ma nguoi nha duoc ghi. Laptop doc trong vong mot phut roi go hay dat
-     * luat chan web cua Firefox; Firefox phai mo lai moi theo luat moi.
+     * Mo hay khoa web tren laptop (7/10/2026): ghi [Duong.F_MO_WEB], mot trong hai truong cua
+     * laptop/{maNha} ma nguoi nha duoc ghi (truong kia la [Duong.F_KHUNG_GIO]). Laptop doc trong
+     * vong mot phut roi go hay dat luat chan web cua Firefox; Firefox phai mo lai moi theo luat moi.
      */
     fun datMoWeb(context: Context, mo: Boolean, xong: (KetQua) -> Unit) {
         val ma = Nha.maNha(context)
@@ -299,6 +299,21 @@ object Kho {
             .addOnSuccessListener { xong(KetQua.Xong) }
             .addOnFailureListener {
                 Log.w(TAG, "doi mo web hong", it)
+                xong(KetQua.Hong(loiNguoiDoc(it)))
+            }
+    }
+
+    /**
+     * Doi khung gio Le Hoa duoc dung laptop (19/10/2026): ghi [Duong.F_KHUNG_GIO]. Laptop nghe
+     * document nay, vai giay sau dat khung moi vao Timekpr-nExt roi ghi lai
+     * [Duong.F_KHUNG_DANG_DAT].
+     */
+    fun datKhungGio(context: Context, k: KhungGio, xong: (KetQua) -> Unit) {
+        val noi = laptop(context) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
+        noi.update(Duong.F_KHUNG_GIO, k.luuFirestore())
+            .addOnSuccessListener { xong(KetQua.Xong) }
+            .addOnFailureListener {
+                Log.w(TAG, "doi khung gio laptop hong", it)
                 xong(KetQua.Hong(loiNguoiDoc(it)))
             }
     }

@@ -2,6 +2,7 @@ package vn.huytl.bangdieukhien.ui
 
 import vn.huytl.bangdieukhien.data.Duong
 import vn.huytl.bangdieukhien.data.KetQuaLenhLaptop
+import vn.huytl.bangdieukhien.data.KhungGio
 import vn.huytl.bangdieukhien.data.LenhLaptop
 import vn.huytl.bangdieukhien.data.LenhLaptopCho
 import vn.huytl.bangdieukhien.data.PhieuLaptopCho
@@ -198,6 +199,30 @@ object ChuLaptop {
 
     /** Lenh cho qua [Duong.LENH_LAPTOP_HET_HAN_MS] thi may nay xoa (anh Huy chot 8/10/2026). */
     fun quaHan(l: LenhLaptopCho, bayGio: Long): Boolean = bayGio - l.tao > Duong.LENH_LAPTOP_HET_HAN_MS
+
+    /**
+     * Khung gio hien o hai dong "Laptop mở lúc", "Laptop khoá lúc" cua Cai dat (19/10/2026): dieu Ba
+     * Huy da chon, chua chon lan nao thi khung laptop bao dang ap. Laptop ban truoc 19/10/2026 khong
+     * bao khung nao thi null, an hai dong: doi cung khong co gi doc.
+     */
+    fun khungHien(l: TinhTrangLaptop): KhungGio? = l.khungGio ?: l.khungDangDat
+
+    /** Dong nho duoi "Laptop mở lúc". */
+    fun chuMo(k: KhungGio): String? = when {
+        k.tu == k.toi -> null
+        k.tu < k.toi -> "Trước giờ này không đăng nhập được"
+        else -> "Từ ${Dinh.gio(k.toi)} tới giờ này không đăng nhập được"
+    }
+
+    /**
+     * Dong nho duoi "Laptop khoá lúc". Gio ben phai la dieu Ba Huy chon, dong nay noi laptop da theo
+     * chua, nhu dong duoi "Khoá web": laptop tat may thi chua theo duoc.
+     */
+    fun chuKhoa(l: TinhTrangLaptop, k: KhungGio): String = when {
+        l.khungGio != null && l.khungGio != l.khungDangDat -> "Đang chờ laptop đổi giờ"
+        k.tu == k.toi -> "Bằng giờ mở: dùng cả ngày"
+        else -> "Đang xem thì tự đăng xuất"
+    }
 
     /** "11:53", them ngay khi khong phai hom nay: "11:53 ngày 7/10". */
     fun luc(ms: Long, bayGio: Long): String {

@@ -148,14 +148,27 @@ service cloud.firestore {
              .data.get('uidLaptop', '');
     }
 
+    // Khung gio Le Hoa duoc dung laptop (19/10/2026): { tu, toi } phut tinh tu 0 gio.
+    function khungGioHopLe(k) {
+      return k is map
+        && k.keys().hasAll(['tu', 'toi']) && k.keys().hasOnly(['tu', 'toi'])
+        && k.tu is int && k.tu >= 0 && k.tu < 1440
+        && k.toi is int && k.toi >= 0 && k.toi < 1440;
+    }
+
     match /laptop/{nhaId} {
       allow read: if laNguoiNha(nhaId) || laLaptop(nhaId);
-      // Nguoi nha chi doi duoc moWeb (Ba Huy bam Mo web, Khoa web tren Bang dieu khien).
+      // Nguoi nha chi doi duoc moWeb (Ba Huy bam Mo web, Khoa web tren Bang dieu khien) va tu
+      // 19/10/2026 khungGio (gio mo, gio khoa laptop o Cai dat). Laptop doc khungGio chu khong
+      // ghi duoc.
       allow update: if (laLaptop(nhaId)
-          && request.resource.data.uidLaptop == resource.data.uidLaptop)
+          && request.resource.data.uidLaptop == resource.data.uidLaptop
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['khungGio']))
         || (laNguoiNha(nhaId)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['moWeb'])
-          && request.resource.data.moWeb is bool);
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['moWeb', 'khungGio'])
+          && request.resource.data.get('moWeb', false) is bool
+          && (!('khungGio' in request.resource.data)
+            || khungGioHopLe(request.resource.data.khungGio)));
       allow create, delete: if false;
 
       // Phieu cap gio Netflix. Nguoi nha tao (tablet khi Le Hoa doi phut choi, Bang dieu

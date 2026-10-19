@@ -20,6 +20,7 @@ import vn.huytl.bangdieukhien.R
 import vn.huytl.bangdieukhien.data.AppTrenMay
 import vn.huytl.bangdieukhien.data.CaiDat
 import vn.huytl.bangdieukhien.data.Kho
+import vn.huytl.bangdieukhien.data.KhungGio
 import vn.huytl.bangdieukhien.data.Lenh
 import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.data.TinhTrangLaptop
@@ -190,7 +191,8 @@ class CaiDatFragment : Fragment() {
      * Ti le la cai dat cua tablet, gui lenh CAIDAT nhu moi muc khac; tablet ban cu khong gui
      * truong nay thi an muc. Muc Firefox thi ghi thang vao laptop/{maNha} qua [Kho.datMoWeb],
      * khong qua tablet, nen van hien khi tablet chua gui cau hinh ([c] null); laptop chua noi
-     * vao nha thi an muc do. Khong con muc nao thi khong co nhom.
+     * vao nha thi an muc do. Tu 19/10/2026 them hai muc khung gio duoc dung laptop, xem
+     * [mucKhungGio]. Khong con muc nao thi khong co nhom.
      */
     private fun veNhomLaptop(c: CaiDat?) {
         val cac = listOfNotNull(
@@ -208,10 +210,36 @@ class CaiDatFragment : Fragment() {
                     doiWebLaptop(l)
                 }
             }
-        )
+        ) + mucKhungGio()
         if (cac.isEmpty()) return
         b.than.addView(tieu("Laptop"))
         b.than.addView(nhom(*cac.toTypedArray()))
+    }
+
+    /**
+     * Hai muc khung gio Le Hoa duoc dung laptop (anh Huy chot 19/10/2026: o nhom Laptop, mot khung
+     * chung ca bay ngay, khong co cong tac tat). Cham thi hien dong ho chon gio nhu "Giờ ngủ" va ghi
+     * thang vao laptop/{maNha} ([Kho.datKhungGio]). Laptop chua bao khung nao thi khong co hai muc.
+     */
+    private fun mucKhungGio(): List<View> {
+        val l = laptop ?: return emptyList()
+        val k = ChuLaptop.khungHien(l) ?: return emptyList()
+        return listOf(
+            muc("Laptop mở lúc", Dinh.gio(k.tu), ChuLaptop.chuMo(k)) {
+                hoiGio(k.tu) { doiKhungGio(k, KhungGio(it, k.toi)) }
+            },
+            muc("Laptop khoá lúc", Dinh.gio(k.toi), ChuLaptop.chuKhoa(l, k)) {
+                hoiGio(k.toi) { doiKhungGio(k, KhungGio(k.tu, it)) }
+            }
+        )
+    }
+
+    private fun doiKhungGio(cu: KhungGio, moi: KhungGio) {
+        if (moi == cu) return
+        Kho.datKhungGio(requireContext(), moi) { kq ->
+            val ct = context ?: return@datKhungGio
+            if (kq is Kho.KetQua.Hong) Dinh.noi(ct, kq.viSao)
+        }
     }
 
     /**

@@ -2,10 +2,12 @@ package vn.huytl.bangdieukhien.ui
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Test
 import vn.huytl.bangdieukhien.data.KetQuaLenhLaptop
+import vn.huytl.bangdieukhien.data.KhungGio
 import vn.huytl.bangdieukhien.data.LenhLaptop
 import vn.huytl.bangdieukhien.data.LenhLaptopCho
 import vn.huytl.bangdieukhien.data.PhieuLaptopCho
@@ -225,5 +227,51 @@ class ChuLaptopTest {
         val l = LenhLaptopCho("x", LenhLaptop.NHAN, luc("2026-10-08 16:00"))
         assertFalse(ChuLaptop.quaHan(l, luc("2026-10-08 16:05")))
         assertTrue(ChuLaptop.quaHan(l, luc("2026-10-08 16:05") + 1L))
+    }
+
+    private val sau_den_9_ruoi = KhungGio(6 * 60, 21 * 60 + 30)
+
+    @Test
+    fun khung_hien_dieu_ba_chon_truoc_roi_moi_toi_dieu_laptop_bao() {
+        val ba = KhungGio(7 * 60, 21 * 60)
+        assertEquals(ba, ChuLaptop.khungHien(laptop().copy(khungGio = ba, khungDangDat = sau_den_9_ruoi)))
+        assertEquals(sau_den_9_ruoi, ChuLaptop.khungHien(laptop().copy(khungDangDat = sau_den_9_ruoi)))
+        // Laptop ban cu khong bao khung: an hai muc.
+        assertNull(ChuLaptop.khungHien(laptop()))
+    }
+
+    @Test
+    fun dong_nho_duoi_gio_mo() {
+        assertEquals("Trước giờ này không đăng nhập được", ChuLaptop.chuMo(sau_den_9_ruoi))
+        assertEquals(
+            "Từ 01:30 tới giờ này không đăng nhập được",
+            ChuLaptop.chuMo(KhungGio(6 * 60, 90))
+        )
+        assertNull(ChuLaptop.chuMo(KhungGio(0, 0)))
+    }
+
+    @Test
+    fun ba_vua_doi_ma_laptop_chua_theo_thi_bao_dang_cho() {
+        val ba = KhungGio(6 * 60, 21 * 60)
+        val l = laptop().copy(khungGio = ba, khungDangDat = sau_den_9_ruoi)
+        assertEquals("Đang chờ laptop đổi giờ", ChuLaptop.chuKhoa(l, ba))
+        val daTheo = l.copy(khungDangDat = ba)
+        assertEquals("Đang xem thì tự đăng xuất", ChuLaptop.chuKhoa(daTheo, ba))
+        // Chua chon lan nao thi khong co gi de cho.
+        val chuaChon = laptop().copy(khungDangDat = sau_den_9_ruoi)
+        assertEquals("Đang xem thì tự đăng xuất", ChuLaptop.chuKhoa(chuaChon, sau_den_9_ruoi))
+        val caNgay = KhungGio(0, 0)
+        assertEquals("Bằng giờ mở: dùng cả ngày", ChuLaptop.chuKhoa(laptop().copy(khungDangDat = caNgay), caNgay))
+    }
+
+    @Test
+    fun doc_khung_gio_tu_firestore() {
+        // Firestore tra so nguyen ve kieu Long.
+        assertEquals(sau_den_9_ruoi, KhungGio.doc(mapOf("tu" to 360L, "toi" to 1290L)))
+        assertEquals(mapOf("tu" to 360, "toi" to 1290), sau_den_9_ruoi.luuFirestore())
+        assertNull(KhungGio.doc(mapOf("tu" to 360L)))
+        assertNull(KhungGio.doc(mapOf("tu" to 360L, "toi" to 1440L)))
+        assertNull(KhungGio.doc("06:00"))
+        assertNull(KhungGio.doc(null))
     }
 }

@@ -2,6 +2,7 @@ package vn.huytl.bangdieukhien.ui
 
 import android.content.DialogInterface
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -12,6 +13,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
@@ -70,6 +72,12 @@ class TheLaptop(
     /** Hop anh dang mo, de ve lai khi anh hay ket qua lenh chup ve. */
     private var hopAnh: HopAnhLaptopBinding? = null
     private var anh: AnhLaptop? = null
+
+    /** Anh dang hien trong hop, giai nen san de bam la xem to ngay. */
+    private var anhBm: Bitmap? = null
+
+    /** Man xem to cua hop dang mo (bam anh trong hop, 29/10/2026). */
+    private var xemTo: XemAnhLaptop? = null
     private var chupId: String? = null
     private var chupLuc = 0L
 
@@ -327,11 +335,19 @@ class TheLaptop(
     /**
      * Hop "Màn hình laptop": mo ra chi hien anh chup lan truoc, bam nut "Chụp" o duoi moi gui lenh
      * chup (anh Huy doi 9/10/2026; truoc do mo hop la chup ngay). Dau X o tren de dong. Chi co mot
-     * anh moi nhat, anh sau de anh truoc (anh Huy hoi lai 9/10/2026 va giu nhu vay).
+     * anh moi nhat, anh sau de anh truoc (anh Huy hoi lai 9/10/2026 va giu nhu vay). Bam anh thi
+     * xem to ca man hinh, chum phong to duoc ([XemAnhLaptop], anh Huy chot 29/10/2026).
      */
     private fun moAnh() {
         val h = HopAnhLaptopBinding.inflate(LayoutInflater.from(ct))
         hopAnh = h
+        val xem = XemAnhLaptop(ct, h.anh)
+        xemTo = xem
+        h.anh.setOnClickListener {
+            val bm = anhBm ?: return@setOnClickListener
+            val a = anh ?: return@setOnClickListener
+            xem.mo(bm, chuGioChup(a, System.currentTimeMillis()))
+        }
         chupLuc = 0L
         chupId = null
         val nghe = Kho.ngheAnhLaptop(ct) { a ->
@@ -342,7 +358,10 @@ class TheLaptop(
             .setView(h.root)
             .setOnDismissListener {
                 nghe?.remove()
+                xemTo?.dongNgay()
+                xemTo = null
                 hopAnh = null
+                anhBm = null
             }
             .show()
         h.nutDong.setOnClickListener { hop.dismiss() }
@@ -361,22 +380,32 @@ class TheLaptop(
         val h = hopAnh ?: return
         val a = anh
         val bayGio = System.currentTimeMillis()
+        var moi: Bitmap? = null
         if (a != null && h.anh.tag != a.luc) {
-            h.anh.setImageBitmap(BitmapFactory.decodeByteArray(a.jpg, 0, a.jpg.size))
+            moi = BitmapFactory.decodeByteArray(a.jpg, 0, a.jpg.size)
+            h.anh.setImageBitmap(moi)
             h.anh.tag = a.luc
+            anhBm = moi
         }
+        h.dauMoTo.isVisible = anhBm != null
+        if (a != null) xemTo?.doiAnh(moi, chuGioChup(a, bayGio))
         val hong = laptop?.ketQua?.firstOrNull { it.id == chupId && !it.ok }
         // Vua bam Chup ma anh tren may chu van cu hon luc bam: dang cho laptop chup.
         val dangCho = chupLuc > 0L && (a == null || a.luc < chupLuc - 5_000L)
-        val cuaAi = a?.phien?.takeIf { it.isNotEmpty() }?.let { " · tài khoản ${ChuLaptop.tenHien(it)}" }
-            ?: " · màn đăng nhập"
         h.chuAnh.text = when {
             hong != null -> hong.chu
             dangCho && a != null -> "Đang chờ laptop chụp ảnh mới. Ảnh dưới chụp lúc " +
                 "${ChuLaptop.luc(a.luc, bayGio)}."
             dangCho -> "Đang chờ laptop chụp."
-            a != null -> "Chụp lúc ${ChuLaptop.luc(a.luc, bayGio)}$cuaAi"
+            a != null -> chuGioChup(a, bayGio)
             else -> "Chưa có ảnh nào. Bấm Chụp để chụp màn hình laptop."
         }
+    }
+
+    /** "Chụp lúc 20:15 · tài khoản Xem phim": dong duoi anh trong hop, va nhan tren man xem to. */
+    private fun chuGioChup(a: AnhLaptop, bayGio: Long): String {
+        val cuaAi = a.phien.takeIf { it.isNotEmpty() }?.let { " · tài khoản ${ChuLaptop.tenHien(it)}" }
+            ?: " · màn đăng nhập"
+        return "Chụp lúc ${ChuLaptop.luc(a.luc, bayGio)}$cuaAi"
     }
 }

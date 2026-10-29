@@ -2,7 +2,7 @@
 <!-- Hop "Màn hình laptop" (8/10/2026). Mo hop chi hien anh chup lan truoc, chua chup; bam nut Chup o
      duoi moi gui lenh chup (anh Huy doi 9/10/2026, truoc do mo hop la chup ngay). Nut dong la dau X
      o tren. Chi giu mot anh moi nhat, anh sau de anh truoc (anh Huy hoi lai 9/10/2026, giu nhu vay).
-     TheLaptop.moAnh dung hop nay. -->
+     Bam anh thi xem to ca man hinh (29/10/2026, XemAnhLaptop). TheLaptop.moAnh dung hop nay. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -36,17 +36,36 @@
             app:icon="@drawable/ic_dong" />
     </LinearLayout>
 
-    <ImageView
-        android:id="@+id/anh"
+    <!-- Bam anh thi xem to ca man hinh, chum duoc (XemAnhLaptop, 29/10/2026). Dau mo to o goc
+         chi hien khi co anh. -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:layout_marginEnd="12dp"
-        android:adjustViewBounds="true"
-        android:background="@color/canvas"
-        android:contentDescription="Màn hình laptop"
-        android:minHeight="160dp"
-        android:scaleType="fitCenter" />
+        android:layout_marginEnd="12dp">
+
+        <ImageView
+            android:id="@+id/anh"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:background="@color/canvas"
+            android:contentDescription="Màn hình laptop"
+            android:minHeight="160dp"
+            android:scaleType="fitCenter" />
+
+        <ImageView
+            android:id="@+id/dauMoTo"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="6dp"
+            android:background="@drawable/nen_dau_mo_to"
+            android:importantForAccessibility="no"
+            android:padding="6dp"
+            android:src="@drawable/ic_mo_to"
+            android:visibility="gone" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/chuAnh"

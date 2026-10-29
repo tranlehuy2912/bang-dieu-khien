@@ -1,0 +1,4 @@
+<!-- Nen tron toi mo sau dau mo to (ic_mo_to), de dau trang van thay tren anh man hinh sang. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="#80000000" />
+</shape>

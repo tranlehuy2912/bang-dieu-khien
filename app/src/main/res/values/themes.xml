@@ -34,6 +34,20 @@
         <item name="android:windowLightNavigationBar">false</item>
     </style>
 
+    <!-- Xem anh man hinh laptop to ca man hinh (XemAnhLaptop, 29/10/2026). La mot Dialog phu kin man
+         hinh, ve ca duoi thanh trang thai. Cua so trong suot, khong lam toi, khong hieu ung mo hop:
+         nen den va anh bay ra do XemAnhLaptop tu ve, de luc dau con thay hop "Màn hình laptop" o duoi. -->
+    <style name="Theme.BangDieuKhien.XemAnhLaptop" parent="Theme.BangDieuKhien">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
     <style name="The" parent="Widget.Material3.CardView.Elevated">
         <!-- Chi dinh han mau nen, khong thi Material3 pha mau chu dao vao nen the. -->
         <item name="cardBackgroundColor">@color/surface</item>

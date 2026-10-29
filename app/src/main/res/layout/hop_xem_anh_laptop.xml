@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Xem anh man hinh laptop to ca man hinh (29/10/2026, XemAnhLaptop). Nen den va thanh tren mo
+     dan ra luc anh bay tu hop "Màn hình laptop" len, nen ca hai bat dau trong suot. Thanh tren:
+     nhan gio chup ben trai nhu man xem anh bai tap, dau X ben phai o dung cho dau X cua hop. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <View
+        android:id="@+id/nen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:background="#0B0D11" />
+
+    <vn.huytl.bangdieukhien.ui.AnhPhongTo
+        android:id="@+id/anh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="Màn hình laptop" />
+
+    <FrameLayout
+        android:id="@+id/thanhTren"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alpha="0"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="6dp">
+
+        <TextView
+            android:id="@+id/nhan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|center_vertical"
+            android:layout_marginEnd="56dp"
+            android:background="#66000000"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/nutDong"
+            style="@style/Nut.Icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:contentDescription="Đóng"
+            app:icon="@drawable/ic_dong"
+            app:iconTint="#FFFFFF" />
+    </FrameLayout>
+</FrameLayout>

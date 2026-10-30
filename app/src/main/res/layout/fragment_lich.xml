@@ -81,6 +81,54 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Cho nghi hoc ngoai lich (30/10/2026), xem Lenh.NGHI_HOC. An khi chua co trang thai
+             tablet, hay tablet ban cu chua hieu lenh do. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/theNghi"
+            style="@style/The"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="14dp">
+
+                <TextView
+                    style="@style/Chu.Tieu"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/lich_nghi_tieu_de" />
+
+                <TextView
+                    style="@style/Chu.Nho"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/lich_nghi_giai_thich" />
+
+                <!-- Moi ngay da cho nghi mot dong, kem nut Bo. Ve trong LichFragment.veNghi. -->
+                <LinearLayout
+                    android:id="@+id/danhSachNghi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:orientation="vertical" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/nutNghi"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/lich_nghi_nut" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <com.google.android.material.card.MaterialCardView
             style="@style/The"
             android:layout_width="match_parent"

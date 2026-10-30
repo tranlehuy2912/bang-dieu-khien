@@ -64,6 +64,13 @@ data class TrangThai(
      * thi: man Bang an het cac hang "Đề thi thử", vi tablet do khong hieu lenh [Lenh.MO_DE_THI].
      */
     val deThi: List<DeThiTT>? = null,
+    /**
+     * Ngay Ba Huy cho nghi hoc ngoai lich, dang yyyyMMdd, xem [Duong.F_NGAY_NGHI_THEM].
+     *
+     * null la tablet ban cu chua gui truong nay: tablet do khong hieu lenh [Lenh.NGHI_HOC],
+     * nen tab Lich hoc an phan cho nghi.
+     */
+    val ngayNghiThem: List<Int>? = null,
     val cheDoBaBat: Boolean = false,
     val cheDoBaHetLuc: Long = 0L,
     val quyenTroGiup: Boolean = true,
@@ -159,6 +166,9 @@ data class TrangThai(
                 soBaiCho = (d.getLong(Duong.F_SO_BAI_CHO) ?: 0L).toInt(),
                 quyGio = d.getLong(Duong.F_QUY_GIO)?.toInt()?.coerceAtLeast(0),
                 deThi = DeThiTT.doc(d.get(Duong.F_CAC_DE_THI), d.get(Duong.F_DE_THI)),
+                // Firestore tra so la Long.
+                ngayNghiThem = (d.get(Duong.F_NGAY_NGHI_THEM) as? List<*>)
+                    ?.mapNotNull { (it as? Number)?.toInt() },
                 cheDoBaBat = cheDoBa?.get("bat") as? Boolean ?: false,
                 cheDoBaHetLuc = (cheDoBa?.get("hetLuc") as? Number)?.toLong() ?: 0L,
                 quyenTroGiup = quyen?.get("trogiup") as? Boolean ?: true,

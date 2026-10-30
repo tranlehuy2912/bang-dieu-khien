@@ -1,5 +1,6 @@
 package vn.huytl.bangdieukhien.ui
 
+import android.app.DatePickerDialog
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
@@ -15,16 +16,20 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.Fragment
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.firestore.ListenerRegistration
 import vn.huytl.bangdieukhien.R
 import vn.huytl.bangdieukhien.data.Buoi
 import vn.huytl.bangdieukhien.data.Kho
+import vn.huytl.bangdieukhien.data.Lenh
 import vn.huytl.bangdieukhien.data.LichDangDung
 import vn.huytl.bangdieukhien.data.NgayNghi
 import vn.huytl.bangdieukhien.data.ThoiKhoaBieu
 import vn.huytl.bangdieukhien.databinding.FragmentLichBinding
 import vn.huytl.bangdieukhien.ui.LichHoc.Hang
 import java.util.Calendar
+import java.util.GregorianCalendar
 import kotlin.math.abs
 
 /**
@@ -37,6 +42,12 @@ import kotlin.math.abs
  * Lich nghe tu Firestore tu 4/10/2026 (xem [LichDangDung]): ban moi toi thi ve lai ngay, mat
  * mang thi dung ban luu trong may. Tab dang mo thi ve lai moi phut, vi the buoi toi phai doi
  * dung luc vao hoc, tan hoc.
+ *
+ * Tu 30/10/2026 tab co the "Cho nghỉ học" (anh Huy chot): chon mot ngay, gui lenh
+ * [Lenh.NGHI_HOC], ngay do tablet khong chan gio hoc. Danh sach ngay da cho nghi doc tu trang
+ * thai tablet ([TrangThai.ngayNghiThem]), cung la cho [NgayNghi.ngayThem] lay, nen luoi va
+ * the buoi toi ve ngay do thanh ngay nghi. Truoc ngay do nghi dot xuat phai nho Claude Code
+ * ghi lich moi, hay go /mo ben Telegram moi buoi mot lan.
  */
 class LichFragment : Fragment() {
 
@@ -47,6 +58,10 @@ class LichFragment : Fragment() {
     private val oChu = mutableListOf<TextView>()
 
     private var ngheLich: ListenerRegistration? = null
+    private var ngheTrangThai: ListenerRegistration? = null
+
+    /** Ngay cho nghi them theo ban trang thai vua nhan. null la chua co, hay tablet ban cu. */
+    private var ngayNghi: List<Int>? = null
 
     private val nhip = Runnable {
         if (_b == null) return@Runnable
@@ -56,6 +71,7 @@ class LichFragment : Fragment() {
 
     override fun onCreateView(i: LayoutInflater, c: ViewGroup?, s: Bundle?): View {
         _b = FragmentLichBinding.inflate(i, c, false)
+        b.nutNghi.setOnClickListener { chonNgayNghi() }
         return b.root
     }
 
@@ -68,11 +84,23 @@ class LichFragment : Fragment() {
         ngheLich = Kho.ngheLich(ct) { json ->
             if (_b != null && LichDangDung.nhan(ct, json) is LichDangDung.KetQua.Doi) ve()
         }
+        ngheTrangThai = Kho.ngheTrangThai(ct) { tt, _, _ ->
+            // Loi doc hay chua co document: giu danh sach dang co, khong an the giua chung.
+            if (_b == null || tt == null) return@ngheTrangThai
+            val moi = tt.ngayNghiThem
+            if (moi == ngayNghi) return@ngheTrangThai
+            ngayNghi = moi
+            val tap = moi.orEmpty().toSet()
+            NgayNghi.ngayThem = { tap }
+            ve()
+        }
     }
 
     override fun onStop() {
         ngheLich?.remove()
         ngheLich = null
+        ngheTrangThai?.remove()
+        ngheTrangThai = null
         b.root.removeCallbacks(nhip)
         super.onStop()
     }
@@ -107,7 +135,97 @@ class LichFragment : Fragment() {
         b.luoi.removeAllViews()
         tuan.forEach { b.luoi.addView(veCot(it, hang, now, toi)) }
         datCoChuTruocKhiVe()
+        // Ve lai moi phut cung voi luoi: qua nua dem thi ngay hom qua roi khoi danh sach.
+        veNghi(now)
     }
+
+    /**
+     * The "Cho nghỉ học": moi ngay da cho nghi (tu hom nay tro di) mot dong kem nut Bo, duoi
+     * cung la nut chon ngay. An ca the khi chua co trang thai tablet, hay tablet ban cu chua
+     * gui truong ngay nghi (no khong hieu lenh, bam vao chi duoc cau "Không hiểu lệnh").
+     */
+    private fun veNghi(now: Calendar) {
+        val ds = ngayNghi
+        b.theNghi.visibility = if (ds == null) View.GONE else View.VISIBLE
+        b.danhSachNghi.removeAllViews()
+        val homNay = NgayNghi.soNgay(now)
+        ds.orEmpty().filter { it >= homNay }.sorted().forEach { so ->
+            val cal = calCua(so) ?: return@forEach
+            val dong = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+            }
+            dong.addView(TextView(requireContext()).apply {
+                text = tenNgay(cal) + if (so == homNay) " · hôm nay" else ""
+                setTextColor(mau(R.color.ink))
+                textSize = 15f
+                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            })
+            dong.addView(MaterialButton(
+                requireContext(), null, androidx.appcompat.R.attr.borderlessButtonStyle
+            ).apply {
+                text = "Bỏ"
+                setOnClickListener { hoiBoNghi(cal) }
+            })
+            b.danhSachNghi.addView(dong)
+        }
+    }
+
+    /**
+     * Chon mot ngay tu hom nay tro di, hoi lai roi gui lenh. Ngay da nghi san theo lich hay da
+     * cho nghi roi thi bao luon, khong gui: tablet cung se tra loi nhu vay, ma cau tra loi do
+     * chi hien o tab Gio choi.
+     */
+    private fun chonNgayNghi() {
+        val ct = context ?: return
+        val now = Calendar.getInstance()
+        DatePickerDialog(ct, { _, nam, thang, ngay ->
+            val cal = GregorianCalendar(nam, thang, ngay)
+            val ten = tenNgay(cal)
+            val theoLich = NgayNghi.tenTheoLich(cal)
+            when {
+                theoLich != null -> Dinh.noi(ct, "$ten đã nghỉ sẵn theo lịch ($theoLich).")
+                NgayNghi.soNgay(cal) in ngayNghi.orEmpty() -> Dinh.noi(ct, "$ten đã cho nghỉ rồi.")
+                else -> MaterialAlertDialogBuilder(ct)
+                    .setTitle("Cho ${getString(R.string.child_name)} nghỉ học $ten?")
+                    .setMessage(R.string.lich_nghi_giai_thich)
+                    .setPositiveButton("Cho nghỉ") { _, _ -> guiNghi(cal, nghi = true) }
+                    .setNegativeButton(R.string.huy, null)
+                    .show()
+            }
+        }, now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH)).apply {
+            datePicker.minDate = now.timeInMillis - 1_000L
+        }.show()
+    }
+
+    private fun hoiBoNghi(cal: Calendar) {
+        val ct = context ?: return
+        MaterialAlertDialogBuilder(ct)
+            .setTitle("Bỏ ngày nghỉ ${tenNgay(cal)}?")
+            .setMessage("Ngày đó tablet chặn giờ học như thường.")
+            .setPositiveButton("Bỏ") { _, _ -> guiNghi(cal, nghi = false) }
+            .setNegativeButton(R.string.huy, null)
+            .show()
+    }
+
+    /** Gui lenh, xem [Lenh.NGHI_HOC]. Danh sach tren the doi khi tablet nhan va gui lai trang thai. */
+    private fun guiNghi(cal: Calendar, nghi: Boolean) {
+        val ct = context?.applicationContext ?: return
+        Kho.guiLenh(ct, Lenh.NGHI_HOC, chu = NgayNghi.soNgay(cal).toString(), giaTri = nghi) { kq ->
+            when (kq) {
+                is Kho.KetQua.Hong -> Dinh.noi(ct, kq.viSao)
+                Kho.KetQua.Xong -> Dinh.noi(ct, "Đã gửi, tablet có mạng là nhận.")
+            }
+        }
+    }
+
+    /** "Thứ sáu 30/10". */
+    private fun tenNgay(cal: Calendar): String =
+        ThoiKhoaBieu.tenThu(cal.get(Calendar.DAY_OF_WEEK)).replaceFirstChar { it.uppercase() } +
+            " " + LichHoc.ngayThang(cal)
+
+    private fun calCua(so: Int): Calendar? =
+        if (so <= 0) null else GregorianCalendar(so / 10_000, so / 100 % 100 - 1, so % 100)
 
     /**
      * Chay [datCoChu] ngay truoc lan ve dau tien cua luoi moi: luc do moi biet o rong bao

@@ -145,4 +145,7 @@
     <string name="lich_dang_hoc">Đang học</string>
     <string name="lich_sang">SÁNG</string>
     <string name="lich_chieu">CHIỀU</string>
+    <string name="lich_nghi_tieu_de">Cho nghỉ học</string>
+    <string name="lich_nghi_giai_thich">Ngày nghỉ thì tablet không chặn giờ học, không nhắc soạn tập. Hôm sau chặn lại bình thường.</string>
+    <string name="lich_nghi_nut">Chọn ngày nghỉ</string>
 </resources>

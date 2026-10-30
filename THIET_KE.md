@@ -114,6 +114,9 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │     appTruocMat   tên app đang trên màn hình, LUÔN là chuỗi; đi kèm appTruocMatTu
 │                   (lúc mở app đó) và manHinhSang. Vắng cả ba là không biết
 │     traLoi        { chu, luc, ai }: câu tablet nói lại sau khi làm một lệnh
+│     ngayNghiThem[] các ngày Ba Huy cho nghỉ học ngoài lịch, từ hôm nay trở đi, số
+│                   yyyyMMdd (30/10/2026, lệnh NGHIHOC). Vắng là tablet bản cũ, tab Lịch
+│                   học ẩn khối "Cho nghỉ học"
 │     pinMay, dangSac, banApp, capNhatLuc
 │
 ├── hop/caidat                  ◄── chỉ TABLET ghi (bản sao cấu hình đang chạy)
@@ -184,6 +187,9 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │            MODETHI     mở một đề thi in sẵn cho con, mã đề ở chu (30/09/2026), lấy
 │                        từ cacDeThi (tablet bản cũ: deThi). Tablet mở cả đề lớp chưa
 │                        học tới phạm vi
+│            NGHIHOC     cho con nghỉ học một ngày ngoài lịch (30/10/2026): ngày yyyyMMdd
+│                        ở chu, giaTri false là bỏ ngày đó. Ngày đó tablet không chặn
+│                        giờ học, không nhắc soạn tập
 │     phut, baiId, chu, giaTri
 │     tao    epoch ms theo đồng hồ máy gửi. Tablet dùng trường này để làm các lệnh
 │            đúng thứ tự bấm (cho 30 rồi bớt 30 tới trễ một lúc vẫn ra 0 phút); từ
@@ -321,6 +327,12 @@ file chép y hệt từ tablet, chỉ khác dòng `package`. Bên tablet lịch 
 lịch là cài lại app bên đó, nên cài lại app này cùng lúc là hai máy hiện cùng một lịch. Đổi
 lại, tab chạy với mọi bản tablet và không tốn lượt đọc nào. `tools/kiem-duong.sh` bên nop-bai
 so hai bản này, cùng lúc so ba bản `Duong.kt`.
+
+Ngày cho nghỉ học ngoài lịch (30/10/2026) không nằm trong bản lịch: tablet giữ trong `Prefs`
+và gửi lại ở trường `ngayNghiThem` của `hop/trangthai`. `NgayNghi.ngayThem` là chỗ hai bên trỏ
+vào nguồn của mình (tablet: `Prefs`; tab Lịch học: bản trạng thái vừa nhận), nên file
+`NgayNghi.kt` vẫn chép y hệt được. Khối "Cho nghỉ học" của tab chọn ngày rồi gửi `NGHIHOC`,
+mỗi ngày đã cho nghỉ một dòng kèm nút Bỏ.
 
 ### Việc nhà là trạng thái, cho giờ là sự kiện
 

@@ -134,6 +134,14 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │                   điều khiển sửa được từ 27/09/2026, mỗi lần một app
 │     appChan, appAi, khoaCaiDat, gioNgu, gioDay, và tranPhutMoiNgay (vẫn ghi dù trần
 │                   chung đã bỏ ngày 29/09/2026, để Bảng điều khiển bản cũ không hỏng)
+│     pinBat, pinPhut, pinPhutDung, appTamDung   tiết kiệm pin khi tablet tắt màn
+│                   hình (05/11/2026, tên ở object CaiDatPin của Duong.kt): công tắc, số
+│                   phút rồi bật Tiết kiệm pin của máy (0 là ngay), số phút rồi tạm dừng
+│                   các app trong appTamDung qua Jokers Permissions. Đổi bằng lệnh CAIDAT
+│                   cùng tên, hoặc trên tablet sau PIN
+│     pinJokers, pinCoQuyen   tình trạng, không phải cấu hình: Jokers đã cài, đang chạy,
+│                   app Nộp bài được phép dùng chưa; app có WRITE_SECURE_SETTINGS không.
+│                   Tablet ghi lại cả khi Jokers vừa chạy hay vừa chết
 ├── hop/danhsachapp             ◄── chỉ TABLET ghi (app đang cài, để chọn từ xa)
 ├── hop/dando                   ◄── bỏ từ 30/09/2026, tablet chỉ còn xoá document này.
 │                                   Từng giữ vở dặn dò của buổi vừa học; máy không đọc được
@@ -428,8 +436,9 @@ gỡ trong `onStop`.
   sang".
 - **Cài đặt** (`CaiDatFragment`): cấu hình tablet qua lệnh `CAIDAT`, nhóm "Laptop" (tỉ lệ
   đổi phút chơi sang Netflix, và mục Bật/Tắt "Firefox chỉ được mở Netflix" ghi thẳng
-  `laptop/{maNha}`, chuyển từ tab Giờ chơi sang ngày 07/10/2026), token bot để tải ảnh,
-  ghép máy và ghép ngược khi cài lại tablet.
+  `laptop/{maNha}`, chuyển từ tab Giờ chơi sang ngày 07/10/2026), nhóm "Tiết kiệm pin"
+  (05/11/2026: công tắc, hai mục số phút, app tạm dừng, dòng báo khi tablet chưa làm được),
+  nhóm "Truy cập từ xa", token bot để tải ảnh, ghép máy và ghép ngược khi cài lại tablet.
 
 Tab Nhắn bỏ ngày 27/09/2026, xem "Lê Hòa nhắn tin bằng Telegram thật".
 

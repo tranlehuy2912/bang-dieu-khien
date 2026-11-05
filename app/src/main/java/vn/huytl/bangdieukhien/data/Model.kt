@@ -761,7 +761,12 @@ data class CaiDat(
      * Mot phut choi doi duoc may phut Netflix tren laptop (7/10/2026). null la tablet ban
      * cu, chua co muc nay: man Cai dat an dong do.
      */
-    val tiLeNetflix: Int? = null
+    val tiLeNetflix: Int? = null,
+    /**
+     * Tiet kiem pin khi tablet tat man hinh (5/11/2026), xem [CaiDatPin]. null la tablet ban cu,
+     * chua co muc nay: man Cai dat an ca nhom.
+     */
+    val pin: CaiDatPinTablet? = null
 ) {
     companion object {
         fun doc(d: DocumentSnapshot?): CaiDat? {
@@ -780,11 +785,35 @@ data class CaiDat(
                 appAi = (d.get("appAi") as? List<String>).orEmpty(),
                 gioiHanApp = (d.get("gioiHanApp") as? Map<String, Number>)
                     .orEmpty().mapValues { it.value.toInt() },
-                tiLeNetflix = d.getLong("tiLeNetflix")?.toInt()
+                tiLeNetflix = d.getLong("tiLeNetflix")?.toInt(),
+                pin = d.getBoolean(CaiDatPin.BAT)?.let { bat ->
+                    CaiDatPinTablet(
+                        bat = bat,
+                        phut = (d.getLong(CaiDatPin.PHUT) ?: CaiDatPin.PHUT_MAC_DINH.toLong()).toInt(),
+                        phutDung = (d.getLong(CaiDatPin.PHUT_DUNG) ?: CaiDatPin.PHUT_DUNG_MAC_DINH.toLong()).toInt(),
+                        apps = (d.get(CaiDatPin.APPS) as? List<String>).orEmpty(),
+                        jokers = d.getString(CaiDatPin.JOKERS).orEmpty(),
+                        coQuyen = d.getBoolean(CaiDatPin.CO_QUYEN) ?: false
+                    )
+                }
             )
         }
     }
 }
+
+/**
+ * Tiet kiem pin cua tablet, mot phan cua [CaiDat] (5/11/2026). [jokers] la mot trong cac chuoi
+ * CaiDatPin.JOKERS_..., [coQuyen] la app tablet co WRITE_SECURE_SETTINGS khong: hai truong nay
+ * chi de bao vi sao tablet chua tiet kiem duoc.
+ */
+data class CaiDatPinTablet(
+    val bat: Boolean,
+    val phut: Int,
+    val phutDung: Int,
+    val apps: List<String>,
+    val jokers: String,
+    val coQuyen: Boolean
+)
 
 /**
  * Tinh trang vao tablet tu xa (Tailscale, go loi), doc tu hop/tuxa (5/11/2026, xem

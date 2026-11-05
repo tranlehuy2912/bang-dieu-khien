@@ -19,6 +19,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import vn.huytl.bangdieukhien.R
 import vn.huytl.bangdieukhien.data.AppTrenMay
 import vn.huytl.bangdieukhien.data.CaiDat
+import vn.huytl.bangdieukhien.data.CaiDatPin
 import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.KhungGio
 import vn.huytl.bangdieukhien.data.Lenh
@@ -191,8 +192,78 @@ class CaiDatFragment : Fragment() {
         // Khong con muc "Chấm bài bằng AI trên tablet" (bo ngay 28/9/2026): tablet khong con
         // may cham nao de bat tat, bai nao cung cham bang Claude o tab Bai.
 
+        veNhomPin(c)
         veNhomTuXa()
         veMucMay()
+    }
+
+    /**
+     * Nhom "Tiết kiệm pin" (anh Huy chot 5/11/2026): tablet tu tiet kiem pin khi tat man hinh, anh
+     * Huy bat tat va chinh o day (tren tablet cung chinh duoc, sau PIN). Bon muc giong the Tiet
+     * kiem pin cua app Lich: cong tac, so phut bat Tiet kiem pin cua may, so phut tam dung app,
+     * danh sach app tam dung. Moi muc gui lenh CAIDAT nhu cac muc khac o man nay.
+     *
+     * Them dong bao khi tablet chua lam duoc: thieu quyen ghi cai dat he thong (khong bat duoc Tiet
+     * kiem pin cua may), hay Jokers Permissions chua san sang (khong tam dung duoc app). Dong bao
+     * chi hien khi da bat, va dong Jokers chi khi co app trong danh sach. Tablet ban cu khong ghi
+     * cac truong nay thi khong co nhom.
+     */
+    private fun veNhomPin(c: CaiDat) {
+        val p = c.pin ?: return
+        b.than.addView(tieu("Tiết kiệm pin"))
+        val cac = mutableListOf<View>()
+        cac += mucBatTat("Tự động tiết kiệm pin", p.bat, "Tắt màn hình đủ lâu thì tablet tiết kiệm pin, mở lên là như thường") {
+            guiCaiDat(CaiDatPin.BAT, !p.bat)
+        }
+        cac += muc("Bật Tiết kiệm pin sau", chuPhut(p.phut), "Chế độ Tiết kiệm pin của máy") {
+            hoiPhut("Bật Tiết kiệm pin sau", CaiDatPin.CAC_MUC_PHUT, p.phut) { guiCaiDat(CaiDatPin.PHUT, it) }
+        }
+        cac += muc("Tạm dừng app sau", chuPhut(p.phutDung), "Các app trong danh sách dưới đây") {
+            hoiPhut("Tạm dừng app sau", CaiDatPin.CAC_MUC_PHUT_DUNG, p.phutDung) { guiCaiDat(CaiDatPin.PHUT_DUNG, it) }
+        }
+        cac += muc("App tạm dừng", "${p.apps.size} app", "Xám đi, không chạy nền, không báo tin; mở màn hình là dùng lại") {
+            chonApp("App tạm dừng", p.apps, KHONG_TAM_DUNG) { guiCaiDat(CaiDatPin.APPS, it) }
+        }
+        if (p.bat && !p.coQuyen) {
+            cac += muc(
+                "Chưa bật được Tiết kiệm pin", "",
+                "App tablet thiếu quyền ghi cài đặt hệ thống. Chạm để chép lệnh cấp quyền, chạy một lần bằng adb."
+            ) {
+                Dinh.chep(requireContext(), "Lệnh cấp quyền", LENH_CAP_QUYEN, "Đã chép lệnh cấp quyền.")
+            }
+        }
+        if (p.bat && p.apps.isNotEmpty() && p.jokers != CaiDatPin.JOKERS_SAN_SANG) {
+            cac += when (p.jokers) {
+                CaiDatPin.JOKERS_CHUA_CAI -> muc(
+                    "Chưa tạm dừng được app", "", "Tablet chưa cài Jokers Permissions."
+                ) {}
+                CaiDatPin.JOKERS_CHUA_CHAY -> muc(
+                    "Chưa tạm dừng được app", "",
+                    "Jokers Permissions trên tablet chưa chạy. Mở Jokers trên tablet bấm Bắt đầu, hoặc chạy lại qua adb."
+                ) {}
+                else -> muc(
+                    "Chưa tạm dừng được app", "",
+                    "App Nộp bài chưa được phép dùng Jokers. Chạm để chép lệnh cho phép, chạy một lần bằng adb."
+                ) {
+                    Dinh.chep(requireContext(), "Lệnh cho phép", LENH_CHO_JOKERS, "Đã chép lệnh cho phép.")
+                }
+            }
+        }
+        b.than.addView(nhom(*cac.toTypedArray()))
+    }
+
+    private fun chuPhut(phut: Int) = if (phut == 0) "Ngay" else "$phut phút"
+
+    /** Chon mot muc so phut trong [cac], nhu hop chon ti le doi phut phim. */
+    private fun hoiPhut(tieuDe: String, cac: List<Int>, dangLa: Int, xong: (Int) -> Unit) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(tieuDe)
+            .setSingleChoiceItems(cac.map { chuPhut(it) }.toTypedArray(), cac.indexOf(dangLa)) { d, i ->
+                d.dismiss()
+                if (cac[i] != dangLa) xong(cac[i])
+            }
+            .setNegativeButton(R.string.huy, null)
+            .show()
     }
 
     /**
@@ -509,7 +580,14 @@ class CaiDatFragment : Fragment() {
      * vao Telegram. Go sai mot chu thi khong bao loi gi ca, chi la app do khong bao
      * gio duoc chan - ma mai sau moi phat hien.
      */
-    private fun chonApp(tieuDe: String, dangChon: List<String>, xong: (List<String>) -> Unit) {
+    private fun chonApp(
+        tieuDe: String,
+        dangChon: List<String>,
+        an: Set<String> = emptySet(),
+        xong: (List<String>) -> Unit
+    ) {
+        // [an]: app khong hien de chon (danh sach tam dung an Tailscale, app Nop bai, Jokers).
+        val dsApp = dsApp.filter { it.goi !in an }
         if (dsApp.isEmpty()) {
             Dinh.noi(requireContext(), "Tablet chưa gửi danh sách app sang.")
             return
@@ -709,5 +787,16 @@ class CaiDatFragment : Fragment() {
         /** Cap quyen doi go loi cho app tablet, chay mot lan tren may co adb. */
         private const val LENH_CAP_QUYEN =
             "adb shell pm grant vn.huytl.homeworkgate android.permission.WRITE_SECURE_SETTINGS"
+
+        /** Cho app tablet dung Jokers Permissions ma khong can ai bam hop hoi tren tablet. */
+        private const val LENH_CHO_JOKERS =
+            "adb shell pm grant vn.huytl.homeworkgate vn.huytl.jokers.permission.API_V23"
+
+        /**
+         * App khong cho chon vao danh sach tam dung: Tailscale (anh Huy can vao tablet tu xa), app
+         * Nop bai va Jokers (tam dung thi khong tu mo lai duoc). Tablet con loc them man hinh chinh,
+         * ban phim va app he thong (TietKiemPin.khongDuocDung).
+         */
+        private val KHONG_TAM_DUNG = setOf("com.tailscale.ipn", "vn.huytl.homeworkgate", "vn.huytl.jokers")
     }
 }

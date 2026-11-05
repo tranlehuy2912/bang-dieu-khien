@@ -205,7 +205,8 @@ class CaiDatFragment : Fragment() {
      * Them hai dong khi can: "Lệnh nối adb" (cham la chep) khi da co ca dia chi Tailscale lan cong
      * go loi, va dong chep lenh cap quyen khi app tablet chua co WRITE_SECURE_SETTINGS. Ban ve thu
      * anh Huy chon de dong lenh nam ngay trong muc go loi khong day; tach ra mot dong rieng vi
-     * cham vao muc do la bat tat, khong chep duoc.
+     * cham vao muc do la bat tat, khong chep duoc. Dong do nam duoi ca ba cong tac, sau "Gỡ lỗi
+     * USB" (anh Huy doi 5/11/2026; ban dau nam ngay duoi "Gỡ lỗi không dây").
      */
     private fun veNhomTuXa() {
         b.than.addView(tieu("Truy cập từ xa"))
@@ -230,14 +231,14 @@ class CaiDatFragment : Fragment() {
         cac += mucBatTat("Gỡ lỗi không dây", t.goLoiKhongDay, phu(TuXa.GO_LOI, chuGoLoi(t))) {
             guiTuXa(TuXa.GO_LOI, !t.goLoiKhongDay)
         }
+        cac += mucBatTat("Gỡ lỗi USB", t.goLoiUsb, phu(TuXa.GO_LOI_USB, "Tắt là đóng mọi đường adb")) {
+            guiTuXa(TuXa.GO_LOI_USB, !t.goLoiUsb)
+        }
         if (t.goLoiKhongDay && t.congGoLoi > 0 && t.ipTailscale.isNotEmpty()) {
             val lenh = "adb connect ${t.ipTailscale}:${t.congGoLoi}"
             cac += muc("Lệnh nối adb", "", "$lenh\nChạm để chép") {
                 Dinh.chep(requireContext(), "Lệnh nối adb", lenh, "Đã chép lệnh nối adb.")
             }
-        }
-        cac += mucBatTat("Gỡ lỗi USB", t.goLoiUsb, phu(TuXa.GO_LOI_USB, "Tắt là đóng mọi đường adb")) {
-            guiTuXa(TuXa.GO_LOI_USB, !t.goLoiUsb)
         }
         if (!t.coQuyen) {
             cac += muc(

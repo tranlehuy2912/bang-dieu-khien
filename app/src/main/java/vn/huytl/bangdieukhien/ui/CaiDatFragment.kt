@@ -24,6 +24,8 @@ import vn.huytl.bangdieukhien.data.KhungGio
 import vn.huytl.bangdieukhien.data.Lenh
 import vn.huytl.bangdieukhien.data.Nha
 import vn.huytl.bangdieukhien.data.TinhTrangLaptop
+import vn.huytl.bangdieukhien.data.TinhTrangTuXa
+import vn.huytl.bangdieukhien.data.TuXa
 import vn.huytl.bangdieukhien.databinding.FragmentCaiDatBinding
 import vn.huytl.bangdieukhien.databinding.ItemMucBinding
 
@@ -44,6 +46,12 @@ class CaiDatFragment : Fragment() {
 
     /** Nghe laptop/{maNha} cho muc "Khoá web", xem [veNhomLaptop]. */
     private var ngheLaptop: ListenerRegistration? = null
+
+    /** Nghe hop/tuxa cho nhom "Truy cập từ xa", xem [veNhomTuXa]. */
+    private var ngheTuXa: ListenerRegistration? = null
+
+    /** null la tablet chua ghi tinh trang lan nao (tablet ban cu, hay chua tung nhan lenh). */
+    private var tuXa: TinhTrangTuXa? = null
 
     /** Dang cho tablet vua cai lai app xin vao nha. Xem [noiLaiTablet]. */
     private var ngheXin: ListenerRegistration? = null
@@ -77,6 +85,11 @@ class CaiDatFragment : Fragment() {
             laptop = it
             ve()
         }
+        ngheTuXa = Kho.ngheTuXa(requireContext()) {
+            tuXa = it
+            ve()
+        }
+        hoiTuXa()
         ve()
     }
 
@@ -84,6 +97,7 @@ class CaiDatFragment : Fragment() {
         ngheCaiDat?.remove()
         ngheApp?.remove()
         ngheLaptop?.remove()
+        ngheTuXa?.remove()
         super.onStop()
     }
 
@@ -104,6 +118,7 @@ class CaiDatFragment : Fragment() {
         if (c == null) {
             b.than.addView(tieu("Tablet chưa gửi cấu hình sang. Chờ máy đó lên mạng một lần."))
             veNhomLaptop(null)
+            veNhomTuXa()
             veMucMay()
             return
         }
@@ -176,7 +191,105 @@ class CaiDatFragment : Fragment() {
         // Khong con muc "Chấm bài bằng AI trên tablet" (bo ngay 28/9/2026): tablet khong con
         // may cham nao de bat tat, bai nao cung cham bang Claude o tab Bai.
 
+        veNhomTuXa()
         veMucMay()
+    }
+
+    /**
+     * Nhom "Truy cập từ xa" (anh Huy chot 5/11/2026): ba cong tac Tailscale, go loi khong day, go
+     * loi USB, giong ba lenh Telegram /tailscale, /goloi, /goloiusb. Bam la gui lenh [Lenh.TU_XA]
+     * luon, khong hoi lai va khong ghi chu viec tablet thoi cat mang luc Tailscale bat (anh Huy
+     * chon khong can). Cong tac ve theo tinh trang tablet ghi o hop/tuxa, nhu moi muc khac o man
+     * nay.
+     *
+     * Them hai dong khi can: "Lệnh nối adb" (cham la chep) khi da co ca dia chi Tailscale lan cong
+     * go loi, va dong chep lenh cap quyen khi app tablet chua co WRITE_SECURE_SETTINGS. Ban ve thu
+     * anh Huy chon de dong lenh nam ngay trong muc go loi khong day; tach ra mot dong rieng vi
+     * cham vao muc do la bat tat, khong chep duoc.
+     */
+    private fun veNhomTuXa() {
+        b.than.addView(tieu("Truy cập từ xa"))
+        val t = tuXa
+        if (t == null) {
+            b.than.addView(nhom(
+                muc("Chưa có tin từ tablet", "", "Tablet bản cũ chưa có mục này, hoặc đang mất mạng") {}
+            ))
+            return
+        }
+        val bayGio = System.currentTimeMillis()
+        // Cau bao loi cua lan bam vua roi thay cho dong nho cua dung muc do. Tablet xoa cau nay o
+        // lenh sau; gioi han them cho truong hop tablet tat may ngay sau khi bao.
+        val tin = t.tin?.takeIf { bayGio - it.luc < GIU_TIN_TU_XA_MS }
+        fun phu(viec: String, thuong: String?): String? =
+            tin?.takeIf { it.viec == viec }?.chu ?: thuong
+
+        val cac = mutableListOf<View>()
+        cac += mucBatTat("Tailscale", t.tailscaleBat, phu(TuXa.TAILSCALE, chuTailscale(t, bayGio))) {
+            guiTuXa(TuXa.TAILSCALE, !t.tailscaleBat)
+        }
+        cac += mucBatTat("Gỡ lỗi không dây", t.goLoiKhongDay, phu(TuXa.GO_LOI, chuGoLoi(t))) {
+            guiTuXa(TuXa.GO_LOI, !t.goLoiKhongDay)
+        }
+        if (t.goLoiKhongDay && t.congGoLoi > 0 && t.ipTailscale.isNotEmpty()) {
+            val lenh = "adb connect ${t.ipTailscale}:${t.congGoLoi}"
+            cac += muc("Lệnh nối adb", "", "$lenh\nChạm để chép") {
+                Dinh.chep(requireContext(), "Lệnh nối adb", lenh, "Đã chép lệnh nối adb.")
+            }
+        }
+        cac += mucBatTat("Gỡ lỗi USB", t.goLoiUsb, phu(TuXa.GO_LOI_USB, "Tắt là đóng mọi đường adb")) {
+            guiTuXa(TuXa.GO_LOI_USB, !t.goLoiUsb)
+        }
+        if (!t.coQuyen) {
+            cac += muc(
+                "Tablet chưa cho đổi gỡ lỗi", "",
+                "Hai công tắc gỡ lỗi chưa chạy. Chạm để chép lệnh cấp quyền, chạy một lần bằng adb."
+            ) {
+                Dinh.chep(requireContext(), "Lệnh cấp quyền", LENH_CAP_QUYEN, "Đã chép lệnh cấp quyền.")
+            }
+        }
+        b.than.addView(nhom(*cac.toTypedArray()))
+    }
+
+    /**
+     * Dong nho duoi cong tac Tailscale. Tinh trang cu hon [TU_XA_CU_MS] thi ghi them luc tablet
+     * bao: tablet dang tat hay mat mang thi khong tra loi lenh xem, va so tren man la so cu.
+     */
+    private fun chuTailscale(t: TinhTrangTuXa, bayGio: Long): String? {
+        val chu = when {
+            !t.coTailscale -> "Tablet chưa cài Tailscale"
+            t.ipTailscale.isNotEmpty() -> "Đang nối, ${t.ipTailscale}"
+            t.tailscaleTheoLenh -> "Đã bật, chưa nối"
+            else -> null
+        }
+        if (bayGio - t.capNhatLuc < TU_XA_CU_MS) return chu
+        val luc = "Tablet báo lúc ${Dinh.lucNgan(t.capNhatLuc)}"
+        return if (chu == null) luc else "$chu\n$luc"
+    }
+
+    private fun chuGoLoi(t: TinhTrangTuXa): String? = when {
+        !t.goLoiKhongDay -> null
+        t.congGoLoi > 0 -> "Cổng ${t.congGoLoi}"
+        else -> "Chưa tìm được cổng. Tắt, chờ vài giây rồi bật lại."
+    }
+
+    private fun guiTuXa(viec: String, bat: Boolean) {
+        Kho.guiLenh(requireContext(), Lenh.TU_XA, chu = viec, giaTri = bat) { kq ->
+            val ct = context ?: return@guiLenh
+            if (kq is Kho.KetQua.Hong) Dinh.noi(ct, kq.viSao)
+        }
+    }
+
+    /**
+     * Hoi tablet tinh trang vao may tu xa ([TuXa.XEM]) moi lan mo the nay: tablet chi ghi
+     * hop/tuxa sau mot lenh, nen nguoi nha bat tat tay tren tablet hay tablet vua khoi dong lai
+     * thi ban dang co la ban cu. Gian it nhat [GIAN_HOI_TU_XA_MS], nhu lenh PING o the Gio choi:
+     * qua lai giua cac the khong de lenh xep hang.
+     */
+    private fun hoiTuXa() {
+        val bayGio = System.currentTimeMillis()
+        if (bayGio - hoiTuXaLuc < GIAN_HOI_TU_XA_MS) return
+        hoiTuXaLuc = bayGio
+        Kho.guiLenh(requireContext(), Lenh.TU_XA, chu = TuXa.XEM)
     }
 
     /**
@@ -580,4 +693,20 @@ class CaiDatFragment : Fragment() {
     }
 
     private fun Int.dp(): Int = (this * resources.displayMetrics.density).toInt()
+
+    companion object {
+        /** Lan cuoi go [TuXa.XEM], giu qua cac lan ve lai the. Xem [hoiTuXa]. */
+        private var hoiTuXaLuc = 0L
+        private const val GIAN_HOI_TU_XA_MS = 30_000L
+
+        /** Cau bao loi cua tablet hien bao lau. Xem [veNhomTuXa]. */
+        private const val GIU_TIN_TU_XA_MS = 10 * 60_000L
+
+        /** Tinh trang cu hon chung nay thi ghi kem luc tablet bao. Xem [chuTailscale]. */
+        private const val TU_XA_CU_MS = 2 * 60_000L
+
+        /** Cap quyen doi go loi cho app tablet, chay mot lan tren may co adb. */
+        private const val LENH_CAP_QUYEN =
+            "adb shell pm grant vn.huytl.homeworkgate android.permission.WRITE_SECURE_SETTINGS"
+    }
 }

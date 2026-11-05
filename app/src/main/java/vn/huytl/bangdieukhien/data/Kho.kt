@@ -442,6 +442,12 @@ object Kho {
             if (loi == null) khi(CaiDat.doc(snap))
         }
 
+    /** Nghe tinh trang vao tablet tu xa. Xem [Duong.D_TU_XA] va [TinhTrangTuXa.doc]. */
+    fun ngheTuXa(context: Context, khi: (TinhTrangTuXa?) -> Unit): ListenerRegistration? =
+        hop(context, Duong.D_TU_XA)?.addSnapshotListener { snap, loi ->
+            if (loi == null) khi(TinhTrangTuXa.doc(snap))
+        }
+
     /**
      * Nghe cac dong vo dan do chua toi han, gom theo buoi. Xem [Duong.D_NHAC_BAI].
      *

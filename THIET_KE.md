@@ -153,6 +153,17 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │               Lê Hòa không dùng máy
 │     capNhatLuc
 │
+├── hop/tuxa                    ◄── chỉ TABLET ghi, và chỉ sau lệnh TUXA (05/11/2026): tình
+│                                   trạng vào tablet từ xa cho nhóm "Truy cập từ xa" ở thẻ
+│                                   Cài đặt. Ghi bằng merge, ngay lúc nhận lệnh rồi lần nữa
+│                                   khi việc chậm xong
+│     coTailscale, tailscaleTheoLenh   có cài Tailscale; Ba Huy đang bật nó bằng lệnh
+│     ipTailscale     địa chỉ 100.x, rỗng là Tailscale chưa nối
+│     goLoiUsb, goLoiKhongDay, congGoLoi   cổng 0 là tắt hay chưa tìm được cổng
+│     coQuyenGoLoi    app tablet có WRITE_SECURE_SETTINGS chưa (cấp một lần bằng adb)
+│     tin { chu, luc, viec }   câu báo lỗi của lần bấm vừa rồi; lệnh sau xoá nó
+│     capNhatLuc
+│
 ├── lenh/{id}                   ◄── ĐIỆN THOẠI ghi, tablet đọc rồi xoá
 │                                   Bảng điều khiển nghe cả hàng này: lệnh còn nằm đó là
 │                                   tablet chưa lấy, tab Giờ chơi hiện ra kèm nút Rút lại
@@ -190,6 +201,9 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │            NGHIHOC     cho con nghỉ học một ngày ngoài lịch (30/10/2026): ngày yyyyMMdd
 │                        ở chu, giaTri false là bỏ ngày đó. Ngày đó tablet không chặn
 │                        giờ học, không nhắc soạn tập
+│            TUXA        bật tắt vào tablet từ xa (05/11/2026): chu là tailscale, goloi
+│                        (gỡ lỗi không dây), goloiusb, giaTri true là bật; chu là xem thì
+│                        chỉ ghi lại hop/tuxa. Tablet không trả lời vào traLoi
 │     phut, baiId, chu, giaTri
 │     tao    epoch ms theo đồng hồ máy gửi. Tablet dùng trường này để làm các lệnh
 │            đúng thứ tự bấm (cho 30 rồi bớt 30 tới trễ một lúc vẫn ra 0 phút); từ

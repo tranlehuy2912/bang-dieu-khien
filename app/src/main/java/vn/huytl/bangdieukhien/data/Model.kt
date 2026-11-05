@@ -787,6 +787,61 @@ data class CaiDat(
 }
 
 /**
+ * Tinh trang vao tablet tu xa (Tailscale, go loi), doc tu hop/tuxa (5/11/2026, xem
+ * [Duong.D_TU_XA]). Tablet chi ghi sau mot lenh [Lenh.TU_XA], nen man Cai dat go [TuXa.XEM]
+ * moi lan mo ra.
+ */
+data class TinhTrangTuXa(
+    val coTailscale: Boolean,
+    val tailscaleTheoLenh: Boolean,
+    /** Rong la Tailscale chua noi. */
+    val ipTailscale: String,
+    val goLoiUsb: Boolean,
+    val goLoiKhongDay: Boolean,
+    /** 0 la go loi khong day tat, hay tablet chua tim duoc cong. */
+    val congGoLoi: Int,
+    val coQuyen: Boolean,
+    val capNhatLuc: Long,
+    /** Cau bao loi cua lan bam vua roi ([Duong.F_TIN]), null la khong co. */
+    val tin: Tin?
+) {
+    /** [viec] la mot trong [TuXa]. */
+    data class Tin(val chu: String, val luc: Long, val viec: String)
+
+    /**
+     * Cong tac Tailscale bat: Ba Huy da bat bang lenh, hay Tailscale dang noi du ai bat (nguoi
+     * nha bat tay tren tablet). Bam luc nay la gui lenh tat.
+     */
+    val tailscaleBat: Boolean get() = tailscaleTheoLenh || ipTailscale.isNotEmpty()
+
+    companion object {
+        /**
+         * null la tablet chua ghi tinh trang lan nao: tablet ban cu, hay document chi moi co
+         * lan xoa [Duong.F_TIN] cua lenh dau tien.
+         */
+        fun doc(d: DocumentSnapshot?): TinhTrangTuXa? {
+            if (d == null || !d.exists()) return null
+            val capNhat = d.getLong(Duong.F_CAP_NHAT_LUC) ?: return null
+            val tin = (d.get(Duong.F_TIN) as? Map<*, *>)?.let { m ->
+                val chu = m[Duong.F_CHU] as? String ?: return@let null
+                Tin(chu, (m[Duong.F_LUC] as? Number)?.toLong() ?: 0L, m[Duong.F_VIEC] as? String ?: "")
+            }
+            return TinhTrangTuXa(
+                coTailscale = d.getBoolean(Duong.F_CO_TAILSCALE) ?: false,
+                tailscaleTheoLenh = d.getBoolean(Duong.F_TAILSCALE_THEO_LENH) ?: false,
+                ipTailscale = d.getString(Duong.F_IP_TAILSCALE).orEmpty(),
+                goLoiUsb = d.getBoolean(Duong.F_GO_LOI_USB) ?: false,
+                goLoiKhongDay = d.getBoolean(Duong.F_GO_LOI_KHONG_DAY) ?: false,
+                congGoLoi = d.getLong(Duong.F_CONG_GO_LOI)?.toInt() ?: 0,
+                coQuyen = d.getBoolean(Duong.F_CO_QUYEN_GO_LOI) ?: false,
+                capNhatLuc = capNhat,
+                tin = tin
+            )
+        }
+    }
+}
+
+/**
  * Tinh trang laptop xem Netflix, doc tu laptop/{maNha} (7/10/2026, xem [Duong.LAPTOP]).
  *
  * Laptop chi ghi khi co gi doi. Luc con dang xem thi [ketThucLuc] la luc het gio va may nay

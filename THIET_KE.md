@@ -89,6 +89,9 @@ nha/{nhaId}                     { tao, tenCon, uids[], uidsPhu[], maGhep, maGhep
 │                   ngày, gồm cả giờ người lớn cho. Không có trường này là tablet bản cũ
 │     doanChoiTu    epoch ms đoạn phiên đang chạy bắt đầu (0 = không có đoạn nào chạy)
 │     quyGio        số phút trong quỹ giờ chơi (29/09/2026), cho nút cấp quỹ ở tab Giờ chơi
+│     giuSang       { cho, bai, luc }: phút tablet giữ tới lúc hết giờ ngủ (08/11/2026).
+│                   cho là phút Ba Huy cho, bai là phút làm bài, luc là lúc tablet cộng
+│                   (0 là đã qua giờ ngủ mà chưa cộng). Tab Giờ chơi hiện thẻ "Giữ ..."
 │     soBaiCho      mấy bài đang chờ duyệt
 │     viecNha       tên các việc nhà chưa xong, để hiểu vì sao tablet đang khoá
 │     cacDeThi[]    { ma, mon, ten, phamVi, tt, thieu, sao, toiDa, nopLuc, phut, doRong }:

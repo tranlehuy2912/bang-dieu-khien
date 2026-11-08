@@ -57,6 +57,11 @@ data class TrangThai(
      */
     val quyGio: Int? = null,
     /**
+     * Phut tablet dang giu toi luc het gio ngu, xem [GiuSang]. null la khong giu gi, hoac
+     * tablet ban cu chua gui truong [Duong.F_GIU_SANG].
+     */
+    val giuSang: GiuSang? = null,
+    /**
      * Cac de thi in san trong tablet va tinh trang tung de, xem [DeThiTT.doc].
      *
      * Tu 1/10/2026 la de cua ca ba mon, doc tu [Duong.F_CAC_DE_THI]. Tablet ban truoc ngay do
@@ -165,6 +170,7 @@ data class TrangThai(
                 doanChoiTu = d.getLong(Duong.F_DOAN_CHOI_TU) ?: 0L,
                 soBaiCho = (d.getLong(Duong.F_SO_BAI_CHO) ?: 0L).toInt(),
                 quyGio = d.getLong(Duong.F_QUY_GIO)?.toInt()?.coerceAtLeast(0),
+                giuSang = GiuSang.doc(d.get(Duong.F_GIU_SANG)),
                 deThi = DeThiTT.doc(d.get(Duong.F_CAC_DE_THI), d.get(Duong.F_DE_THI)),
                 // Firestore tra so la Long.
                 ngayNghiThem = (d.get(Duong.F_NGAY_NGHI_THEM) as? List<*>)
@@ -188,6 +194,25 @@ data class TrangThai(
                 traLoiCho = (d.get(Duong.F_TRA_LOI) as? Map<*, *>)
                     ?.get(Duong.F_AI) as? String ?: Nguoi.BA_HUY
             )
+        }
+    }
+}
+
+/**
+ * Phut tablet giu toi luc het gio ngu (8/11/2026, anh Huy chot), doc tu [Duong.F_GIU_SANG].
+ *
+ * [cho] la phut Ba Huy bam Cho trong gio ngu, [bai] la phut lam bai xong trong gio ngu, [luc]
+ * la luc tablet se cong; 0 la da qua gio ngu ma tablet chua cong, lan xet sau cong tiep.
+ */
+data class GiuSang(val cho: Int, val bai: Int, val luc: Long) {
+    companion object {
+        /** null khi khong co truong hay khong giu phut nao. Firestore tra so la Long. */
+        fun doc(o: Any?): GiuSang? {
+            val m = o as? Map<*, *> ?: return null
+            val cho = (m["cho"] as? Number)?.toInt()?.coerceAtLeast(0) ?: 0
+            val bai = (m["bai"] as? Number)?.toInt()?.coerceAtLeast(0) ?: 0
+            if (cho + bai <= 0) return null
+            return GiuSang(cho, bai, (m["luc"] as? Number)?.toLong() ?: 0L)
         }
     }
 }

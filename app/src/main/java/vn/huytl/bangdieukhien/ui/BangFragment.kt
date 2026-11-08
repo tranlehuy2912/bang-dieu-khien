@@ -424,6 +424,16 @@ class BangFragment : Fragment() {
             b.theBaiCho.visibility = View.GONE
         }
 
+        // Phut tablet giu toi luc het gio ngu (8/11/2026). Truoc do Ba Huy bam Cho luc 6:45 chi
+        // thay mot toast, the van ghi "Khoá, chưa có phiên chơi nào" toi 7:00.
+        val giu = tt.giuSang
+        if (giu != null) {
+            b.theGiuSang.visibility = View.VISIBLE
+            b.chuGiuSang.text = Dinh.giuSang(giu, giu.luc.takeIf { it > 0L }?.let { Dinh.gioPhut(it) })
+        } else {
+            b.theGiuSang.visibility = View.GONE
+        }
+
         b.pinMay.text = when {
             tt.pinMay < 0 -> ""
             tt.dangSac -> getString(R.string.bang_pin_sac, tt.pinMay)

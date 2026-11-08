@@ -463,6 +463,49 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Phut tablet giu toi luc het gio ngu (8/11/2026): Ba Huy cho hay bai lam xong trong
+             gio ngu. Chi hien khi co, chi de doc. Anh Huy chon dat ngay duoi the chinh, tren the
+             Laptop: the Bai dang cho nam duoi the Laptop va the de thi, sang ra phai cuon moi
+             thay, ma day la cau tra loi cho nut Cho vua bam o the chinh. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/theGiuSang"
+            style="@style/The"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/brand_soft"
+            app:strokeColor="@color/brand">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:minHeight="56dp"
+                android:orientation="horizontal"
+                android:paddingVertical="10dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_marginEnd="12dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_bang"
+                    app:tint="@color/brand_dark" />
+
+                <TextView
+                    android:id="@+id/chuGiuSang"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="@color/brand_dark"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- The Laptop (8/10/2026): phut Netflix, trang thai, nhan len tivi, chup man hinh, dang
              xuat, tat may. TheLaptop ve; an khi laptop chua noi vao nha. -->
         <include

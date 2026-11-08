@@ -1,7 +1,9 @@
 package vn.huytl.bangdieukhien.ui
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
+import vn.huytl.bangdieukhien.data.GiuSang
 import vn.huytl.bangdieukhien.data.Lenh
 import vn.huytl.bangdieukhien.data.LenhCho
 
@@ -17,6 +19,35 @@ class DinhTest {
         assertEquals("cho chơi 1 tiếng 30 phút", Dinh.lenh(lenh(Lenh.CHO, 90)))
         assertEquals("duyệt bài, 45 phút", Dinh.lenh(lenh(Lenh.DUYET, 45)))
         assertEquals("mở toàn bộ máy, không đặt hạn", Dinh.lenh(lenh(Lenh.MO_MAY)))
+    }
+
+    /** The giu toi sang cua the Gio choi (8/11/2026). Cau chu anh Huy chot. */
+    @Test
+    fun the_giu_sang_tach_phut_ba_cho_voi_phut_lam_bai() {
+        assertEquals(
+            "Giữ 30 phút Ba Huy cho, 07:00 tablet cộng",
+            Dinh.giuSang(GiuSang(30, 0, 1L), "07:00")
+        )
+        assertEquals(
+            "Giữ 15 phút làm bài, 07:00 tablet cộng",
+            Dinh.giuSang(GiuSang(0, 15, 1L), "07:00")
+        )
+        assertEquals(
+            "Giữ 45 phút (30 phút Ba Huy cho, 15 phút làm bài), 07:00 tablet cộng",
+            Dinh.giuSang(GiuSang(30, 15, 1L), "07:00")
+        )
+        assertEquals(
+            "Giữ 1 tiếng 30 phút Ba Huy cho, tablet sắp cộng",
+            Dinh.giuSang(GiuSang(90, 0, 0L), null)
+        )
+    }
+
+    @Test
+    fun doc_giu_sang_bo_qua_ban_khong_giu_gi() {
+        // Firestore tra so la Long.
+        assertEquals(GiuSang(30, 15, 9L), GiuSang.doc(mapOf("cho" to 30L, "bai" to 15L, "luc" to 9L)))
+        assertNull(GiuSang.doc(mapOf("cho" to 0L, "bai" to 0L, "luc" to 0L)))
+        assertNull(GiuSang.doc(null))
     }
 
     @Test

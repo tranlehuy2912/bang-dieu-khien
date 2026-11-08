@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
+import vn.huytl.bangdieukhien.data.GiuSang
 import vn.huytl.bangdieukhien.data.Lenh
 import vn.huytl.bangdieukhien.data.LenhCho
 import java.text.SimpleDateFormat
@@ -125,6 +126,26 @@ object Dinh {
         l.kieu == Lenh.CHO && l.phut != null -> "Thêm ${phut(l.phut)} lúc $luc (Chờ)"
         l.kieu == Lenh.BOT -> "Bớt ${phut(l.phut ?: 15)} lúc $luc (Chờ)"
         else -> "Đang chờ tablet nhận: ${lenh(l)}, gửi lúc $luc."
+    }
+
+    /**
+     * Dong the "giu toi sang" cua the Gio choi (8/11/2026, anh Huy chot cau chu): "Giữ 30 phút
+     * Ba Huy cho, 07:00 tablet cộng". Co ca hai phan thi ghi tach: "Giữ 45 phút (30 phút Ba Huy
+     * cho, 15 phút làm bài), 07:00 tablet cộng". [gio] la luc cong dang "07:00"; null la da qua
+     * gio ngu ma tablet chua cong, lan xet sau tablet cong.
+     *
+     * Phan cua bai ghi "làm bài" chu khong ghi "bài chấm": tablet giu ca phut lam tren may xong
+     * trong gio ngu, khong chi phut Claude cham.
+     */
+    fun giuSang(g: GiuSang, gio: String?): String {
+        val tong = phut(g.cho + g.bai)
+        val gom = when {
+            g.bai <= 0 -> "$tong Ba Huy cho"
+            g.cho <= 0 -> "$tong làm bài"
+            else -> "$tong (${phut(g.cho)} Ba Huy cho, ${phut(g.bai)} làm bài)"
+        }
+        val khi = if (gio != null) "$gio tablet cộng" else "tablet sắp cộng"
+        return "Giữ $gom, $khi"
     }
 
     /** Ngay hom nay dang "yyyy-MM-dd", dung lam ten document nhat ky. */

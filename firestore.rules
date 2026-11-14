@@ -159,16 +159,20 @@ service cloud.firestore {
     match /laptop/{nhaId} {
       allow read: if laNguoiNha(nhaId) || laLaptop(nhaId);
       // Nguoi nha chi doi duoc moWeb (Ba Huy bam Mo web, Khoa web tren Bang dieu khien) va tu
-      // 19/10/2026 khungGio (gio mo, gio khoa laptop o Cai dat). Laptop doc khungGio chu khong
-      // ghi duoc.
+      // 19/10/2026 khungGio (gio mo, gio khoa laptop o Cai dat). Tu 14/11/2026 them khoaHoc (gio
+      // di hoc cua laptop, Bang dieu khien ghi) va nghiHoc (ngay nghi, tablet chep sang). Laptop
+      // doc ba truong do chu khong ghi duoc. Hai truong moi chi xet la map: laptop doc tung thu,
+      // thu nao sai thi lay gia tri mac dinh.
       allow update: if (laLaptop(nhaId)
           && request.resource.data.uidLaptop == resource.data.uidLaptop
-          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['khungGio']))
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['khungGio', 'khoaHoc', 'nghiHoc']))
         || (laNguoiNha(nhaId)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['moWeb', 'khungGio'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['moWeb', 'khungGio', 'khoaHoc', 'nghiHoc'])
           && request.resource.data.get('moWeb', false) is bool
           && (!('khungGio' in request.resource.data)
-            || khungGioHopLe(request.resource.data.khungGio)));
+            || khungGioHopLe(request.resource.data.khungGio))
+          && (!('khoaHoc' in request.resource.data) || request.resource.data.khoaHoc is map)
+          && (!('nghiHoc' in request.resource.data) || request.resource.data.nghiHoc is map));
       allow create, delete: if false;
 
       // Phieu cap gio Netflix. Nguoi nha tao (tablet khi Le Hoa doi phut choi, Bang dieu

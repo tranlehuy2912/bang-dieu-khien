@@ -318,6 +318,20 @@ object Kho {
             }
     }
 
+    /**
+     * Doi gio di hoc cua laptop (14/11/2026): ghi ca tuan vao [Duong.F_KHOA_HOC]. Laptop nghe
+     * document nay, dat lai Timekpr-nExt roi ghi lai [Duong.F_KHOA_HOC_DANG_DAT].
+     */
+    fun datKhoaHocLaptop(context: Context, ds: Map<Int, NgayKhoa>, xong: (KetQua) -> Unit) {
+        val noi = laptop(context) ?: return xong(KetQua.Hong(THIEU_FIREBASE))
+        noi.update(Duong.F_KHOA_HOC, GioDiHoc.luuFirestore(ds))
+            .addOnSuccessListener { xong(KetQua.Xong) }
+            .addOnFailureListener {
+                Log.w(TAG, "doi gio di hoc laptop hong", it)
+                xong(KetQua.Hong(loiNguoiDoc(it)))
+            }
+    }
+
     private fun laptop(context: Context) =
         Nha.maNha(context).takeIf { it.isNotEmpty() }?.let { db(context)?.collection(Duong.LAPTOP)?.document(it) }
 

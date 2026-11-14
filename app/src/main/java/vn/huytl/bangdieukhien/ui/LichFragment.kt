@@ -20,6 +20,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.firestore.ListenerRegistration
 import vn.huytl.bangdieukhien.R
+import vn.huytl.bangdieukhien.data.NgayKhoa
 import vn.huytl.bangdieukhien.data.Buoi
 import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.Lenh
@@ -60,6 +61,10 @@ class LichFragment : Fragment() {
     private var ngheLich: ListenerRegistration? = null
     private var ngheTrangThai: ListenerRegistration? = null
 
+    /** Gio di hoc cua tablet tu hop/caidat (14/11/2026), cho dong "Khoá máy" cua the buoi toi. */
+    private var ngheCaiDat: ListenerRegistration? = null
+    private var khoaHoc: Map<Int, NgayKhoa>? = null
+
     /** Ngay cho nghi them theo ban trang thai vua nhan. null la chua co, hay tablet ban cu. */
     private var ngayNghi: List<Int>? = null
 
@@ -94,6 +99,11 @@ class LichFragment : Fragment() {
             NgayNghi.ngayThem = { tap }
             ve()
         }
+        ngheCaiDat = Kho.ngheCaiDat(ct) { cd ->
+            if (_b == null || cd?.khoaHoc == khoaHoc) return@ngheCaiDat
+            khoaHoc = cd?.khoaHoc
+            ve()
+        }
     }
 
     override fun onStop() {
@@ -101,6 +111,8 @@ class LichFragment : Fragment() {
         ngheLich = null
         ngheTrangThai?.remove()
         ngheTrangThai = null
+        ngheCaiDat?.remove()
+        ngheCaiDat = null
         b.root.removeCallbacks(nhip)
         super.onStop()
     }
@@ -126,7 +138,7 @@ class LichFragment : Fragment() {
         if (toi != null) {
             b.nhanBuoiToi.setText(if (toi.dangHoc) R.string.lich_dang_hoc else R.string.lich_buoi_toi)
             b.tenBuoiToi.text = LichHoc.tenBuoi(toi, now)
-            b.chiTietBuoiToi.text = LichHoc.chiTiet(toi)
+            b.chiTietBuoiToi.text = LichHoc.chiTiet(toi, khoaHoc)
         }
 
         val hang = LichHoc.dungHang(tuan)

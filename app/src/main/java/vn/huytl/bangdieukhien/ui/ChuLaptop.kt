@@ -224,6 +224,16 @@ object ChuLaptop {
         else -> "Đang xem thì tự đăng xuất"
     }
 
+    /**
+     * Dong nho duoi "Giờ đi học" cua nhom Laptop (14/11/2026). Laptop ban cu chua biet khoa gio di
+     * hoc thi noi ro, khong de Ba Huy tuong da khoa.
+     */
+    fun chuKhoaHoc(l: TinhTrangLaptop): String = when {
+        l.khoaHocDangDat == null -> "Laptop chưa có bản khoá giờ đi học"
+        l.khoaHoc != null && l.khoaHoc != l.khoaHocDangDat -> "Đang chờ laptop đổi giờ"
+        else -> "Đăng xuất lúc đi học, đặt theo từng thứ"
+    }
+
     /** "11:53", them ngay khi khong phai hom nay: "11:53 ngày 7/10". */
     fun luc(ms: Long, bayGio: Long): String {
         if (ms >= dauNgay(bayGio)) return Dinh.gioPhut(ms)

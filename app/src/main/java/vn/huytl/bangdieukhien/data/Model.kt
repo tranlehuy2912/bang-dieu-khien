@@ -791,7 +791,12 @@ data class CaiDat(
      * Tiet kiem pin khi tablet tat man hinh (5/11/2026), xem [CaiDatPin]. null la tablet ban cu,
      * chua co muc nay: man Cai dat an ca nhom.
      */
-    val pin: CaiDatPinTablet? = null
+    val pin: CaiDatPinTablet? = null,
+    /**
+     * Gio di hoc cua tablet theo tung thu (14/11/2026), xem [GioDiHoc]. null la tablet ban cu, chua
+     * co muc nay: man Cai dat an dong "Giờ đi học" cua tablet.
+     */
+    val khoaHoc: Map<Int, NgayKhoa>? = null
 ) {
     companion object {
         fun doc(d: DocumentSnapshot?): CaiDat? {
@@ -820,7 +825,8 @@ data class CaiDat(
                         jokers = d.getString(CaiDatPin.JOKERS).orEmpty(),
                         coQuyen = d.getBoolean(CaiDatPin.CO_QUYEN) ?: false
                     )
-                }
+                },
+                khoaHoc = GioDiHoc.doc(d.get(Duong.F_KHOA_HOC))
             )
         }
     }
@@ -926,7 +932,14 @@ data class TinhTrangLaptop(
     /** Tu 19/10/2026: khung gio Ba Huy chon ([Duong.F_KHUNG_GIO]), null khi chua chon lan nao. */
     val khungGio: KhungGio? = null,
     /** Khung gio laptop bao dang ap ([Duong.F_KHUNG_DANG_DAT]), null o laptop ban truoc 19/10/2026. */
-    val khungDangDat: KhungGio? = null
+    val khungDangDat: KhungGio? = null,
+    /** Tu 14/11/2026: gio di hoc cua laptop Ba Huy dat ([Duong.F_KHOA_HOC]), null khi chua dat lan nao. */
+    val khoaHoc: Map<Int, NgayKhoa>? = null,
+    /**
+     * Gio di hoc laptop bao dang dat vao Timekpr-nExt ([Duong.F_KHOA_HOC_DANG_DAT]), null o laptop
+     * ban truoc 14/11/2026 (chua biet khoa gio di hoc).
+     */
+    val khoaHocDangDat: Map<Int, NgayKhoa>? = null
 ) {
     fun conLai(bayGio: Long = System.currentTimeMillis()): Long =
         if (ketThucLuc > 0L) (ketThucLuc - bayGio).coerceAtLeast(0L) else conLaiMs
@@ -953,7 +966,9 @@ data class TinhTrangLaptop(
                 ketQua = (d.get(Duong.F_KET_QUA) as? List<*>).orEmpty().mapNotNull { KetQuaLenhLaptop.doc(it) },
                 remote = RemoteLaptop.doc(d.get(Duong.F_REMOTE)),
                 khungGio = KhungGio.doc(d.get(Duong.F_KHUNG_GIO)),
-                khungDangDat = KhungGio.doc(d.get(Duong.F_KHUNG_DANG_DAT))
+                khungDangDat = KhungGio.doc(d.get(Duong.F_KHUNG_DANG_DAT)),
+                khoaHoc = GioDiHoc.doc(d.get(Duong.F_KHOA_HOC)),
+                khoaHocDangDat = GioDiHoc.doc(d.get(Duong.F_KHOA_HOC_DANG_DAT))
             )
         }
     }

@@ -20,6 +20,8 @@ import vn.huytl.bangdieukhien.R
 import vn.huytl.bangdieukhien.data.AppTrenMay
 import vn.huytl.bangdieukhien.data.CaiDat
 import vn.huytl.bangdieukhien.data.CaiDatPin
+import vn.huytl.bangdieukhien.data.Duong
+import vn.huytl.bangdieukhien.data.GioDiHoc
 import vn.huytl.bangdieukhien.data.Kho
 import vn.huytl.bangdieukhien.data.KhungGio
 import vn.huytl.bangdieukhien.data.Lenh
@@ -125,7 +127,7 @@ class CaiDatFragment : Fragment() {
         }
 
         b.than.addView(tieu("Giờ chơi"))
-        b.than.addView(nhom(
+        b.than.addView(nhom(*listOfNotNull(
             // Khong con muc "Tối đa mỗi ngày" (bo ngay 29/9/2026). Tablet bo tran chung 135
             // phut: moi phan co tran rieng (vo dan do 45, lam tren may 90, on lai 30, Kiem tra
             // bai 20, Do tu vung 30, tong 215), phan lam tren may vuot tran thi vao Quy gio
@@ -136,10 +138,20 @@ class CaiDatFragment : Fragment() {
             },
             muc("Giờ dậy", Dinh.gio(c.gioDay), "Trước giờ này máy vẫn khoá") {
                 hoiGio(c.gioDay) { guiCaiDat("gioDay", it) }
+            },
+            // Gio di hoc cua tablet theo tung thu (anh Huy chot 14/11/2026, mau B), xem [GioDiHoc]
+            // va [HopGioDiHoc]. Laptop co mot bo rieng o nhom Laptop. Tablet ban cu chua ghi
+            // khoaHoc vao hop/caidat thi an dong nay: gui lenh cung khong ai hieu.
+            c.khoaHoc?.let { kh ->
+                muc("Giờ đi học", GioDiHoc.tomTat(kh), "Khoá máy lúc đi học, đặt theo từng thứ") {
+                    HopGioDiHoc.mo(requireContext(), "Giờ đi học của tablet", kh) {
+                        guiCaiDat(Duong.F_KHOA_HOC, GioDiHoc.luuFirestore(it))
+                    }
+                }
             }
             // Muc ti le doi Netflix (luc do ten "Đổi sang Netflix") o day tu sang toi chieu
             // 7/10/2026, roi chuyen xuong nhom Laptop ngay duoi, xem [veNhomLaptop].
-        ))
+        ).toTypedArray()))
 
         veNhomLaptop(c)
 
@@ -395,7 +407,7 @@ class CaiDatFragment : Fragment() {
                     doiWebLaptop(l)
                 }
             }
-        ) + mucKhungGio()
+        ) + mucKhungGio() + listOfNotNull(mucGioDiHocLaptop())
         if (cac.isEmpty()) return
         b.than.addView(tieu("Laptop"))
         b.than.addView(nhom(*cac.toTypedArray()))
@@ -417,6 +429,24 @@ class CaiDatFragment : Fragment() {
                 hoiGio(k.toi) { doiKhungGio(k, KhungGio(k.tu, it)) }
             }
         )
+    }
+
+    /**
+     * Gio di hoc cua laptop theo tung thu (anh Huy chot 14/11/2026: moi may mot bo, laptop cung khoa
+     * giua ngay). Ghi thang vao laptop/{maNha} ([Kho.datKhoaHocLaptop]) nhu khung gio. Laptop chua
+     * noi vao nha thi khong co dong nay.
+     */
+    private fun mucGioDiHocLaptop(): View? {
+        val l = laptop ?: return null
+        val kh = l.khoaHoc ?: l.khoaHocDangDat ?: GioDiHoc.MAC_DINH
+        return muc("Giờ đi học", GioDiHoc.tomTat(kh), ChuLaptop.chuKhoaHoc(l)) {
+            HopGioDiHoc.mo(requireContext(), "Giờ đi học của laptop", kh) { moi ->
+                Kho.datKhoaHocLaptop(requireContext(), moi) { kq ->
+                    val ct = context ?: return@datKhoaHocLaptop
+                    if (kq is Kho.KetQua.Hong) Dinh.noi(ct, kq.viSao)
+                }
+            }
+        }
     }
 
     private fun doiKhungGio(cu: KhungGio, moi: KhungGio) {

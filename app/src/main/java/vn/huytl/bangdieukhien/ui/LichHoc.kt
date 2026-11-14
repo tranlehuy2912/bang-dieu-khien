@@ -1,6 +1,7 @@
 package vn.huytl.bangdieukhien.ui
 
 import vn.huytl.bangdieukhien.data.Buoi
+import vn.huytl.bangdieukhien.data.NgayKhoa
 import vn.huytl.bangdieukhien.data.BuoiHoc
 import vn.huytl.bangdieukhien.data.NgayNghi
 import vn.huytl.bangdieukhien.data.ThoiKhoaBieu
@@ -140,15 +141,25 @@ object LichHoc {
         }
     }
 
-    /** "Buông máy 11:30 · vào học 12:45 · tan 17:00", hay luc dang hoc "Tiết 3 · ...". */
-    fun chiTiet(toi: BuoiToi): String {
+    /**
+     * "Khoá máy 11:00 · vào học 12:45 · tan 17:00", hay luc dang hoc "Tiết 3 · ...".
+     *
+     * Tu 14/11/2026 gio khoa la gio di hoc Ba Huy dat cho tablet theo tung thu ([khoaHoc], doc tu
+     * hop/caidat), khong con la moc buong may trong ban lich: tablet chan theo gio do. Khoang khoa
+     * cua thu do khong cham buoi nay (hay Ba Huy tat khoa thu do) thi ghi "Không khoá máy". Chua doc
+     * duoc cai dat tablet ([khoaHoc] null) thi bo phan gio khoa.
+     */
+    fun chiTiet(toi: BuoiToi, khoaHoc: Map<Int, NgayKhoa>?): String {
         val tan = "tan ${Dinh.gio(toi.buoi.phutTanHoc)}"
         if (toi.dangHoc && toi.tiet != null) {
             val mon = toi.buoi.monTheoTiet[toi.tiet].orEmpty()
             return "Tiết ${toi.tiet}: $mon · $tan"
         }
-        return "Buông máy ${Dinh.gio(ThoiKhoaBieu.phutBuongMay(toi.buoi))} · " +
-            "vào học ${Dinh.gio(toi.buoi.phutVaoHoc)} · $tan"
+        val vao = "vào học ${Dinh.gio(toi.buoi.phutVaoHoc)} · $tan"
+        if (khoaHoc == null) return vao.replaceFirstChar { it.uppercase() }
+        val k = khoaHoc[toi.buoi.thu]
+        val coKhoa = k != null && k.bat && k.tu < toi.buoi.phutTanHoc && k.toi > toi.buoi.phutVaoHoc
+        return if (coKhoa) "Khoá máy ${Dinh.gio(k!!.tu)} · $vao" else "Không khoá máy · $vao"
     }
 
     fun ngayThang(ngay: Calendar): String =

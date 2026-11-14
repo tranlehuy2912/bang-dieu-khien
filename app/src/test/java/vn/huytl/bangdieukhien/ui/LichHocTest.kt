@@ -6,6 +6,8 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import vn.huytl.bangdieukhien.data.NgayKhoa
+import vn.huytl.bangdieukhien.data.GioDiHoc
 import vn.huytl.bangdieukhien.data.Buoi
 import vn.huytl.bangdieukhien.data.LichMau
 import vn.huytl.bangdieukhien.data.NgayNghi
@@ -34,7 +36,11 @@ class LichHocTest {
         assertEquals(Buoi.CHIEU, toi.buoi.buoi)
         assertFalse(toi.dangHoc)
         assertEquals("Chiều nay", LichHoc.tenBuoi(toi, now))
-        assertEquals("Buông máy 11:30 · vào học 12:45 · tan 17:00", LichHoc.chiTiet(toi))
+        // Tu 14/11/2026 gio khoa la gio di hoc Ba Huy dat cho tablet, khong phai moc buong may.
+        assertEquals("Khoá máy 11:00 · vào học 12:45 · tan 17:00", LichHoc.chiTiet(toi, GioDiHoc.MAC_DINH))
+        assertEquals("Vào học 12:45 · tan 17:00", LichHoc.chiTiet(toi, null))
+        val tatThuBa = GioDiHoc.MAC_DINH + (Calendar.TUESDAY to NgayKhoa(false, 660, 1020))
+        assertEquals("Không khoá máy · vào học 12:45 · tan 17:00", LichHoc.chiTiet(toi, tatThuBa))
     }
 
     /** Da qua moc buong may, chua vao tiet dau: van la buoi sap toi. */
@@ -55,7 +61,7 @@ class LichHocTest {
         assertTrue(toi.dangHoc)
         assertEquals(3, toi.tiet)
         assertEquals("Chiều nay", LichHoc.tenBuoi(toi, now))
-        assertEquals("Tiết 3: Âm nhạc · tan 17:00", LichHoc.chiTiet(toi))
+        assertEquals("Tiết 3: Âm nhạc · tan 17:00", LichHoc.chiTiet(toi, GioDiHoc.MAC_DINH))
 
         // Tiet 3 bat dau 14:15, tiet 4 luc 15:30: 15:10 la ra choi sau tiet 3.
         assertEquals(3, LichHoc.buoiToi(luc(2026, 9, 29, 15, 10))!!.tiet)
@@ -77,7 +83,10 @@ class LichHocTest {
     fun thu_hai_hai_buoi() {
         val sang = LichHoc.buoiToi(luc(2026, 9, 28, 7))!!
         assertEquals(Buoi.SANG, sang.buoi.buoi)
-        assertEquals("Buông máy 08:45 · vào học 09:15 · tan 10:45", LichHoc.chiTiet(sang))
+        assertEquals("Khoá máy 08:45 · vào học 09:15 · tan 10:45", LichHoc.chiTiet(sang, GioDiHoc.MAC_DINH))
+        // Thu hai chi khoa tu 11:00 thi buoi sang khong bi khoa.
+        val chiChieu = GioDiHoc.MAC_DINH + (Calendar.MONDAY to NgayKhoa(true, 660, 1020))
+        assertEquals("Không khoá máy · vào học 09:15 · tan 10:45", LichHoc.chiTiet(sang, chiChieu))
 
         val chieu = LichHoc.buoiToi(luc(2026, 9, 28, 10, 45))!!
         assertEquals(Buoi.CHIEU, chieu.buoi.buoi)

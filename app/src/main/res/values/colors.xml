@@ -1,31 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Cung bang mau voi app ben tablet. Hai app la mot bo, nhin phai ra mot nha;
-         va Ba Huy da quen mau nao la dang choi, mau nao la dang khoa. -->
-    <color name="brand">#2F6FED</color>
-    <color name="brand_dark">#1B4FC0</color>
-    <color name="brand_soft">#E8F0FE</color>
+         va Ba Huy da quen mau nao la dang choi, mau nao la dang khoa.
+         Tu 16/11/2026 theo mau H "Game bong bay" anh Huy chon, gia tri chep tu tablet. -->
+    <color name="brand">#3D8BFF</color>
+    <color name="brand_dark">#1F5FCC</color>
+    <color name="brand_soft">#E3EEFF</color>
 
-    <color name="ok">#1E8E3E</color>
-    <color name="ok_soft">#E6F4EA</color>
+    <color name="ok">#1FA347</color>
+    <color name="ok_soft">#DDF7E3</color>
 
-    <color name="wait">#E8A22B</color>
-    <color name="wait_soft">#FEF5E5</color>
+    <color name="wait">#FFB300</color>
+    <color name="wait_soft">#FFF3CC</color>
     <!-- Chu tren nen wait_soft. Mau wait thi nhat qua, doc khong ro tren nen vang nhat. -->
     <color name="wait_ink">#7A5200</color>
 
-    <color name="locked">#8A6A52</color>
-    <color name="locked_soft">#F5EDE7</color>
+    <color name="locked">#E8681A</color>
+    <color name="locked_soft">#FFE9D9</color>
 
-    <color name="alert">#C0392B</color>
-    <color name="alert_soft">#FCEBE9</color>
+    <color name="alert">#F0445A</color>
+    <color name="alert_soft">#FFE3E7</color>
 
-    <color name="ink">#1A1C20</color>
-    <color name="ink_soft">#5F6472</color>
-    <color name="ink_mo">#8A90A0</color>
+    <color name="ink">#24305E</color>
+    <color name="ink_soft">#5D6A94</color>
+    <color name="ink_mo">#8A94B8</color>
     <color name="surface">#FFFFFF</color>
-    <color name="canvas">#F4F6FA</color>
-    <color name="line">#E1E5EC</color>
+    <color name="canvas">#DDF2FF</color>
+    <color name="line">#E2E9F6</color>
     <!-- Hai khuc cua thanh ngay (ThanhNgay), cung mau ben tablet. Ba Huy chot ba mau co dinh
          ngay 1/10/2026: trang (nen) la tong co the co, xam nhat la phut da kiem ma chua choi,
          xanh duong la phut da choi. Khong doi theo trang thai cong. -->
@@ -45,4 +46,13 @@
     <color name="mon_van">#C2591A</color>
     <color name="mon_su_dia">#7B3FBF</color>
     <color name="mon_anh">#B03060</color>
+
+    <!-- Mau H "Game bong bay" (anh Huy chon 16/11/2026, chi ban sang). Troi o dau va duoi man
+         (nen st_nen_man / nen_troi, thanh trang thai, thanh dieu huong), bong xanh duoi the
+         trang, vang cua nut nho tron va o dang chon. -->
+    <color name="troi_tren">#9ADBFF</color>
+    <color name="troi_duoi">#FFF6DE</color>
+    <color name="bong_the">#7F9CCB</color>
+    <color name="vang">#FFC93C</color>
+    <color name="vang_nhat">#FFEDB3</color>
 </resources>

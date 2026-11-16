@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/canvas"
+    android:background="@drawable/nen_troi"
     android:fillViewport="true">
 
     <LinearLayout
@@ -77,6 +77,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
+            style="@style/Nut.Bong"
             android:id="@+id/nutXin"
             android:layout_width="match_parent"
             android:layout_height="56dp"

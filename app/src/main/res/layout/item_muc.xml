@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Mot dong cai dat: ten muc ben trai, gia tri ben phai, bam vao la sua. Muc bat tat thi
-     thay chu gia tri bang cong tac gat (congTac), xem CaiDatFragment.mucBatTat. -->
+     thay chu gia tri bang cong tac gat (congTac), xem CaiDatFragment.mucBatTat.
+     Mau H (16/11/2026): ten dam, gia tri chu dam xanh, nut tron vang co mui ten o cuoi dong. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -24,13 +25,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/ink"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/phu"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/ink_mo"
+            android:textColor="@color/ink_soft"
             android:textSize="13sp"
             android:visibility="gone" />
     </LinearLayout>
@@ -40,9 +42,22 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
-        android:textColor="@color/brand"
+        android:textColor="@color/brand_dark"
         android:textSize="16sp"
         android:textStyle="bold" />
+
+    <ImageView
+        android:id="@+id/mui"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="10dp"
+        android:background="@drawable/nut_tron_vang"
+        android:importantForAccessibility="no"
+        android:paddingStart="6dp"
+        android:paddingTop="5dp"
+        android:paddingEnd="6dp"
+        android:paddingBottom="9dp"
+        android:src="@drawable/ic_mui_phai_trang" />
 
     <!-- Khong bam truc tiep duoc (clickable false): cham vao cong tac la cham vao ca dong, va
          dong goi lenh. Cong tac chi doi khi may kia bao da doi, nhu chu Bat/Tat truoc day. -->

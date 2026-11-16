@@ -65,12 +65,26 @@ class CaiDatFragment : Fragment() {
     /** null la laptop chua noi vao nha (chua co document laptop/{maNha}). */
     private var laptop: TinhTrangLaptop? = null
 
+    /**
+     * Trang dang xem (phuong an B, anh Huy chon 16/11/2026): TRANG_TABLET, TRANG_LAPTOP hay
+     * TRANG_MAY. Giu trong tien trinh, xem companion.
+     */
+    private var trang: Int
+        get() = trangDangXem
+        set(v) { trangDangXem = v }
+
+    /** Dong "Nâng cao" cuoi trang Tablet dang mo (Truy cap tu xa, Nguy hiem). */
+    private var moNangCao = false
+
     /** Hop "Giờ riêng từng app" dang mo, va cach ve lai no khi tablet ghi so moi. */
     private var hopGioRieng: AlertDialog? = null
     private var veGioRieng: (() -> Unit)? = null
 
     override fun onCreateView(i: LayoutInflater, c: ViewGroup?, s: Bundle?): View {
         _b = FragmentCaiDatBinding.inflate(i, c, false)
+        b.nutTrangTablet.setOnClickListener { trang = TRANG_TABLET; ve() }
+        b.nutTrangLaptop.setOnClickListener { trang = TRANG_LAPTOP; ve() }
+        b.nutTrangMay.setOnClickListener { trang = TRANG_MAY; ve() }
         return b.root
     }
 
@@ -112,21 +126,57 @@ class CaiDatFragment : Fragment() {
         super.onDestroyView()
     }
 
+    /**
+     * Cong tac "Tablet | Laptop | Điện thoại" o dau tab (phuong an B, 16/11/2026). Nut Laptop chi
+     * hien khi laptop da noi vao nha: chua noi thi trang Laptop chi con ti le doi phut, khong
+     * lam gi duoc. Trang dang chon to mau, trang khac trang.
+     */
+    private fun veHangTrang() {
+        val coLaptop = laptop != null
+        if (!coLaptop && trang == TRANG_LAPTOP) trang = TRANG_TABLET
+        b.nutTrangLaptop.visibility = if (coLaptop) View.VISIBLE else View.GONE
+        listOf(
+            Triple(b.nutTrangTablet, TRANG_TABLET, R.drawable.nut_bong_xanh),
+            Triple(b.nutTrangLaptop, TRANG_LAPTOP, R.drawable.nut_bong_do),
+            Triple(b.nutTrangMay, TRANG_MAY, R.drawable.nut_bong_xanhla)
+        ).forEach { (nut, t, nen) ->
+            val chon = trang == t
+            nut.setBackgroundResource(if (chon) nen else R.drawable.nut_bong_trang)
+            nut.setTextColor(
+                if (chon) android.graphics.Color.WHITE else ContextCompat.getColor(requireContext(), R.color.ink)
+            )
+            if (chon) nut.setShadowLayer(1f, 0f, 2f, 0x40000000) else nut.setShadowLayer(0f, 0f, 0f, 0)
+        }
+    }
+
     private fun ve() {
         if (_b == null) return
         veGioRieng?.invoke()
+        veHangTrang()
         b.than.removeAllViews()
-        val c = caiDat
 
-        if (c == null) {
-            b.than.addView(tieu("Tablet chưa gửi cấu hình sang. Chờ máy đó lên mạng một lần."))
-            veNhomLaptop(null)
-            veNhomTuXa()
+        // Trang Laptop: ti le doi phut, khoa web, khung gio, gio di hoc cua laptop. Ten "Giờ đi học"
+        // giu nguyen vi trang nay chi co laptop (o phuong an A, C moi phai doi thanh "Giờ đi học
+        // của laptop").
+        if (trang == TRANG_LAPTOP) {
+            veNhomLaptop(caiDat)
+            if (b.than.childCount == 0) b.than.addView(tieu("Laptop chưa gửi gì sang."))
+            return
+        }
+        // Trang Dien thoai: nhung muc cua chinh may nay, khong gui di dau.
+        if (trang == TRANG_MAY) {
             veMucMay()
             return
         }
 
-        b.than.addView(tieu("Giờ chơi"))
+        val c = caiDat
+        if (c == null) {
+            b.than.addView(tieu("Tablet chưa gửi cấu hình sang. Chờ máy đó lên mạng một lần."))
+            veNangCao()
+            return
+        }
+
+        b.than.addView(tieu("Giờ giấc"))
         b.than.addView(nhom(*listOfNotNull(
             // Khong con muc "Tối đa mỗi ngày" (bo ngay 29/9/2026). Tablet bo tran chung 135
             // phut: moi phan co tran rieng (vo dan do 45, lam tren may 90, on lai 30, Kiem tra
@@ -150,12 +200,12 @@ class CaiDatFragment : Fragment() {
                 }
             }
             // Muc ti le doi Netflix (luc do ten "Đổi sang Netflix") o day tu sang toi chieu
-            // 7/10/2026, roi chuyen xuong nhom Laptop ngay duoi, xem [veNhomLaptop].
+            // 7/10/2026, roi chuyen xuong nhom Laptop, tu 16/11/2026 nam o trang Laptop.
         ).toTypedArray()))
 
-        veNhomLaptop(c)
-
-        b.than.addView(tieu("Ứng dụng"))
+        // Tam muc "Ứng dụng" tach lam hai nhom theo nghia (16/11/2026): app duoc dung luc nao, va
+        // app bi chan hay bi theo doi. Thu tu tung muc trong nhom giu nhu cu.
+        b.than.addView(tieu("App được dùng"))
         b.than.addView(nhom(
             // Ten cu "App duoc choi · Mo duoc trong gio choi" noi nguoc nghia: trong gio
             // choi thi app nao cung mo duoc. Day la danh sach mo duoc ca khi HET gio
@@ -184,6 +234,10 @@ class CaiDatFragment : Fragment() {
                 "Phát tiếng khi hết giờ chơi, trừ giờ ngủ, giờ học") {
                 chonApp("App được nghe nền", c.appNhac) { guiCaiDat("appNhac", it) }
             },
+        ))
+
+        b.than.addView(tieu("App bị chặn"))
+        b.than.addView(nhom(
             muc("App chặn hẳn", "${c.appChan.size} app", "Không mở được kể cả trong giờ chơi") {
                 chonApp("App chặn hẳn", c.appChan) { guiCaiDat("appChan", it) }
             },
@@ -205,8 +259,24 @@ class CaiDatFragment : Fragment() {
         // may cham nao de bat tat, bai nao cung cham bang Claude o tab Bai.
 
         veNhomPin(c)
+        veNangCao()
+    }
+
+    /**
+     * Dong "Nâng cao" cuoi trang Tablet (16/11/2026): bam la mo hay dong hai nhom hiem dung, Truy
+     * cap tu xa va Nguy hiem. Truoc do hai nhom nay nam giua trang, ngay tren nhom Máy này.
+     */
+    private fun veNangCao() {
+        b.than.addView(tieu("Khác"))
+        b.than.addView(nhom(
+            muc("Nâng cao", if (moNangCao) "Đóng" else "Mở", "Truy cập từ xa, xoá PIN, tắt quản trị thiết bị") {
+                moNangCao = !moNangCao
+                ve()
+            }
+        ))
+        if (!moNangCao) return
         veNhomTuXa()
-        veMucMay()
+        veNguyHiem()
     }
 
     /**
@@ -489,9 +559,9 @@ class CaiDatFragment : Fragment() {
         Dinh.chep(requireContext(), "Mã nhà", ma, "Đã chép mã nhà.")
     }
 
-    /** May muc thuoc ve chinh dien thoai nay, khong gui di dau ca. */
+    /** May muc thuoc ve chinh dien thoai nay, khong gui di dau ca. Trang Dien thoai tu 16/11/2026. */
     private fun veMucMay() {
-        b.than.addView(tieu("Máy này"))
+        b.than.addView(tieu("Điện thoại này"))
         b.than.addView(nhom(
             muc("Token bot Telegram", if (Nha.token(requireContext()).isBlank()) "chưa đặt" else "đã đặt",
                 "Chỉ dùng để tải ảnh bài tập về xem") { hoiToken() },
@@ -502,15 +572,20 @@ class CaiDatFragment : Fragment() {
                 "Mã nhà", Nha.maNha(requireContext()).take(8) + "…",
                 "Chạm để chép mã đầy đủ"
             ) { chepMaNha() },
-            muc("Ghép đôi lại", "", "Nối máy này với tablet một lần nữa") {
+            // Hai dong ghep may doi ten ngay 16/11/2026 (anh Huy dong y): "Ghép đôi lại" va "Nối lại
+            // máy tính bảng" dung canh nhau ma lam hai viec nguoc chieu, ten khong noi chieu nao.
+            muc("Ghép lại với tablet", "", "Nối điện thoại này với tablet một lần nữa") {
                 startActivity(Intent(requireContext(), GhepDoiActivity::class.java))
             },
             muc(
-                "Nối lại máy tính bảng", "",
-                "Khi tablet vừa cài lại app và mất hết dữ liệu"
+                "Tablet vừa cài lại app", "",
+                "Khi tablet mất hết dữ liệu, cho nó xin vào lại nhà cũ"
             ) { noiLaiTablet() }
         ))
+    }
 
+    /** Hai viec nang tay voi tablet, co hoi lai. Nam trong dong "Nâng cao" cua trang Tablet. */
+    private fun veNguyHiem() {
         b.than.addView(tieu("Nguy hiểm"))
         b.than.addView(nhom(
             muc("Xoá mã PIN trên tablet", "", "Xoá xong đặt lại PIN mới trên chính tablet") {
@@ -746,19 +821,30 @@ class CaiDatFragment : Fragment() {
 
     // -------------------------------------------------------------- ve vat
 
+    /** Nhan nhom (mau H, 16/11/2026): Baloo 2 ExtraBold xanh muc, thay cho chu in hoa nho mau nhat. */
     private fun tieu(chu: String): View = TextView(requireContext()).apply {
         text = chu
-        setTextAppearance(R.style.Chu_Tieu)
-        setPadding(4.dp(), 20.dp(), 4.dp(), 8.dp())
+        typeface = androidx.core.content.res.ResourcesCompat.getFont(requireContext(), R.font.baloo2_rat_dam)
+        textSize = 18f
+        setTextColor(ContextCompat.getColor(requireContext(), R.color.ink))
+        setPadding(4.dp(), 16.dp(), 4.dp(), 6.dp())
     }
 
+    /** The trang cua mot nhom (mau H): bo 24dp, khong vien, bong xanh nhu style The. */
     private fun nhom(vararg cac: View): View {
         val the = MaterialCardView(requireContext()).apply {
-            radius = 20.dp().toFloat()
-            strokeWidth = 1
-            strokeColor = ContextCompat.getColor(context, R.color.line)
+            radius = 24.dp().toFloat()
+            strokeWidth = 0
             setCardBackgroundColor(ContextCompat.getColor(context, R.color.surface))
-            cardElevation = 0f
+            cardElevation = 5.dp().toFloat()
+            // Mau bong chi co tu Android 9; may cu hon thi bong xam mac dinh.
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                outlineSpotShadowColor = ContextCompat.getColor(context, R.color.bong_the)
+                outlineAmbientShadowColor = ContextCompat.getColor(context, R.color.bong_the)
+            }
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(2.dp(), 0, 2.dp(), 6.dp()) }
         }
         val cot = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.VERTICAL
@@ -795,6 +881,7 @@ class CaiDatFragment : Fragment() {
     private fun mucBatTat(ten: String, bat: Boolean, phu: String?, bam: () -> Unit): View {
         val v = ItemMucBinding.bind(muc(ten, "", phu, bam))
         v.giaTri.visibility = View.GONE
+        v.mui.visibility = View.GONE
         v.congTac.visibility = View.VISIBLE
         v.congTac.isChecked = bat
         v.root.contentDescription = "$ten, ${if (bat) "đang bật" else "đang tắt"}"
@@ -804,6 +891,13 @@ class CaiDatFragment : Fragment() {
     private fun Int.dp(): Int = (this * resources.displayMetrics.density).toInt()
 
     companion object {
+        private const val TRANG_TABLET = 0
+        private const val TRANG_LAPTOP = 1
+        private const val TRANG_MAY = 2
+
+        /** Trang dang xem, giu qua cac lan doi tab trong tien trinh. Xem [trang]. */
+        private var trangDangXem = TRANG_TABLET
+
         /** Lan cuoi go [TuXa.XEM], giu qua cac lan ve lai the. Xem [hoiTuXa]. */
         private var hoiTuXaLuc = 0L
         private const val GIAN_HOI_TU_XA_MS = 30_000L

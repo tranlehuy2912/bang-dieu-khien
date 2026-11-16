@@ -358,25 +358,32 @@
                         </LinearLayout>
                     </LinearLayout>
 
-                    <LinearLayout
-                        android:id="@+id/khungNgay"
+                    <!-- Vien ngoai va ruot tach hai lop (16/11/2026), xem nen_thanh_ngay_h. -->
+                    <FrameLayout
                         android:layout_width="match_parent"
                         android:layout_height="20dp"
                         android:layout_marginTop="8dp"
                         android:background="@drawable/nen_thanh_ngay_h"
-                        android:orientation="horizontal"
                         android:padding="3dp">
 
-                        <View
-                            android:id="@+id/phanDaChoi"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent" />
+                        <LinearLayout
+                            android:id="@+id/khungNgay"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/nen_ruot_thanh_ngay"
+                            android:orientation="horizontal">
 
-                        <View
-                            android:id="@+id/phanCon"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent" />
-                    </LinearLayout>
+                            <View
+                                android:id="@+id/phanDaChoi"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent" />
+
+                            <View
+                                android:id="@+id/phanCon"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent" />
+                        </LinearLayout>
+                    </FrameLayout>
 
                     <TextView
                         android:id="@+id/chuThichNgay"

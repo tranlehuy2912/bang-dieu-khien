@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Nen thanh han muc ngay theo mau H (16/11/2026), chep kieu ben tablet: ruot xanh xam nhat,
-     vien xanh muc 3dp. Khung co padding 3dp de hai khuc mau nam trong vien. -->
+<!-- Vien ngoai cua thanh han muc ngay theo mau H (16/11/2026): vien xanh muc 3dp bo 12dp. Ruot
+     (nen_ruot_thanh_ngay) nam trong, bo 9dp, de hai khuc mau khong loi goc vuong ra khoi goc bo
+     cua vien (anh Huy thay ngay 16/11/2026 ben tablet). -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <solid android:color="#E9EEF8" />

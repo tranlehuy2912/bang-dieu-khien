@@ -352,4 +352,45 @@
         <item name="trackStopIndicatorSize">0dp</item>
         <item name="indicatorTrackGapSize">0dp</item>
     </style>
+
+    <!-- Nut phien trong the chinh (Tam dung / Choi tiep, Dong che do Ba Huy, Khoa ngay) theo mau H
+         (16/11/2026): nut bong thay cho nut vien. Nen nut Tam dung doi theo trang thai trong code. -->
+    <style name="Nut.Phien.Bong" parent="Nut.Bong.Vang">
+        <item name="android:textSize">16sp</item>
+        <item name="android:minHeight">54dp</item>
+        <item name="android:paddingLeft">4dp</item>
+        <item name="android:paddingRight">4dp</item>
+        <item name="android:paddingStart">4dp</item>
+        <item name="android:paddingEnd">4dp</item>
+    </style>
+
+    <style name="Nut.Phien.Bong.Trang">
+        <item name="android:background">@drawable/nut_bong_trang</item>
+        <item name="android:textColor">@color/ink</item>
+        <item name="android:shadowRadius">0</item>
+        <item name="android:shadowDy">0</item>
+    </style>
+
+    <style name="Nut.Phien.Bong.Do">
+        <item name="android:background">@drawable/nut_bong_do</item>
+    </style>
+
+    <!-- Nut nho co chu o dong dau tab Gio choi ("Tin cô", "Mở máy"): vien thuoc trang, chu xanh muc.
+         Truoc 16/11/2026 la nut chi co bieu tuong (Nut.Icon). -->
+    <style name="Nut.Nhan" parent="Nut.Bong.Trang">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingLeft">12dp</item>
+        <item name="android:paddingRight">14dp</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingBottom">9dp</item>
+        <item name="iconSize">18dp</item>
+        <item name="iconPadding">5dp</item>
+        <item name="iconTint">@color/ink</item>
+    </style>
 </resources>

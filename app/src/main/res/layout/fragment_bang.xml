@@ -1,28 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Tab Gio choi (truoc 27/9/2026 ten la Bang), tu tren xuong: tablet dang the nao cung
-  moi nut dieu khien gio (mot the), roi nhung viec dang cho Ba Huy (viec nha chua xong,
-  bai cho duyet, vo dan do). Viec nha va nhat ky moi thu mot tab rieng.
+  Tab Gio choi (truoc 27/9/2026 ten la Bang).
 
-  Nut nao tac dong len cai gi thi nam trong the cua cai do. Truoc day bay nut xep hang
-  tren nen man hinh, moi hang mot nhan chu in hoa, va nhan nhieu toi muc khong con nhom
-  nao noi len. Nut luc do bam khong co tac dung thi an di chu khong de xam, xem
-  BangFragment.ve.
+  Phuong an B cua mau H "Game bong bay" (anh Huy chon 16/11/2026):
+   - GHIM TREN: dong ten (hai nut co chu "Tin cô", "Mở máy") va cong tac "Tablet | Laptop".
+     Cong tac chi hien khi laptop da noi vao nha.
+   - CUON, the con Tablet: canh bao, the chinh (trang thai, dong ho, nut phien, han muc ngay,
+     hang cho gio, quy), the giu phut qua gio ngu, bai cho duyet va viec nha chua xong (dua len
+     ngay duoi the chinh), de thi thu, bai dan do.
+   - CUON, the con Laptop: the Laptop (TheLaptop). Tach ra de moi luc chi thay mot hang
+     15' 30' 45' Khac Bot: truoc do hai hang giong het nam tren mot trang.
+
+  Nut nao tac dong len cai gi thi nam trong the cua cai do. Nut luc do bam khong co tac dung
+  thi an di chu khong de xam, xem BangFragment.ve.
 -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:scrollbars="none">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="8dp">
+    android:orientation="vertical"
+    android:paddingTop="16dp">
 
         <!-- Dong dau: ten con, tinh trang duong truyen, va hai viec thinh thoang moi lam
              (dan tin cua co, mo toan bo may) thu gon thanh hai icon o goc phai. Truoc day
@@ -32,17 +29,19 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingBottom="12dp">
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="10dp">
 
             <TextView
                 android:id="@+id/tenCon"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:fontFamily="@font/coiny"
                 android:text="@string/child_name"
-                android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
                 android:textColor="@color/ink"
-                android:textStyle="bold" />
+                android:textSize="26sp"
+                app:fontFamily="@font/coiny" />
 
             <View
                 android:id="@+id/chamSong"
@@ -60,13 +59,14 @@
 
             <!-- Tin cua co giao trong nhom lop Zalo. Ba Huy chep tin ben Zalo roi bam day,
                  tablet dua len man chinh cho con va ba noi doc. -->
+            <!-- Tu 16/11/2026 co chu "Tin cô" canh bieu tuong: truoc do chi co bieu tuong, ten
+                 nam trong tooltip, nhin khong biet nut lam gi. -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/nutTinCo"
-                style="@style/Nut.Icon"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                style="@style/Nut.Nhan"
                 android:layout_marginStart="10dp"
                 android:contentDescription="@string/bang_tin_co"
+                android:text="Tin cô"
                 android:tooltipText="@string/bang_tin_co"
                 app:icon="@drawable/ic_tin_co" />
 
@@ -75,14 +75,67 @@
                  chinh, canh dong ho cua che do do. -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/nutMoMay"
-                style="@style/Nut.Icon"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:layout_marginEnd="-6dp"
+                style="@style/Nut.Nhan"
+                android:layout_marginStart="8dp"
                 android:contentDescription="@string/bang_mo_may"
+                android:text="Mở máy"
                 android:tooltipText="@string/bang_mo_may"
                 app:icon="@drawable/ic_mo_may" />
         </LinearLayout>
+
+        <!-- Cong tac Tablet | Laptop (16/11/2026). An khi laptop chua noi: luc do chi co tablet. -->
+        <LinearLayout
+            android:id="@+id/hangChonMay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="10dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/nutXemTablet"
+                style="@style/Nut.Bong"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="Tablet"
+                android:textSize="17sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/nutXemLaptop"
+                style="@style/Nut.Bong.Trang"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:text="Laptop"
+                android:textSize="17sp" />
+        </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:fadingEdgeLength="20dp"
+        android:fillViewport="true"
+        android:requiresFadingEdge="vertical"
+        android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="12dp">
+
+      <LinearLayout
+          android:id="@+id/khoiTablet"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="vertical">
 
         <!-- Bang canh bao: chi hien khi tablet mat lien lac hoac quyen bi tat. -->
         <com.google.android.material.card.MaterialCardView
@@ -128,16 +181,25 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
+                    <!-- Dai ruy bang (mau H, 16/11/2026): nen mau trang thai ve trong code, xem
+                         BangFragment.ve. -->
                     <TextView
                         android:id="@+id/nhanTrangThai"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/vien_nhan"
-                        android:paddingHorizontal="10dp"
-                        android:paddingVertical="5dp"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:text="@string/bang_dang_hoi" />
+                        android:fontFamily="@font/coiny"
+                        android:paddingStart="16dp"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="16dp"
+                        android:paddingBottom="9dp"
+                        android:shadowColor="#33000000"
+                        android:shadowDy="2"
+                        android:shadowRadius="1"
+                        android:text="@string/bang_dang_hoi"
+                        android:textColor="@android:color/white"
+                        android:textSize="15sp"
+                        app:fontFamily="@font/coiny" />
 
                     <!-- Tablet dang mo app gi. Ngay duoi nhan: nhan noi cong dang the
                          nao, dong nay noi con dang lam gi voi no. -->
@@ -150,13 +212,19 @@
                         android:textSize="14sp"
                         android:visibility="gone" />
 
-                    <TextView
+                    <!-- Chu trang vien mau trang thai (mau H): ChuVien ve vien, mau vien dat
+                         trong code. -->
+                    <vn.huytl.bangdieukhien.ui.ChuVien
                         android:id="@+id/dongHo"
                         style="@style/Chu.So"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="@string/bang_gach" />
+                        android:layout_marginTop="6dp"
+                        android:paddingHorizontal="4dp"
+                        android:paddingBottom="6dp"
+                        android:text="@string/bang_gach"
+                        android:textColor="@android:color/white"
+                        app:fontFamily="@font/coiny" />
 
                     <TextView
                         android:id="@+id/duoiDongHo"
@@ -172,8 +240,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
-                        app:trackCornerRadius="4dp"
-                        app:trackThickness="8dp" />
+                        app:trackColor="#E9EEF8"
+                        app:trackCornerRadius="6dp"
+                        app:trackThickness="12dp" />
                 </LinearLayout>
 
                 <!-- Nut cua phien dang chay, ngay duoi dong ho cua phien do. Chi hien
@@ -189,7 +258,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/nutDung"
-                        style="@style/Nut.Phien"
+                        style="@style/Nut.Phien.Bong"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_marginEnd="8dp"
@@ -206,7 +275,7 @@
                          gay lam hai dong. -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/nutDongMay"
-                        style="@style/Nut.Phien"
+                        style="@style/Nut.Phien.Bong.Trang"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_marginEnd="8dp"
@@ -215,7 +284,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/nutKhoa"
-                        style="@style/Nut.Phien.Do"
+                        style="@style/Nut.Phien.Bong.Do"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
@@ -292,10 +361,11 @@
                     <LinearLayout
                         android:id="@+id/khungNgay"
                         android:layout_width="match_parent"
-                        android:layout_height="8dp"
+                        android:layout_height="20dp"
                         android:layout_marginTop="8dp"
-                        android:background="@drawable/nen_thanh_ngay"
-                        android:orientation="horizontal">
+                        android:background="@drawable/nen_thanh_ngay_h"
+                        android:orientation="horizontal"
+                        android:padding="3dp">
 
                         <View
                             android:id="@+id/phanDaChoi"
@@ -506,11 +576,136 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- The Laptop (8/10/2026): phut Netflix, trang thai, nhan len tivi, chup man hinh, dang
-             xuat, tat may. TheLaptop ve; an khi laptop chua noi vao nha. -->
-        <include
-            android:id="@+id/theLaptop"
-            layout="@layout/the_laptop" />
+        <!-- Bai dang cho: chi hien khi co, va bam vao la sang thang tab Bai tap. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/theBaiCho"
+            style="@style/The"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/surface">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:minHeight="56dp"
+                android:orientation="horizontal"
+                android:paddingVertical="10dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="12dp">
+
+                <ImageView
+                    android:id="@+id/hinhBaiCho"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:layout_marginEnd="12dp"
+                    android:importantForAccessibility="no"
+                    android:paddingStart="11dp"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="11dp"
+                    android:paddingBottom="14dp"
+                    android:src="@drawable/ic_bai"
+                    app:tint="@android:color/white" />
+
+                <TextView
+                    android:id="@+id/chuBaiCho"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="@color/ink"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/muiBaiCho"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:background="@drawable/nut_tron_vang"
+                    android:importantForAccessibility="no"
+                    android:paddingStart="8dp"
+                    android:paddingTop="7dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="11dp"
+                    android:src="@drawable/ic_mui_phai_trang" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Viec nha chua xong: tablet dang khoa vi viec nha. Bam vao la sang tab Viec nha,
+             noi co nut Xong tung viec. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/theViecCho"
+            style="@style/The"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/surface">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:minHeight="56dp"
+                android:orientation="horizontal"
+                android:paddingVertical="10dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="12dp">
+
+                <ImageView
+                    android:id="@+id/hinhViecCho"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:layout_marginEnd="12dp"
+                    android:importantForAccessibility="no"
+                    android:paddingStart="11dp"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="11dp"
+                    android:paddingBottom="14dp"
+                    android:src="@drawable/ic_viec_nha"
+                    app:tint="@android:color/white" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/bang_viec_cho"
+                        android:textColor="@color/ink"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/chuViecCho"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:textColor="@color/ink"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/muiViecCho"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:background="@drawable/nut_tron_vang"
+                    android:importantForAccessibility="no"
+                    android:paddingStart="8dp"
+                    android:paddingTop="7dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="11dp"
+                    android:src="@drawable/ic_mui_phai_trang" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- The de thi thu (anh Huy chon tach khoi the chinh ngay 7/10/2026): moi mon mot hang
              item_de_thi, thu tu Toan, KHTN, Tieng Anh, mon khong co de thi khong co hang.
@@ -536,119 +731,6 @@
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
                 android:paddingBottom="16dp" />
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Viec nha chua xong: tablet dang khoa vi viec nha. Bam vao la sang tab Viec nha,
-             noi co nut Xong tung viec. -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/theViecCho"
-            style="@style/The"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:visibility="gone"
-            app:cardBackgroundColor="@color/wait_soft"
-            app:strokeColor="@color/wait">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:minHeight="56dp"
-                android:orientation="horizontal"
-                android:paddingVertical="10dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="12dp">
-
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:layout_marginEnd="12dp"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_viec_nha"
-                    app:tint="@color/wait_ink" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/bang_viec_cho"
-                        android:textColor="@color/wait_ink"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/chuViecCho"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="1dp"
-                        android:textColor="@color/wait_ink"
-                        android:textSize="13sp" />
-                </LinearLayout>
-
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_mo_tiep"
-                    app:tint="@color/wait_ink" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Bai dang cho: chi hien khi co, va bam vao la sang thang tab Bai tap. -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/theBaiCho"
-            style="@style/The"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:visibility="gone"
-            app:cardBackgroundColor="@color/wait_soft"
-            app:strokeColor="@color/wait">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:minHeight="56dp"
-                android:orientation="horizontal"
-                android:paddingVertical="10dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="12dp">
-
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:layout_marginEnd="12dp"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_bai"
-                    app:tint="@color/wait_ink" />
-
-                <TextView
-                    android:id="@+id/chuBaiCho"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textColor="@color/wait_ink"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_mo_tiep"
-                    app:tint="@color/wait_ink" />
-            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Cac dong vo dan do chua toi han, gom theo buoi (hop/nhacbai). Tablet nhac Le Hoa
@@ -699,5 +781,22 @@
                     android:textSize="14sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+      </LinearLayout>
+
+      <LinearLayout
+          android:id="@+id/khoiLaptop"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="vertical"
+          android:visibility="gone">
+
+        <!-- The Laptop (8/10/2026): phut Netflix, trang thai, nhan len tivi, chup man hinh, dang
+             xuat, tat may. TheLaptop ve; an khi laptop chua noi vao nha. -->
+        <include
+            android:id="@+id/theLaptop"
+            layout="@layout/the_laptop" />
+
+      </LinearLayout>
     </LinearLayout>
-</ScrollView>
+    </ScrollView>
+</LinearLayout>

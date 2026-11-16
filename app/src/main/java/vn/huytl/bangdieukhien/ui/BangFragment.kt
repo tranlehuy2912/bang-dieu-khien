@@ -2,6 +2,8 @@ package vn.huytl.bangdieukhien.ui
 
 import android.content.ClipboardManager
 import android.content.DialogInterface
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -61,6 +63,12 @@ class BangFragment : Fragment() {
 
     /** The Laptop (8/10/2026), dung lai cung view. Xem [TheLaptop]. */
     private var theLaptop: TheLaptop? = null
+
+    /**
+     * Dang xem the con Laptop thay vi Tablet (phuong an B, anh Huy chon 16/11/2026). Laptop chua
+     * noi thi luon ve false, xem [veChonMay].
+     */
+    private var dangXemLaptop = false
 
     /** Lenh may nay da go ma tablet chua lay, cu nhat truoc. Xem [veLenhCho]. */
     private var lenhCho: List<LenhCho> = emptyList()
@@ -196,6 +204,17 @@ class BangFragment : Fragment() {
         b.nutTinCo.setOnClickListener { hoiTinCo() }
         b.theViecCho.setOnClickListener { (activity as? MainActivity)?.sangTheViecNha() }
         b.theBaiCho.setOnClickListener { (activity as? MainActivity)?.sangTheBai() }
+        // Cong tac Tablet | Laptop o dau tab (phuong an B, 16/11/2026).
+        b.nutXemTablet.setOnClickListener { dangXemLaptop = false; veChonMay() }
+        b.nutXemLaptop.setOnClickListener { dangXemLaptop = true; veChonMay() }
+        // Mau H: hinh tron bong cho hai the viec cho, nhan trang thai la dai ruy bang (xam luc chua
+        // co ban trang thai nao cua tablet; co roi thi [ve] to theo trang thai).
+        val ct = requireContext()
+        b.hinhBaiCho.background = HinhBong.tron(ct, ContextCompat.getColor(ct, R.color.wait), 46f, vienDp = 3f)
+        b.hinhViecCho.background = HinhBong.tron(ct, ContextCompat.getColor(ct, R.color.locked), 46f, vienDp = 3f)
+        val xam = ContextCompat.getColor(ct, R.color.ink_mo)
+        b.nhanTrangThai.background = HinhBong.ruyBang(ct, xam, HinhBong.dam(xam))
+        veChonMay()
         // Nhan giu the canh bao hay dong bao hong la chep ca doan, de dan cho Claude Code
         // luc go loi: cau bao hong co khi mang nguyen van loi cua Firestore.
         b.chuCanhBao.setOnLongClickListener { chepChu(b.chuCanhBao, "Đã chép dòng cảnh báo.") }
@@ -369,7 +388,7 @@ class BangFragment : Fragment() {
         b.khoiQuy.alpha = doDam
         // Phan chu cac hang de thi mo di o [veDeThi]: hang co the vua dung lai o do.
 
-        val (chu, mau, mauNhat) = when {
+        val (chu, mau, _) = when {
             // Viec nha xet truoc ca che do Ba: dang khoa vi viec nha thi moi thu
             // khac tren man hinh nay deu khong giai thich duoc cai tablet dang the.
             tt.viecNha.isNotEmpty() ->
@@ -382,15 +401,21 @@ class BangFragment : Fragment() {
             else -> Bo(getString(R.string.bang_dang_khoa), R.color.locked, R.color.locked_soft)
         }
         b.nhanTrangThai.text = chu
-        // Chu vang tren nen vang nhat thi mo qua, doc khong ra: nhan vang dung chu vang dam.
-        b.nhanTrangThai.setTextColor(
-            ContextCompat.getColor(ct, if (mau == R.color.wait) R.color.wait_ink else mau)
-        )
-        b.nhanTrangThai.backgroundTintList =
-            ContextCompat.getColorStateList(ct, mauNhat)
-        b.thanhPhien.setIndicatorColor(ContextCompat.getColor(ct, mau))
+        // Mau H (16/11/2026): nhan la dai ruy bang mau trang thai chu trang, the chinh vien day
+        // cung mau, dong ho chu trang vien mau dam. Truoc do nhan la vien nhat chu dam (mauNhat).
+        val mauThe = ContextCompat.getColor(ct, mau)
+        val mauDam = HinhBong.dam(mauThe)
+        b.nhanTrangThai.background = HinhBong.ruyBang(ct, mauThe, mauDam)
+        b.dongHo.mauVien = mauDam
+        b.theChinh.strokeColor = mauThe
+        b.theChinh.strokeWidth = (5 * resources.displayMetrics.density).toInt()
+        b.thanhPhien.setIndicatorColor(mauThe)
 
         b.nutDung.text = if (tt.cong == Cong.TAM_DUNG) "Chơi tiếp" else "Tạm dừng"
+        // Choi tiep la vao choi (xanh la), tam dung la giu gio (vang), nhu nut ben tablet.
+        b.nutDung.setBackgroundResource(
+            if (tt.cong == Cong.TAM_DUNG) R.drawable.nut_bong_xanhla else R.drawable.nut_bong_vang
+        )
         veHangPhien(tt)
         // Luc dang mo toan bo may thi nut dong nam trong the chinh, xem [veHangPhien].
         b.nutMoMay.visibility = if (tt.cheDoBaBat) View.GONE else View.VISIBLE
@@ -580,10 +605,54 @@ class BangFragment : Fragment() {
         }
     }
 
+    /**
+     * Cong tac "Tablet | Laptop" o dau tab (phuong an B cua mau H, anh Huy chon 16/11/2026).
+     *
+     * Chi hien khi laptop da noi vao nha: [TheLaptop.ve] tu an the khi chua co laptop, nen nhin
+     * the do la biet. The con dang chon to mau (xanh cho tablet, do cho laptop), the kia trang.
+     * Truoc do the Laptop nam chung trang voi the chinh, va hai hang 15' 30' 45' Khac Bot giong
+     * het nhau nam tren mot trang.
+     */
+    private fun veChonMay() {
+        if (_b == null) return
+        val coLaptop = b.theLaptop.root.visibility == View.VISIBLE
+        if (!coLaptop) dangXemLaptop = false
+        b.hangChonMay.visibility = if (coLaptop) View.VISIBLE else View.GONE
+        b.khoiTablet.visibility = if (dangXemLaptop) View.GONE else View.VISIBLE
+        b.khoiLaptop.visibility = if (dangXemLaptop) View.VISIBLE else View.GONE
+        val ct = requireContext()
+        listOf(
+            Triple(b.nutXemTablet, !dangXemLaptop, R.drawable.nut_bong_xanh),
+            Triple(b.nutXemLaptop, dangXemLaptop, R.drawable.nut_bong_do)
+        ).forEach { (nut, chon, nen) ->
+            nut.setBackgroundResource(if (chon) nen else R.drawable.nut_bong_trang)
+            nut.setTextColor(ColorStateList.valueOf(if (chon) Color.WHITE else ContextCompat.getColor(ct, R.color.ink)))
+            if (chon) nut.setShadowLayer(1f, 0f, 2f, 0x40000000) else nut.setShadowLayer(0f, 0f, 0f, 0)
+        }
+    }
+
+    /**
+     * Dau "∞" (che do Ba Huy khong dat han) ma ve chu trang vien day thi vien lap mat hai lo, ra
+     * mot cai mat na (thay 16/11/2026). Luc do ve dac mau vien, khong vien, phong Baloo 2 dam;
+     * con lai giu Coiny chu trang vien mau.
+     */
+    private fun datPhongDongHo() {
+        val ct = context ?: return
+        val voCuc = b.dongHo.text?.toString() == "∞"
+        val phong = androidx.core.content.res.ResourcesCompat.getFont(ct, if (voCuc) R.font.baloo2 else R.font.coiny)
+        b.dongHo.setTypeface(phong, if (voCuc) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+        val dp = resources.displayMetrics.density
+        b.dongHo.doDayVien = if (voCuc) 0f else 8f * dp
+        b.dongHo.lechBong = if (voCuc) 0f else 5f * dp
+        b.dongHo.setTextColor(if (voCuc) b.dongHo.mauVien else Color.WHITE)
+    }
+
     /** Chay moi giay. Chi doi vai dong chu, khong dung toi Firestore. */
     private fun veDongHo() {
-        val tt = moiNhat ?: return
         if (_b == null) return
+        // The Laptop tu an hien theo du lieu laptop (TheLaptop.ve): moi giay xem lai cong tac.
+        veChonMay()
+        val tt = moiNhat ?: return
         veDangMo(tt)
         // Dang choi thi khuc da choi lon dan, khuc dang giu nho dan tung phut, ma tablet chi
         // day ban moi khi trang thai doi: may nay tu tinh, nhu dong ho dem nguoc o tren.
@@ -607,10 +676,12 @@ class BangFragment : Fragment() {
             b.duoiDongHo.text =
                 if (tt.cheDoBaHetLuc > 0) "còn lại của chế độ Ba Huy"
                 else "không đặt hạn, nhớ tự đóng"
+            datPhongDongHo()
             b.thanhPhien.visibility = View.GONE
             return
         }
 
+        datPhongDongHo()
         val conLai = tt.conLaiBayGio()
         when (tt.cong) {
             Cong.KHOA -> {

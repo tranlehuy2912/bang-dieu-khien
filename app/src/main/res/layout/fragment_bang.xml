@@ -37,11 +37,11 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:fontFamily="@font/coiny"
+                android:fontFamily="@font/baloo2_rat_dam"
                 android:text="@string/child_name"
                 android:textColor="@color/ink"
                 android:textSize="26sp"
-                app:fontFamily="@font/coiny" />
+                app:fontFamily="@font/baloo2_rat_dam" />
 
             <View
                 android:id="@+id/chamSong"
@@ -188,7 +188,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/vien_nhan"
-                        android:fontFamily="@font/coiny"
+                        android:fontFamily="@font/baloo2_rat_dam"
                         android:paddingStart="16dp"
                         android:paddingTop="6dp"
                         android:paddingEnd="16dp"
@@ -199,7 +199,7 @@
                         android:text="@string/bang_dang_hoi"
                         android:textColor="@android:color/white"
                         android:textSize="15sp"
-                        app:fontFamily="@font/coiny" />
+                        app:fontFamily="@font/baloo2_rat_dam" />
 
                     <!-- Tablet dang mo app gi. Ngay duoi nhan: nhan noi cong dang the
                          nao, dong nay noi con dang lam gi voi no. -->

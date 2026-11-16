@@ -100,8 +100,8 @@ object Kho {
                     mapOf(
                         "ma" to maGhep.trim(),
                         "luc" to System.currentTimeMillis(),
-                        // May nay xin vao lam nguoi nha day du. May ba noi gui
-                        // Nguoi.BA_NOI, va ben kia xep no vao danh sach phu.
+                        // May nay xin vao lam nguoi nha day du. Truoc 16/11/2026 con
+                        // may ba noi gui Nguoi.BA_NOI de vao danh sach phu; app ba da bo.
                         Duong.F_AI to Nguoi.BA_HUY
                     )
                 )
@@ -181,6 +181,12 @@ object Kho {
                 if (xin.getString("trangThai") != null) return@forEach
                 // Bo qua chinh loi xin cua may nay, neu no con sot lai tu lan ghep cu.
                 if (xin.id == uid(context)) return@forEach
+                // App may ba noi bo ngay 16/11/2026 cung danh sach phu uidsPhu: ban app
+                // cu con sot ma xin vao thi tu choi, khong xep vao nguoi nha day du.
+                if (xin.getString(Duong.F_AI) == Nguoi.BA_NOI) {
+                    xin.reference.update("trangThai", "SAI")
+                    return@forEach
+                }
                 d.get().addOnSuccessListener { nhaDoc ->
                     val ma = nhaDoc.getString(Duong.F_MA_GHEP).orEmpty()
                     val han = nhaDoc.getLong(Duong.F_MA_GHEP_HET_HAN) ?: 0L
@@ -188,14 +194,7 @@ object Kho {
                         xin.getString("ma") == ma &&
                         System.currentTimeMillis() < han
                     if (dung) {
-                        // May ba noi vao danh sach phu: luat ben Firestore chi cho
-                        // danh sach do giao viec nha, khong go duoc lenh nao. Xem
-                        // uidsPhu trong firestore.rules.
-                        val phu = xin.getString(Duong.F_AI) == Nguoi.BA_NOI
-                        d.update(
-                            if (phu) Duong.F_UIDS_PHU else Duong.F_UIDS,
-                            FieldValue.arrayUnion(xin.id)
-                        )
+                        d.update(Duong.F_UIDS, FieldValue.arrayUnion(xin.id))
                         xin.reference.update("trangThai", "OK")
                         d.update(Duong.F_MA_GHEP, "", Duong.F_MA_GHEP_HET_HAN, 0L)
                         khi(true)

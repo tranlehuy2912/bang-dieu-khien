@@ -135,7 +135,7 @@
     <string name="viec_bo_het_hoi_them">Tablet mở khoá ngay và không cộng phút nào, kể cả những việc đã xong.</string>
     <string name="viec_sua">Sửa danh sách</string>
     <string name="viec_sua_tieu_de">Danh sách việc nhà</string>
-    <string name="viec_sua_huong_dan">Lưu xong thì máy bà nội đổi theo ngay. Tối đa %1$d việc, mỗi việc từ 0 đến %2$d phút.</string>
+    <string name="viec_sua_huong_dan">Tối đa %1$d việc, mỗi việc từ 0 đến %2$d phút.</string>
     <string name="viec_them">Thêm việc</string>
     <string name="viec_luu">Lưu</string>
 

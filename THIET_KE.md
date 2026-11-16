@@ -1,11 +1,11 @@
 # Bảng điều khiển — app quản lý của Ba Huy
 
-App thứ ba trong nhà:
+App thứ ba trong nhà. Từ ngày 16/11/2026 nhà chỉ còn hai app: anh Huy bỏ app của bà nội, xoá hẳn kho `cho-gio-choi`, và luật Firestore bỏ danh sách phụ `uidsPhu` của máy bà. Việc nhà giờ chỉ Ba Huy giao từ Bảng điều khiển. Các đoạn dưới đây còn nhắc máy bà là phần lịch sử, giải thích vì sao thiết kế ra như hiện tại.
 
 | App | Máy | Việc |
 |---|---|---|
 | **Nộp bài** (`nop-bai`) | tablet Lê Hòa | chụp bài, khoá máy, canh giờ chơi |
-| **Việc nhà của Lê Hòa** (`cho-gio-choi`) | điện thoại bà nội | giao việc nhà. Trước 26/09/2026 app tên Cho giờ chơi, có sáu nút cho giờ |
+| ~~**Việc nhà của Lê Hòa** (`cho-gio-choi`)~~ | điện thoại bà nội | bỏ ngày 16/11/2026. Trước đó chỉ giao việc nhà; trước 26/09/2026 app tên Cho giờ chơi, có sáu nút cho giờ |
 | **Bảng điều khiển** (`bang-dieu-khien`) | điện thoại Ba Huy | duyệt bài, nhờ Claude chấm, xem, chỉnh, cấp quỹ giờ chơi, giao việc nhà; thay phần lệnh Telegram |
 
 ## Vì sao không đi bằng Telegram
